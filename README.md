@@ -1,0 +1,54 @@
+# AI Minecraft Architecture Studio
+
+**Specification-first development repository** — Minecraft Java Edition **1.20.1 Vanilla**  
+**Status:** documentation/bootstrap only. The website, AI pipeline, editor, testing framework, and deployment **have not yet been implemented**.
+
+## Vision
+
+Convert one or multiple architectural photos into an **editable and buildable Minecraft voxel structure**, not merely a generated picture or triangular mesh. A single canonical Block Model drives the 3D viewer, 2D editor, materials, construction progress, validation and exports. Players can modify blocks directly and then follow layer-by-layer building guidance.
+
+## Start in Codex Cloud
+
+1. Connect this **private GitHub repository** to Codex Cloud and select **High** reasoning for initial architecture.
+2. Read [AGENTS.md](AGENTS.md) and [the full product specification](docs/MASTER_SPEC.md).
+3. Paste [the first-task prompt](docs/WORK_START_PROMPT.md) into your initial Codex task.
+4. Run **M0 — Environment and Architecture** first. Only mark it PASS after commands, tests and evidence have been recorded.
+5. Continue milestones using [ROADMAP](docs/ROADMAP.md) and [TEST_PLAN](docs/TEST_PLAN.md). Each stage must implement, test, review, integrate, regress, commit and record its gate decision.
+6. Review any required MCP access, generation cost and environment secrets before use.
+
+## Documentation map
+
+| File | Purpose |
+| --- | --- |
+| [AGENTS.md](AGENTS.md) | Binding engineering, delegation, data-integrity and test rules |
+| [docs/MASTER_SPEC.md](docs/MASTER_SPEC.md) | Authoritative full product specification |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Proposed modules, invariants, contracts and data flow |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | M0–M10 phases, dependencies and gates |
+| [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | Layered tests and measurable validation |
+| [docs/AGENT_TASKS.md](docs/AGENT_TASKS.md) | Agent delegation template and initial backlog |
+| [docs/MCP_CAPABILITIES.md](docs/MCP_CAPABILITIES.md) | Verified ChatGPT versus unverified Codex/Higgsfield integrations |
+| [docs/WORK_START_PROMPT.md](docs/WORK_START_PROMPT.md) | Ready-to-paste Codex Cloud start command |
+
+## Architecture constraints
+
+- Versioned canonical sparse voxel data store; integer XYZ and validated Minecraft block states.
+- Atomic edit commands with undo/redo; **3D, 2D and exports must not diverge**.
+- Minecraft multi-block items must not be counted by occupied-cell count.
+- User-editable 3D and blueprint editing must work independently from paid AI services.
+- Higgsfield-generated GLB/image output is **reference data**, not authoritative Minecraft block coordinates.
+- High/Medium/Low delegation is conditional on **actual** per-agent model routing capabilities.
+- No fake AI demos, invalid schematic formats, unlicensed texture redistribution or untested completion claims.
+
+## Cloud, local and deployment
+
+Use **Codex Cloud + GitHub** for main development. A separate local Minecraft Java test environment can validate exported structures in-game. GitHub stores source and checkpoints; it is **not** itself the deployed website. Deployment will be configured later in an explicit milestone.
+
+Do **not** commit API keys or user-uploaded private building images. Keep secrets server-side and only enable billed Higgsfield generations after explicit user approval of cost.
+
+## Development status
+
+- [x] Private repository created and engineering documents committed
+- [ ] M0 environment and runnable app validation
+- [ ] M1–M10 implementation and acceptance
+
+Start with the instructions in `docs/WORK_START_PROMPT.md`; the repository currently contains **specification documents only**.
