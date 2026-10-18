@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.yarn/
+.next/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Local configuration, personal media and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+private/
+uploads/
+generated/
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Minecraft test outputs
+*.litematic
+*.schem
+*.nbt
