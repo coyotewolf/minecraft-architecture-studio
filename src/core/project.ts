@@ -2,7 +2,8 @@ import { COORDINATE_CONVENTION, MINECRAFT_VERSION, SCHEMA_VERSION } from './cont
 import type { Evidence, Project } from './contracts.ts';
 
 export function createEmptyProject(id: string, title: string): Project {
-  if (!id.trim()) throw new Error('Project ID is required');
+  if (!id.trim() || id.length > 512) throw new Error('Project ID must contain 1–512 characters');
+  if (title.length > 512) throw new Error('Project title exceeds 512 characters');
   return Object.freeze({
     id, title, schemaVersion: SCHEMA_VERSION, minecraftVersion: MINECRAFT_VERSION,
     coordinateConvention: COORDINATE_CONVENTION, designRevision: 'initial',
