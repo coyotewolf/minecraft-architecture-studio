@@ -56,3 +56,11 @@ Escalation condition:
 7. **M2-T2 (Medium candidate):** camera toolbar and block inspector against frozen contracts.
 
 Nothing in this file constitutes completed implementation. Update status only with executed evidence and milestone-gate reports.
+
+## Executed M0 audit — 2026-10-19
+
+Actual `collaboration.spawn_agent` created `/root/contract_review`; `followup_task` successfully ran a second read-only registry-source investigation. Both returned substantive connector-read evidence. The worker inherited the selected lead model/reasoning; no model or reasoning override was requested. Tool schema advertises model/effort controls and a seven-agent total concurrency ceiling, but distinct routes and saturation limits were not tested. No isolated worktree was used: agents share the workspace.
+
+Ownership: lead alone writes all source/config/docs and integrates; reviewer had read-only docs/source research, no permitted edits or commits. Inputs: required repository docs; outputs: contract pitfalls, M0 test requirements, source pin/licensing caveat. Review commands were GitHub fetch/fetch_file, not app tests. Registry source findings were integrated into ARCHITECTURE.md. Lead owns actual check commands and final gate.
+
+Decision: real inherited-agent delegation is verified. High/Medium/Low remain responsibility labels rather than claims of tested model-tier switches. Do not infer this capability in another Cloud task. Save restart state on `codex/m0-foundation`; inspect docs/progress/M0.md and the branch head before continuing.

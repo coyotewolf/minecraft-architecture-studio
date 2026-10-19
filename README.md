@@ -1,7 +1,7 @@
 # AI Minecraft Architecture Studio
 
 **Specification-first development repository** — Minecraft Java Edition **1.20.1 Vanilla**  
-**Status:** documentation/bootstrap only. The website, AI pipeline, editor, testing framework, and deployment **have not yet been implemented**.
+**Status:** M0 foundation implemented and tested; the voxel editor, AI pipeline and deployment are not implemented. See [M0 evidence](docs/progress/M0.md).
 
 ## Vision
 
@@ -48,7 +48,30 @@ Do **not** commit API keys or user-uploaded private building images. Keep secret
 ## Development status
 
 - [x] Private repository created and engineering documents committed
-- [ ] M0 environment and runnable app validation
+- [x] M0 environment and runnable app validation (see evidence report)
 - [ ] M1–M10 implementation and acceptance
 
-Start with the instructions in `docs/WORK_START_PROMPT.md`; the repository currently contains **specification documents only**.
+Start with the milestone report and resume from its exact branch/commit. M1–M10 remain unfinished.
+
+## Run the M0 foundation
+
+Node >=22.12 and npm are required.
+
+```sh
+npm ci
+npm run dev
+```
+
+Open http://127.0.0.1:5173. The screen is an in-memory empty-project shell, not a voxel editor or saved project.
+
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run build
+# Or run all four checks:
+npm run check
+```
+
+The lockfile pins dependencies. The M0 environment installed from an existing offline npm cache; normal clean environments can use npm ci with registry access. Do not commit node_modules, caches, builds, personal photos or credentials.
+

@@ -1,6 +1,6 @@
 # Verification and regression plan
 
-**Status:** Required acceptance criteria; no automated tests have been run at documentation-bootstrap time.
+**Status:** M0 now has 26 executed passing unit tests and typecheck/lint/build/browser-startup evidence; see [M0 report](progress/M0.md). Later milestone criteria below remain required and unexecuted.
 
 ## Test levels
 
@@ -70,3 +70,4 @@ Every test report records:
 ## Defect handling
 
 A failing required gate is **FAIL** until corrected and retested. A missing external service is **BLOCKED**; dependent AI claims remain unavailable. Never weaken assertions, silently skip failing tests, replace real behavior with permanent mocks or mark an unexecuted test green.
+
