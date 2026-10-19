@@ -48,7 +48,7 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
   if(bounds.isEmpty())bounds.set(new THREE.Vector3(-1,0,-1),new THREE.Vector3(1,2,1));
   const origin=bounds.getCenter(new THREE.Vector3());
   const extent=bounds.getSize(new THREE.Vector3());
-  const model=buildModelGroup(blocks,shapes,origin.toArray());scene.add(model);
+  let model=buildModelGroup(blocks,shapes,origin.toArray());scene.add(model); let modelCenter=new THREE.Vector3(); let workY=0; let previewGroup=null;
   scene.add(new THREE.AmbientLight(0xffffff,1.6));
   const sun=new THREE.DirectionalLight(0xffefcf,2.4);sun.position.set(10,18,12);scene.add(sun);
   const gridSize=Math.max(12,Math.ceil(Math.max(extent.x,extent.z))+4);
@@ -58,10 +58,10 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
   const controls=new OrbitControls(camera,canvas);
   controls.enableDamping=false;controls.minDistance=0.8;controls.maxPolarAngle=Math.PI-0.01;
   const selection=new THREE.Box3Helper(new THREE.Box3(),0xdff5b2);selection.visible=false;scene.add(selection);
-  const lookup=new Map(blocks.map(b=>[b.uid,b]));
+  let lookup=new Map(blocks.map(b=>[b.uid,b]));
   let disposed=false; let viewPreset='isometric'; let userNavigated=false; let fittedTarget=new THREE.Vector3(); let fittedSize=extent.clone();
   function render(){if(disposed)return;renderer.render(scene,camera);canvas.dataset.camera=JSON.stringify({position:camera.position.toArray(),target:controls.target.toArray(),origin:origin.toArray(),fov:camera.fov,aspect:camera.aspect});}
-  function fit(preset='isometric',target=new THREE.Vector3(),size=extent){
+  function fit(preset='isometric',target=modelCenter,size=extent){
     viewPreset=preset; userNavigated=false; fittedTarget=target.clone(); fittedSize=size.clone();
     const directions={isometric:[1,0.8,1.2],top:[0,1,0.00001],front:[0,0,-1],back:[0,0,1],left:[-1,0,0],right:[1,0,0]};
     const radius=Math.max(1,size.length()/2),halfFov=THREE.MathUtils.degToRad(camera.fov/2);
@@ -78,11 +78,12 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
   const pointers=new Map();let gesture=false;
   const onDown=e=>{userNavigated=true;canvas.focus({preventScroll:true});if(pointers.size===0)gesture=false;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,button:e.button});if(pointers.size>1)gesture=true;};
   const onMove=e=>{const start=pointers.get(e.pointerId);if(start&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>5)gesture=true;};
-  const onUp=e=>{const start=pointers.get(e.pointerId);const choose=start&&start.button===0&&!gesture&&pointers.size===1&&Math.hypot(e.clientX-start.x,e.clientY-start.y)<=5;pointers.delete(e.pointerId);if(!choose)return;const r=canvas.getBoundingClientRect();const pointer=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);const ray=new THREE.Raycaster();ray.setFromCamera(pointer,camera);const hit=ray.intersectObjects(model.children,false)[0];onSelect(hit?.object.userData.uid??null);};
+  function dispatchPick(ray){const hit=ray.intersectObjects(model.children,false)[0];if(hit){const block=lookup.get(hit.object.userData.uid);onSelect(block.uid,{uid:block.uid,pos:block.pos,normal:{x:hit.face.normal.x,y:hit.face.normal.y,z:hit.face.normal.z}});return;}const plane=new THREE.Plane(new THREE.Vector3(0,1,0),origin.y-workY);const point=ray.ray.intersectPlane(plane,new THREE.Vector3());if(point){onSelect(null,{uid:null,pos:{x:Math.floor(point.x+origin.x),y:workY,z:Math.floor(point.z+origin.z)},normal:{x:0,y:1,z:0}});}else onSelect(null,null);}
+  const onUp=e=>{const start=pointers.get(e.pointerId);const choose=start&&start.button===0&&!gesture&&pointers.size===1&&Math.hypot(e.clientX-start.x,e.clientY-start.y)<=5;pointers.delete(e.pointerId);if(!choose)return;const r=canvas.getBoundingClientRect();const pointer=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);const ray=new THREE.Raycaster();ray.setFromCamera(pointer,camera);dispatchPick(ray);};
   const onCancel=e=>{pointers.delete(e.pointerId);gesture=true;};
   const onKey=e=>{
     if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','+','=','-','Home','Escape','Enter',' '].includes(e.key))return;
-    e.preventDefault();if(e.key==='Enter'||e.key===' '){const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),camera);const hit=ray.intersectObjects(model.children,false)[0];onSelect(hit?.object.userData.uid??null);return;}userNavigated=true;if(e.key==='Home'){fit();return;}if(e.key==='Escape'){onSelect(null);return;}
+    e.preventDefault();if(e.key==='Enter'||e.key===' '){const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(0,0),camera);dispatchPick(ray);return;}userNavigated=true;if(e.key==='Home'){fit();return;}if(e.key==='Escape'){onSelect(null);return;}
     const offset=camera.position.clone().sub(controls.target);
     if(e.key==='+'||e.key==='='||e.key==='-'){offset.multiplyScalar(e.key==='-'?1.15:1/1.15);offset.clampLength(controls.minDistance,controls.maxDistance);}
     else if(e.shiftKey){const d=offset.length()*0.04;const shift=new THREE.Vector3(e.key==='ArrowLeft'?-d:e.key==='ArrowRight'?d:0,e.key==='ArrowUp'?d:e.key==='ArrowDown'?-d:0,0).applyQuaternion(camera.quaternion);controls.target.add(shift);}
@@ -97,6 +98,18 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
   resize();fit();
   return {
     preset: p=>fit(p), reset:()=>fit(),
+    workPlane:y=>{workY=y;grid.position.y=y-origin.y-0.015;render();},
+    updateModel:(nextBlocks,nextShapes)=>{
+      scene.remove(model);disposeGroup(model);model=buildModelGroup(nextBlocks,nextShapes,origin.toArray());scene.add(model);
+      lookup=new Map(nextBlocks.map(b=>[b.uid,b]));bounds.makeEmpty();
+      for(const b of nextBlocks){bounds.expandByPoint(new THREE.Vector3(b.pos.x,b.pos.y,b.pos.z));bounds.expandByPoint(new THREE.Vector3(b.pos.x+1,b.pos.y+1,b.pos.z+1));}
+      if(bounds.isEmpty())bounds.set(new THREE.Vector3(-1,0,-1),new THREE.Vector3(1,2,1));
+      bounds.getSize(extent);modelCenter=bounds.getCenter(new THREE.Vector3()).sub(origin);selection.visible=false;render();
+    },
+    preview:(records,recordShapes,valid)=>{
+      if(previewGroup){scene.remove(previewGroup);disposeGroup(previewGroup);previewGroup=null;}
+      if(records.length){previewGroup=buildModelGroup(records,recordShapes,origin.toArray());previewGroup.traverse(o=>{if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material]){m.color.setHex(valid?0x8fffb0:0xff6677);m.transparent=true;m.opacity=0.55;m.depthWrite=false;m.polygonOffset=true;m.polygonOffsetFactor=-2;}}});scene.add(previewGroup);}render();
+    },
     focus:uid=>{const b=lookup.get(uid);if(b)fit('isometric',new THREE.Vector3(b.pos.x+0.5,b.pos.y+0.5,b.pos.z+0.5).sub(origin),new THREE.Vector3(2,2,2));},
     select:uid=>{const b=lookup.get(uid);selection.visible=!!b;if(b){selection.box.set(new THREE.Vector3(b.pos.x,b.pos.y,b.pos.z).sub(origin),new THREE.Vector3(b.pos.x+1,b.pos.y+1,b.pos.z+1).sub(origin));}render();},
     dispose:()=>{disposed=true;observer.disconnect();controls.removeEventListener('change',render);controls.dispose();canvas.removeEventListener('pointerdown',onDown);canvas.removeEventListener('pointermove',onMove);canvas.removeEventListener('pointerup',onUp);canvas.removeEventListener('pointercancel',onCancel);canvas.removeEventListener('keydown',onKey);canvas.removeEventListener('wheel',onWheel);canvas.removeEventListener('webglcontextlost',onContextLost);canvas.removeEventListener('webglcontextrestored',onContextRestored);disposeGroup(scene);renderer.dispose();renderer.forceContextLoss();canvas.remove();},
