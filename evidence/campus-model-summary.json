@@ -1,0 +1,227 @@
+{
+  "districts": [
+    {
+      "id": "ring-control-spire",
+      "title": "環門控制尖塔",
+      "cells": 10399,
+      "references": [
+        "reference-08"
+      ],
+      "features": [
+        "左上：白色環門、金色尖頂與深色控制塔",
+        "右上：多層環景控制台",
+        "左下：植栽柱廊與庭院",
+        "右下：折返樓梯與入口"
+      ]
+    },
+    {
+      "id": "teardrop-command",
+      "title": "淚滴中央指揮塔",
+      "cells": 11779,
+      "references": [
+        "reference-11"
+      ],
+      "features": [
+        "左上：金邊淚滴輪廓、玻璃樓層與交叉支架",
+        "右上：挑高中央中庭與折返樓梯",
+        "左下：指揮休息室與地圖牆",
+        "右下：裝飾伺服器列"
+      ]
+    },
+    {
+      "id": "twin-residential-library",
+      "title": "雙橢圓住宅與圖書塔",
+      "cells": 14597,
+      "references": [
+        "reference-09"
+      ],
+      "features": [
+        "左上：雙橢圓玻璃塔與空橋",
+        "右上：實驗／展示工作區",
+        "左下：住宅套房、床與收納",
+        "右下：書架閱覽室與植栽交誼區"
+      ]
+    },
+    {
+      "id": "sphere-observatory",
+      "title": "球形天文館與玻璃展廊",
+      "cells": 4137,
+      "references": [
+        "reference-06"
+      ],
+      "features": [
+        "左上：白金球形天文館與拱頂玻璃廊",
+        "右上：星球展示牆與環形觀景層",
+        "左下：閱覽角及樓梯剖面",
+        "右下：對稱植栽展示廊"
+      ]
+    },
+    {
+      "id": "campus-industry",
+      "title": "工業工坊與高架鐵道",
+      "cells": 12289,
+      "references": [
+        "reference-10"
+      ],
+      "features": [
+        "主廠房玻璃鋸齒屋頂與金色肋骨",
+        "熔爐工作列、原料堆、雙煙囪",
+        "高架月台、軌道與靜態列車",
+        "工廠夾層及三格寬樓梯"
+      ]
+    },
+    {
+      "id": "campus-airport",
+      "title": "空港跑道與高架發射機庫",
+      "cells": 19460,
+      "references": [
+        "reference-02"
+      ],
+      "features": [
+        "三座地面機庫與前庭滑行區",
+        "長條跑道、中心線及邊燈",
+        "玻璃控制塔與內部指揮台",
+        "高架發射機庫、靜態太空船與登艦階梯"
+      ]
+    },
+    {
+      "id": "campus-dragons",
+      "title": "三龍棲舍與照護圍場",
+      "cells": 13599,
+      "references": [
+        "reference-03"
+      ],
+      "features": [
+        "紅、黑、白三座可辨識龍雕塑",
+        "三座玻璃棲舍與後方觀察夾層",
+        "藍玻璃靜態水槽、乾草餵食區與戶外圍場",
+        "翼、角、四足與長尾的方塊造型"
+      ]
+    },
+    {
+      "id": "campus-workshop",
+      "title": "斜撐玻璃工坊與附魔塔",
+      "cells": 7802,
+      "references": [
+        "reference-07"
+      ],
+      "features": [
+        "四層玻璃塔、交叉斜撐與金色水平線",
+        "鐵砧、鍛造台、製圖與木作工作站",
+        "頂層附魔台、書架與環形走道",
+        "各層三格寬樓梯與入口通道"
+      ]
+    },
+    {
+      "id": "garden-greenhouses",
+      "title": "雙拱農牧溫室",
+      "cells": 12927,
+      "references": [
+        "reference-04"
+      ],
+      "features": [
+        "雙筒玻璃拱頂",
+        "種植床與示意灌溉渠",
+        "牲畜分欄",
+        "牧場閣樓與實體樓梯"
+      ]
+    },
+    {
+      "id": "garden-apartments",
+      "title": "退台住宅與寵物居所",
+      "cells": 17438,
+      "references": [
+        "reference-05"
+      ],
+      "features": [
+        "雙塔退台公寓",
+        "六層連續實體樓梯",
+        "臥室與成對床",
+        "廚房餐桌",
+        "寵物櫃與露台植栽"
+      ]
+    },
+    {
+      "id": "garden-pavilions",
+      "title": "五座粉晶穹頂會客亭",
+      "cells": 6085,
+      "references": [
+        "reference-05"
+      ],
+      "features": [
+        "五座粉色階梯穹頂",
+        "橢圓廣場與步道",
+        "環形座椅",
+        "地圖閱覽桌"
+      ]
+    },
+    {
+      "id": "garden-temples",
+      "title": "雙金字塔附魔與鍊金殿",
+      "cells": 3948,
+      "references": [
+        "reference-07"
+      ],
+      "features": [
+        "雙座金色階梯金字塔",
+        "中空附魔殿與書牆",
+        "鍊金工作台",
+        "入口階梯與雙格淨空"
+      ]
+    },
+    {
+      "id": "campus-landscape-center",
+      "title": "群島地景・橋樑與環線 / 中區",
+      "cells": 20479,
+      "references": [
+        "reference-01"
+      ],
+      "features": [
+        "分島岩壁與承台",
+        "跨區步行橋網",
+        "植栽與路燈",
+        "藍色玻璃瀑布雕塑",
+        "兩座景觀圓環",
+        "三層泡泡觀景艙",
+        "中央塔至空港的高架玻璃天橋"
+      ]
+    },
+    {
+      "id": "campus-landscape-north",
+      "title": "群島地景・橋樑與環線 / 北區",
+      "cells": 14945,
+      "references": [
+        "reference-01"
+      ],
+      "features": [
+        "分島岩壁與承台",
+        "跨區步行橋網",
+        "植栽與路燈",
+        "藍色玻璃瀑布雕塑",
+        "兩座景觀圓環",
+        "三層泡泡觀景艙",
+        "中央塔至空港的高架玻璃天橋"
+      ]
+    },
+    {
+      "id": "campus-landscape-south",
+      "title": "群島地景・橋樑與環線 / 南區",
+      "cells": 18328,
+      "references": [
+        "reference-01"
+      ],
+      "features": [
+        "分島岩壁與承台",
+        "跨區步行橋網",
+        "植栽與路燈",
+        "藍色玻璃瀑布雕塑",
+        "兩座景觀圓環",
+        "三層泡泡觀景艙",
+        "中央塔至空港的高架玻璃天橋"
+      ]
+    }
+  ],
+  "cells": 188212,
+  "inventory": 188171,
+  "materialTypes": 56
+}
