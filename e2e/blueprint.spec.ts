@@ -26,7 +26,7 @@ async function expectPosition(page: Page, x: number, y: number, z: number) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/?sample=house');
   await page.getByRole('button', { name: '空白專案', exact: true }).click();
   await page.getByText('編輯工具與方塊', { exact: true }).click();
   await page.getByText('2D 逐層藍圖', { exact: true }).click();

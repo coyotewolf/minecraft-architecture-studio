@@ -1,0 +1,23 @@
+{
+  "fullRun": {
+    "source": "Captured Playwright process output; original results.json was replaced by the targeted rerun.",
+    "passed": 45,
+    "failed": 1,
+    "total": 46,
+    "durationDisplay": "4.5m",
+    "failure": "Desktop construction CSV comparison assumed identical row ordering; all record values preserved; corrected to numeric XYZ sorting before exact equality."
+  },
+  "targetedRerun": {
+    "source": "test-results/results.json",
+    "stats": {
+      "startTime": "2026-10-19T16:33:22.519Z",
+      "duration": 12407.525000000001,
+      "expected": 1,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "case": "default reference atrium has real signed coordinates and honest estimated provenance; view filters never change exported design"
+  },
+  "aggregate": "All 46 distinct cases passed across full run plus corrected targeted rerun; not one clean 46-case run."
+}

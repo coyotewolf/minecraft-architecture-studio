@@ -22,7 +22,7 @@ async function confirm(page: Page) {
 test('touch editing in 3D and negative 2D cells supports confirmation, undo, removal and saved reload', async ({ page }) => {
   test.setTimeout(60_000);
   page.on('dialog', dialog => void dialog.accept());
-  await page.goto('/');
+  await page.goto('/?sample=house');
   await expect(page.getByTestId('cell-count')).toHaveText('288');
   await page.getByRole('button', { name: '空白專案', exact: true }).tap();
   await page.locator('summary').filter({ hasText: /^編輯工具與方塊$/ }).tap();

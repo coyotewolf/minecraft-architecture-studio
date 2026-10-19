@@ -97,3 +97,27 @@ describe('Build views remain derived projections of canonical data', () => {
     }
   });
 });
+
+describe('Architectural inspection controls', () => {
+  it('hides exact roof categories and selected materials without mutating model or item counts', () => {
+    const before=stableJson(demo);
+    const entries=project({hideRoof:true,hiddenMaterials:['minecraft:glass']});
+    demo.blocks.forEach((b,i)=>expect(entries[i]!.visible).toBe(b.category!=='屋頂'&&b.id!=='minecraft:glass'));
+    expect(entries.some(e=>!e.visible)).toBe(true);expect(stableJson(demo)).toBe(before);
+  });
+  it('highlights search matches and estimated evidence without hiding canonical cells', () => {
+    const entries=project({materialFocus:'OAK_DOOR'});
+    demo.blocks.forEach((b,i)=>{expect(entries[i]!.visible).toBe(true);expect(entries[i]!.opacity).toBe(b.id==='minecraft:oak_door'?1:.16);});
+    expect(project({estimatedOnly:true}).every(e=>e.opacity===.16)).toBe(true);
+    const mixed=parseProject({...demo,blocks:demo.blocks.map((b,i)=>i===0?{...b,source:{origin:'ai_estimated',confidence:.35}}:b)});
+    const selected=viewProjection(mixed,constructionSteps(mixed),{...defaults,estimatedOnly:true});
+    expect(selected[0]!.opacity).toBe(1);expect(selected.slice(1).every(e=>e.opacity===.16)).toBe(true);
+  });
+  it('can hide unfinished construction and scrub backward without losing completion', () => {
+    const completed=[demo.blocks[0]!.uid];
+    expect(project({build:true,ghostFuture:false,progress:0,completed}).filter(e=>e.visible).map(e=>e.uid)).toEqual(completed);
+    expect(project({build:true,ghostFuture:false,progress:100}).every(e=>e.visible)).toBe(true);
+    expect(project({build:true,ghostFuture:false,progress:0}).every(e=>!e.visible)).toBe(true);
+    expect(project({build:true,ghostFuture:true,progress:0}).every(e=>e.visible&&e.opacity===.16)).toBe(true);
+  });
+});

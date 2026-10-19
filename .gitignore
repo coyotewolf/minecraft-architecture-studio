@@ -43,3 +43,6 @@ dist-server/
 .env
 .env.*
 !.env.example
+
+# User-provided concept references remain local
+public/local-references/

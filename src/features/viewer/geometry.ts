@@ -13,12 +13,13 @@ function rotate(b: ShapeBox, turns: number): ShapeBox {
 const cubes: Readonly<Record<string, number>> = {
   'minecraft:stone': 0x92989d, 'minecraft:stone_bricks': 0x879298,
   'minecraft:oak_planks': 0xb99a64, 'minecraft:white_concrete': 0xdedcd1,
-  'minecraft:glass': 0x9fd7e5,
+  'minecraft:glass': 0x9fd7e5, 'minecraft:cyan_stained_glass':0x399da6,'minecraft:light_blue_stained_glass':0x80c7de,
+  'minecraft:smooth_quartz':0xe5e1d4,'minecraft:quartz_block':0xe5e1d4,'minecraft:polished_deepslate':0x465057,'minecraft:dirt':0x70543b,'minecraft:oak_leaves':0x507a43,'minecraft:sea_lantern':0xb7e5d7,'minecraft:yellow_terracotta':0xc9a55d,'minecraft:gray_concrete':0x515b60,'minecraft:black_concrete':0x252b31,'minecraft:spruce_planks':0x785b3c,'minecraft:gold_block':0xdbb857,
 };
 /** Deliberately bounded geometry support; unknown shapes are wireframe markers, never plausible cubes. */
 export function shapeForBlock(block: BlockRecord): BlockShape {
   const {id,state:s} = block;
-  const common = {color: 0xb99a64, opacity: 1, supported: true};
+  const common = {color: /quartz/.test(id)?0xe5e1d4:/deepslate/.test(id)?0x465057:/stone|brick/.test(id)?0x879298:0xb99a64, opacity: 1, supported: true};
   if (id.endsWith('_stairs')) {
     const y0 = s.half === 'top' ? 0.5 : 0, y1 = y0 + 0.5;
     const step0 = s.half === 'top' ? 0 : 0.5, step1 = step0 + 0.5;
@@ -43,6 +44,7 @@ export function shapeForBlock(block: BlockRecord): BlockShape {
     return {...common,boxes:boxes.map(b=>rotate(b,(directions.indexOf(s.facing as Facing)+1)%4))};
   }
   if (id.endsWith('_log') || id.endsWith('_wood') || id.endsWith('_stem') || id.endsWith('_hyphae')) return {...common,color:0x806444,...(s.axis === undefined ? {} : {axis:s.axis}),boxes:[box([0,0,0],[1,1,1])]};
-  if (id in cubes) return {...common,color:cubes[id]!,opacity:id==='minecraft:glass'?0.38:1,boxes:[box([0,0,0],[1,1,1])]};
+  if (id in cubes) return {...common,color:cubes[id]!,opacity:id==='minecraft:glass'?0.38:id.endsWith('glass')?0.48:1,boxes:[box([0,0,0],[1,1,1])]};
   return {color:0xd996df,opacity:1,supported:false,boxes:[box([0,0,0],[1,1,1])]};
 }
+
