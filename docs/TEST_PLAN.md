@@ -1,6 +1,6 @@
 # Verification and regression plan
 
-**Status:** M0 passed with 26 unit tests and browser-startup evidence. M1 expands the suite to 52 passing tests across four files, with executed typecheck/lint/build and pinned-registry regeneration; see [M0 report](progress/M0.md) and [M1 report](progress/M1.md). M2–M10 criteria remain required and unexecuted.
+**Status:** M0 passed with 26 unit tests and browser-startup evidence. M1 expands the suite to 52 passing tests across four files, with executed typecheck/lint/build and pinned-registry regeneration; see [M0 report](progress/M0.md) and [M1 report](progress/M1.md). M2 adds real viewer/raycast/browser tests (105 unit tests total plus 6 browser tests); see [M2 report](progress/M2.md). M3–M10 criteria remain required and unexecuted.
 
 ## Test levels
 
@@ -75,3 +75,9 @@ A failing required gate is **FAIL** until corrected and retested. A missing exte
 ## M1 executed scope
 
 `engine.test.ts` covers VXL-001/003/004/005 and the canonical JSON subset of VXL-013, plus immutable snapshots, stale revisions, explicit collision outcomes, evidence/identity preservation, logical-pair bounds and invalid input limits. `versioned-registry.test.ts` checks all 1,000 non-air registry defaults, actual Java state fixtures, stack sizes and conservative item rule metadata. No registry or engine mock is substituted. These tests do not establish renderer picking, materials aggregation, storage, full VXL-013, AI approval or game physics. Branch coverage is still unmeasured; the 90% target remains a target.
+
+## M2 executed scope
+
+Total 105 unit/integration tests in six suites, typecheck/lint/build, plus six Playwright real-browser scenarios passed at code commit ae7e5c653f0237482f159b536627efe0e930ae6a. See progress/M2.md and evidence/m2-e2e-summary.json. Covered: deterministic 288-cell fixture, stair state occupancy, slabs/doors/beds, actual Three.js raycasts including negative boundaries, transparent selection, camera pointer/keyboard/touch, center-reticle keyboard selection, focus across resize, real WebGL loss/restoration, empty/reload and mobile overflow. Screenshots were visually checked.
+
+This satisfies M2 inspection only; VXL-002 placement/removal and editing still require M3. M3–M10 criteria, branch-coverage percentage, large-fixture performance and in-game acceptance remain unexecuted.

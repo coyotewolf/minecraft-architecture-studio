@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-10-19T13:54:07.554Z",
+  "result": {
+    "startTime": "2026-10-19T13:54:07.554Z",
+    "duration": 16817.487999999998,
+    "expected": 6,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "environment": "Windows; Google Chrome 155.0.8059.79; Playwright 1.59.1; headless software WebGL; isolated temporary profile",
+  "command": "BROWSER_EXECUTABLE_PATH=<installed Chrome executable> npm run test:e2e",
+  "tests": [
+    {
+      "title": "real rendered fixture: negative cells, glass, thin door and full state",
+      "ok": true,
+      "status": [
+        "expected"
+      ]
+    },
+    {
+      "title": "camera presets, orbit, pan, wheel and keyboard never change canonical count",
+      "ok": true,
+      "status": [
+        "expected"
+      ]
+    },
+    {
+      "title": "keyboard center selection, focus, escape and empty/reload lifecycle",
+      "ok": true,
+      "status": [
+        "expected"
+      ]
+    },
+    {
+      "title": "context loss is visible and restoration recovers",
+      "ok": true,
+      "status": [
+        "expected"
+      ]
+    },
+    {
+      "title": "mobile tap, one-finger orbit, two-finger navigation and viewport resize",
+      "ok": true,
+      "status": [
+        "expected"
+      ]
+    },
+    {
+      "title": "state-shaped stair, slab and bed parts are individually pickable in browser",
+      "ok": true,
+      "status": [
+        "expected"
+      ]
+    }
+  ]
+}

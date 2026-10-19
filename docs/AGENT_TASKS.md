@@ -72,3 +72,9 @@ Decision: real inherited-agent delegation is verified. High/Medium/Low remain re
 - `/root/contract_review`: read-only M1 source review. Local filesystem access stalled and the worker correctly reported BLOCKED without approval. Review was resumed through GitHub at the tested source commit; review completed and the provenance fix at 98760cc was approved; see M1.md for evidence.
 - Both workers inherited the selected model/reasoning. No distinct model/effort override was exercised. Agents shared the workspace; no isolated worktree or actual local Git checkout was available.
 - Lead implemented the registry from pinned connector-fetched data, integrated it with the engine, and executed all check commands. Restart from `codex/m1-engine`, not the earlier M0-only branch.
+
+## M2 actual model routing — 2026-10-19
+
+The user explicitly requested lower reasoning tiers. Actual collaboration.spawn_agent calls selected gpt-6-astra with reasoning_effort medium for viewer_ui, and gpt-6-astra with reasoning_effort low for viewer_styles, both fork_turns=none. Medium delivered the frozen toolbar/inspector and deterministic fixture/tests, then performed read-only review. Low delivered CSS and the vendor-hash script. Lead owned geometry, runtime, integration and browser gates. File ownership, actual checks and all three review fixes are recorded in progress/M2.md. These are executed model/effort selections, not inferred responsibility labels. Four total slots were advertised; only two workers plus lead were used. No worktree isolation or saturation test is claimed.
+
+Restart: codex/m2-viewer, M3 basic editing. Historical audit sections above remain historical, not current capability limits.
