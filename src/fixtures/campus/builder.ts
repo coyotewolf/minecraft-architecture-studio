@@ -33,8 +33,14 @@ export class DistrictBuilder {
   finishRegions():District[] {
     if(this.structures.length)throw new Error('Regional split only supports nonlogical landscape cells');
     const groups=new Map<string,BlockRecord[]>();
-    for(const cell of this.cells.values()){const region=cell.pos.z < -30?'north':cell.pos.z < 50?'center':'south';const id=this.spec.id+'-'+region;const cells=groups.get(id)??[];cells.push({...cell,componentId:id});groups.set(id,cells);}
-    return [...groups].map(([id,blocks])=>({...this.spec,id,title:this.spec.title+' / '+({'north':'北區','center':'中區','south':'南區'}[id.split('-').at(-1)! as 'north'|'center'|'south']),project:parseProject({...createEmptyProject(id,this.spec.title),designRevision:id+'-v1',blocks,logicalStructures:[]})}));
+    for(const cell of this.cells.values()){
+      const tileX=Math.floor(cell.pos.x/96),tileZ=Math.floor(cell.pos.z/96);
+      const id=this.spec.id+'-'+tileX+'-'+tileZ;const cells=groups.get(id)??[];
+      cells.push({...cell,componentId:id});groups.set(id,cells);
+    }
+    return [...groups].map(([id,blocks],index)=>({...this.spec,id,title:this.spec.title+' / '+(index+1),project:parseProject({...createEmptyProject(id+'-reference-v2',this.spec.title),designRevision:id+'-v2',blocks:connectCampusBlocks(blocks),logicalStructures:[]})}));
   }
-  finish():District {return {...this.spec,project:parseProject({...createEmptyProject(this.spec.id,this.spec.title),designRevision:`${this.spec.id}-v1`,blocks:connectCampusBlocks([...this.cells.values()]),logicalStructures:this.structures})};}
+
+  finish():District {return {...this.spec,project:parseProject({...createEmptyProject(this.spec.id+'-reference-v2',this.spec.title),designRevision:`${this.spec.id}-v1`,blocks:connectCampusBlocks([...this.cells.values()]),logicalStructures:this.structures})};}
 }
+

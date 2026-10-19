@@ -1,21 +1,14 @@
-import { parseProject } from '../../core/model.ts';
 import type { MinecraftId } from '../../core/contracts.ts';
 import { DistrictBuilder, type District } from './builder.ts';
-
-const white: MinecraftId = 'minecraft:white_concrete';
-const glass: MinecraftId = 'minecraft:cyan_stained_glass';
-const gold: MinecraftId = 'minecraft:gold_block';
-const dark: MinecraftId = 'minecraft:gray_concrete';
-
-function ellipse(b: DistrictBuilder, cx: number, y: number, rx: number, rz: number, floor: boolean) {
-  for (let x = -Math.ceil(rx); x <= Math.ceil(rx); x++) for (let z = -Math.ceil(rz); z <= Math.ceil(rz); z++) {
-    const q = x * x / (rx * rx) + z * z / (rz * rz);
-    if (q > 1) continue;
-    const edge = (Math.abs(x) + 1) ** 2 / (rx * rx) + z * z / (rz * rz) > 1 || x * x / (rx * rx) + (Math.abs(z) + 1) ** 2 / (rz * rz) > 1;
-    if (floor || edge) b.set(cx + x, y, z, floor ? 'minecraft:smooth_quartz' : x % 5 === 0 ? white : glass, floor ? 'Floor' : 'Envelope');
-  }
+const white: MinecraftId='minecraft:white_concrete',glass: MinecraftId='minecraft:cyan_stained_glass',gold: MinecraftId='minecraft:gold_block',dark: MinecraftId='minecraft:gray_concrete';
+function ellipse(b:DistrictBuilder,cx:number,y:number,rx:number,rz:number,floor:boolean,shell:MinecraftId=glass){
+ for(let x=-Math.ceil(rx);x<=Math.ceil(rx);x++)for(let z=-Math.ceil(rz);z<=Math.ceil(rz);z++){
+  if(x*x/(rx*rx)+z*z/(rz*rz)>1)continue;
+  const edge=(Math.abs(x)+2)**2/(rx*rx)+z*z/(rz*rz)>1||x*x/(rx*rx)+(Math.abs(z)+2)**2/(rz*rz)>1;
+  if(floor||edge)b.set(cx+x,y,z,floor?'minecraft:smooth_quartz':shell,floor?'Floor':'Envelope');
+ }
 }
-
+function entrance(b:DistrictBuilder,cx:number,z0:number){for(let z=z0;z<=-4;z++){b.set(cx,1,z,'minecraft:smooth_quartz','Entry');b.clear(cx,2,z);b.clear(cx,3,z);}}
 /** Alternating two-wide flights with a landing at each end. Carve AFTER furnishing. */
 function stairs(b: DistrictBuilder, cx: number, bottom: number, top: number) {
   for (let y = bottom; y < top; y += 6) {
@@ -24,6 +17,7 @@ function stairs(b: DistrictBuilder, cx: number, bottom: number, top: number) {
       const z = forward ? i - 3 : 2 - i;
       for (const x of forward ? [cx - 2, cx - 1] : [cx + 1, cx + 2]) {
         for (let h = 1; h <= 3; h++) b.clear(x, y + i + 1 + h, z);
+        b.set(x, y + i, z, 'minecraft:smooth_quartz', 'StairSupport');
         b.set(x, y + i + 1, z, 'minecraft:quartz_stairs', 'Circulation', { facing: forward ? 'south' : 'north', half: 'bottom', shape: 'straight', waterlogged: 'false' });
       }
     }
@@ -44,109 +38,86 @@ function room(b: DistrictBuilder, cx: number, y: number, kind: 'control' | 'libr
   b.set(cx + 4, y + 1, -5, 'minecraft:chest', 'Storage');
 }
 
-function ringSpire(): District {
-  const b = new DistrictBuilder({ id: 'ring-control-spire', title: '環門控制尖塔', origin: [-75, 0, 0], references: ['reference-08'], features: ['左上：白色環門、金色尖頂與深色控制塔', '右上：多層環景控制台', '左下：植栽柱廊與庭院', '右下：折返樓梯與入口'], notes: '依參考圖推估比例；控制台與環門為原版裝飾，不模擬機械或傳送功能。' });
-  b.floor(-25, -20, 25, 20, 0, 'minecraft:stone_bricks');
-  for (let y = 1; y <= 49; y++) {
-    const r = y > 37 ? 9 - Math.floor((y - 37) / 6) : 10;
-    ellipse(b, 0, y, r, 9, (y - 1) % 6 === 0 || y % 6 === 0);
-    if (y % 6 === 1) room(b, 0, y, 'control');
+function ringSpire():District{
+ const b=new DistrictBuilder({id:'ring-control-spire',title:'環門控制尖塔',origin:[-105,12,0],references:['reference-08'],features:['左上：深色不對稱階梯刀鋒、金色縱肋與大型白環','右上：多層控制台與窄幅玻璃窗','左下：植栽柱廊與庭院','右下：階梯塔身、折返樓梯及入口'],notes:'依概念圖重建輪廓，原版控制台及環門僅為裝飾；尖端為連續結構冠部。'});
+ b.floor(-32,-22,32,22,0,'minecraft:stone_bricks');
+ for(let y=1;y<=80;y++){
+  const left=-10,right=22-Math.floor((y-1)*31/79);
+  for(let x=left;x<=right;x++)for(let z=-6;z<=6;z++){
+   const edge=x===left||x===right||Math.abs(z)===6;
+   if(edge||y<=49&&(y-1)%6===0)b.set(x,y,z,edge?(x===right?gold:x===left?white:(x===-5||x===3)&&y%6!==1?glass:dark):'minecraft:smooth_quartz',edge?'Blade':'Floor');
   }
-  for (let y = 4; y <= 52; y++) for (let x = -25; x <= 25; x++) {
-    const d = Math.hypot(x, y - 28);
-    if (d >= 22 && d <= 24.5) b.box(x, y, 12, x, y, 14, Math.abs(x) > 22 ? gold : white, 'Ring');
-  }
-  for (let y = 2; y <= 55; y++) {
-    const x = Math.max(0, 12 - Math.floor(y / 4));
-    b.box(-x, y, -1, -x, y, 1, y > 49 ? gold : white, 'Fin');
-    b.box(x, y, -1, x, y, 1, y > 49 ? gold : white, 'Fin');
-  }
-  for (const x of [-19, 19]) for (const z of [-14, 1, 15]) b.tree(x, 1, z);
-  for (const x of [-15, 15]) for (let z = -16; z <= 16; z += 8) b.box(x, 1, z, x, 5, z, white, 'Colonnade');
-  b.floor(-15, -17, -13, 17, 6); b.floor(13, -17, 15, 17, 6);
-  stairs(b, 0, 1, 49);
-  b.box(-1, 1, -12, 1, 1, -8, 'minecraft:smooth_quartz', 'Entry');
-  for (let x = -1; x <= 1; x++) for (let y = 2; y <= 4; y++) for (let z = -9; z <= -7; z++) b.clear(x, y, z);
-  b.door(0, 2, -9);
-  return b.finish();
+  if(y<=31&&y%6===1)room(b,0,y,'control');
+ }
+ for(let y=3;y<=75;y++)for(let x=-32;x<=32;x++){
+  const q=x*x/(32*32)+(y-39)**2/(36*36);
+  if(q<=1&&q>=.84)b.box(x,y,9,x,y,12,white,'Ring');
+ }
+ for(const x of [-14,14])b.box(x-1,1,9,x+1,12,12,white,'RingSupport');
+ for(const x of [-25,25])for(const z of [-15,15])b.tree(x,1,z);
+ for(const x of [-19,19]){for(let z=-17;z<=15;z+=8)b.box(x,1,z,x,6,z,white,'Colonnade');b.floor(x-1,-18,x+1,17,7);}
+ stairs(b,0,1,49);entrance(b,0,-8);b.door(0,2,-6);return b.finish();
 }
-
-function commandTower(): District {
-  const b = new DistrictBuilder({ id: 'teardrop-command', title: '淚滴中央指揮塔', origin: [0, 0, 0], references: ['reference-11'], features: ['左上：金邊淚滴輪廓、玻璃樓層與交叉支架', '右上：挑高中央中庭與折返樓梯', '左下：指揮休息室與地圖牆', '右下：裝飾伺服器列'], notes: '淚滴曲面採整數體素階梯近似；伺服器與地圖牆是裝飾。頂部尖冠不作可居住樓層。' });
-  b.floor(-18, -18, 18, 18, 0, 'minecraft:stone_bricks');
-  for (let y = 1; y <= 61; y++) {
-    const r = y <= 13 ? 12 + y / 4 : y <= 49 ? 16 - (y - 13) / 4 : Math.max(1, 7 * (62 - y) / 13);
-    ellipse(b, 0, y, r, r, y <= 49 && ((y - 1) % 6 === 0 || y % 6 === 0));
-    const edge = Math.floor(r);
-    b.set(-edge, y, 0, gold, 'Rib'); b.set(edge, y, 0, gold, 'Rib');
-    if (y <= 43 && y % 6 === 1) room(b, 0, y, y === 31 || y === 37 ? 'library' : 'control');
-    if (y <= 37) {
-      const x = Math.round(Math.sin(y / 8) * (r - 1));
-      const z = -Math.floor(Math.sqrt(Math.max(0, r * r - x * x)));
-      b.set(x, y, z, dark, 'Brace'); b.set(-x, y, z, dark, 'Brace');
-    }
+function commandTower():District{
+ const b=new DistrictBuilder({id:'teardrop-command',title:'淚滴中央指揮塔',origin:[0,12,0],references:['reference-11'],features:['左上：窄基座、凸透鏡主體、尖頂與寬白金外肋','右上：中庭、薄層樓帶與連續折返梯','左下：指揮廳及地圖牆','右下：原版裝飾伺服器陣列'],notes:'整數方塊近似凸透鏡曲線；兩側白金肋與深色交叉支架為可施工結構，尖冠不作居住層。'});
+ b.floor(-23,-20,23,20,0,'minecraft:stone_bricks');
+ for(let y=1;y<=89;y++){
+  const rx=Math.max(1,22*Math.sin(Math.PI*(y+10)/100)),rz=Math.max(1,rx*.68);
+  ellipse(b,0,y,rx,rz,y>=85||y<=79&&(y-1)%6===0);
+  // Broad ribs remain bonded to the shell rather than thin detached trim lines.
+  for(let x=-Math.floor(rx);x<=Math.floor(rx);x++)for(let z=-Math.floor(rz);z<=Math.floor(rz);z++){
+   const q=x*x/(rx*rx)+z*z/(rz*rz);if(q<=1&&Math.abs(x)>=rx*.72)b.set(x,y,z,Math.abs(x)>=rx*.93?gold:white,'OuterRib');
   }
-  b.set(0, 62, 0, gold, 'Crown');
-  for (const x of [-9, 9]) for (const z of [-4, 0, 4]) b.box(x, 8, z, x + 1, 10, z, 'minecraft:purple_concrete', 'Server');
-  b.box(-4, 3, 10, 4, 5, 10, 'minecraft:cyan_concrete', 'MapWall');
-  stairs(b, 0, 1, 49);
-  for (let z = -14; z <= -5; z++) { b.set(0, 1, z, 'minecraft:smooth_quartz', 'Entry'); b.clear(0, 2, z); b.clear(0, 3, z); }
-  b.door(0, 2, -12);
-  return b.finish();
+  const xx=Math.round((((y-1)%30)/15-1)*rx*.78);
+  for(const sign of [-1,1])for(let dx=-1;dx<=1;dx++){
+   const x=sign*xx+dx;if(Math.abs(x)>rx)continue;const depth=Math.floor(rz*Math.sqrt(1-x*x/(rx*rx)));for(const face of [-1,1])b.set(x,y,face*depth,dark,'Brace');
+  }
+  if(y>=13&&y<=67&&y%6===1)room(b,0,y,y===31||y===37?'library':'control');
+ }
+ b.set(0,90,0,gold,'Crown');
+ for(const x of [-10,10])for(const z of [-5,0,5])b.box(x,20,z,x+1,22,z,'minecraft:purple_concrete','Server');
+ b.box(-4,14,8,4,17,8,'minecraft:cyan_concrete','MapWall');
+ stairs(b,0,1,79);entrance(b,0,-7);b.door(0,2,-4);return b.finish();
 }
-
-function twinTowers(): District {
-  const b = new DistrictBuilder({ id: 'twin-residential-library', title: '雙橢圓住宅與圖書塔', origin: [55, 0, 0], references: ['reference-09'], features: ['左上：雙橢圓玻璃塔與空橋', '右上：實驗／展示工作區', '左下：住宅套房、床與收納', '右下：書架閱覽室與植栽交誼區'], notes: '室內樓層及房間按圖推估，左右塔以共享底座及高架空橋連通。' });
-  b.floor(-23, -14, 23, 14, 0, 'minecraft:stone_bricks');
-  for (const cx of [-12, 12]) {
-    const height = cx < 0 ? 44 : 38;
-    for (let y = 1; y <= height; y++) {
-      const rx = y <= height - 8 ? 10 : Math.max(1, 10 - (y - (height - 8)) * 1.1);
-      const rz = y <= height - 8 ? 13 : Math.max(1, 13 - (y - (height - 8)) * 1.4);
-      ellipse(b, cx, y, rx, rz, (y - 1) % 6 === 0 || y % 6 === 0);
-      if (y <= 31 && y % 6 === 1) room(b, cx, y, cx > 0 ? 'library' : 'home');
-    }
-    stairs(b, cx, 1, cx < 0 ? 37 : 31);
+function twinTowers():District{
+ const b=new DistrictBuilder({id:'twin-residential-library',title:'雙橢圓住宅與圖書塔',origin:[58,12,12],references:['reference-09'],features:['左上：高低雙蛋形塔、圓頂、薄白樓環與透明連橋','右上：實驗及展示工作區','左下：住宅床組、收納與公共樓梯','右下：書架閱覽室與植栽交誼區'],notes:'橢圓塔身及圓頂依概念圖推估；白色樓板僅一格厚，尖端為封閉屋頂結構。'});
+ b.floor(-28,-17,28,17,0,'minecraft:stone_bricks');
+ for(const cx of [-14,14]){
+  const height=cx<0?65:55,top=cx<0?55:43;
+  for(let y=1;y<=height;y++){
+   const cap=height-16;
+   const scale=y<=cap?.88+.12*Math.sin(Math.PI*y/cap):Math.sqrt(Math.max(.006,1-((y-cap)/16)**2));
+   const rx=12*scale,rz=16*scale;ellipse(b,cx,y,rx,rz,y>=height-6||y<=top&&(y-1)%6===0);
+   if(y<=top-6&&y%6===1)room(b,cx,y,cx>0?'library':'home');
+   if(y===height)ellipse(b,cx,y,rx,rz,true);
   }
-  for (const y of [1, 19]) {
-    b.floor(-4, -2, 4, 2, y);
-    for (const z of [-2, 2]) b.box(-4, y + 1, z, 4, y + 2, z, glass, 'Bridge');
-    for (let x = -5; x <= 5; x++) for (let h = 1; h <= 3; h++) b.clear(x, y + h, 0);
-  }
-  for (const x of [-19, 19]) b.tree(x, 1, 9);
-  for (const cx of [-12, 12]) for (let z = -14; z <= -5; z++) { b.set(cx, 1, z, 'minecraft:smooth_quartz', 'Entry'); b.clear(cx, 2, z); b.clear(cx, 3, z); }
-  for (const y of [1, 7, 13, 19, 25, 31]) { b.bed(-16, y + 1, 4); b.bed(-8, y + 1, 4); }
-  b.door(-12, 2, -13); b.door(12, 2, -13);
-  return b.finish();
+  stairs(b,cx,1,top);entrance(b,cx,-16);
+ }
+ for(const y of [1,25]){b.floor(-5,-2,5,2,y);for(const z of [-2,2])b.box(-5,y+1,z,5,y+2,z,glass,'Bridge');for(let x=-6;x<=6;x++)for(let h=1;h<=3;h++)b.clear(x,y+h,0);}
+ for(const x of [-25,25])b.tree(x,1,12);
+ for(const y of [1,7,13,19,25,31,37,43,49]){b.bed(-18,y+1,4);b.bed(-10,y+1,4);}
+ b.door(-14,2,-14);b.door(14,2,-14);return b.finish();
 }
-
-function observatory(): District {
-  const b = new DistrictBuilder({ id: 'sphere-observatory', title: '球形天文館與玻璃展廊', origin: [-35, 0, 34], references: ['reference-06'], features: ['左上：白金球形天文館與拱頂玻璃廊', '右上：星球展示牆與環形觀景層', '左下：閱覽角及樓梯剖面', '右下：對稱植栽展示廊'], notes: '球面與拱頂為體素近似；星球壁畫及望遠鏡控制台為靜態裝飾。' });
-  b.floor(-16, -12, 16, 12, 0, 'minecraft:stone_bricks');
-  for (let y = 1; y <= 30; y++) {
-    const r = y < 7 ? 8 : Math.max(1, Math.sqrt(Math.max(0, 12 * 12 - (y - 18) ** 2)));
-    ellipse(b, -4, y, r, Math.min(11, r), [1, 7, 13, 19, 25].includes(y));
-    if ([7, 13, 19].includes(y)) room(b, -4, y, y === 13 ? 'library' : 'control');
-    if ([10, 23].includes(y)) for (let x = -Math.floor(r); x <= Math.floor(r); x++) b.set(x - 4, y, -Math.floor(Math.min(11, r) * Math.sqrt(Math.max(0, 1 - x * x / (r * r)))), gold, 'Band');
-  }
-  b.floor(7, -11, 16, 11, 1);
-  for (let z = -11; z <= 11; z++) for (let x = 7; x <= 16; x++) {
-    const y = 5 + Math.round(4 * Math.sqrt(Math.max(0, 1 - ((x - 11.5) / 4.5) ** 2)));
-    b.set(x, y, z, z % 4 === 0 ? white : glass, 'Gallery');
-    if (x === 7 || x === 16) b.box(x, 2, z, x, y - 1, z, glass, 'Gallery');
-  }
-  for (let z = -8; z <= 8; z += 4) for (const x of [9, 14]) { b.set(x, 2, z, 'minecraft:grass_block', 'Planter'); b.set(x, 3, z, 'minecraft:oak_leaves', 'Planter', { persistent: 'true', distance: '1' }); }
-  b.box(-9, 15, 7, 1, 17, 7, 'minecraft:black_concrete', 'PlanetWall');
-  for (const [x, id] of [[-7, 'minecraft:blue_concrete'], [-3, 'minecraft:gold_block'], [0, 'minecraft:red_concrete']] as const) b.set(x, 16, 6, id, 'PlanetWall');
-  stairs(b, -4, 1, 25);
-  for (let x = -4; x <= 12; x++) { b.set(x, 1, 0, 'minecraft:smooth_quartz', 'Entry'); b.clear(x, 2, 0); b.clear(x, 3, 0); }
-  for (let z = -12; z <= 0; z++) { b.set(11, 1, z, 'minecraft:smooth_quartz', 'Entry'); b.clear(11, 2, z); b.clear(11, 3, z); }
-  b.door(11, 2, -11);
-  return b.finish();
+function observatory():District{
+ const b=new DistrictBuilder({id:'sphere-observatory',title:'球形天文館與玻璃展廊',origin:[-56,8,105],references:['reference-06'],features:['左上：支腳托起白色球體與玻璃展廊','右上：窄幅環形觀景窗與星球壁畫','左下：閱覽角、承重核心及連續樓梯','右下：對稱展示植栽與拱頂玻璃廊'],notes:'半徑14格白色球體採體素階梯近似，窄窗保留球形輪廓；星圖與望遠鏡控制台為裝飾。'});
+ b.floor(-20,-17,20,17,0,'minecraft:stone_bricks');
+ for(const x of [-11,3])for(const z of [-7,7])b.box(x,1,z,x+1,10,z+1,white,'Support');
+ // Enclosed stair core bonds the globe to the foundation and its lower occupied floor.
+ b.floor(-8,-5,0,5,1);for(let y=2;y<=7;y++)for(const x of [-8,0])b.box(x,y,-5,x,y,5,white,'Support');
+ for(let y=5;y<=33;y++){
+  const r=Math.sqrt(Math.max(0,196-(y-19)**2));if(r<1){if(y>19)b.set(-4,y,0,white,'Envelope');continue;}
+  ellipse(b,-4,y,r,r,y>=27||[7,13,19,25].includes(y),white);
+  // Isolated observation dashes retain a nearly continuous white spherical surface.
+  if(y===16||y===22)for(const dx of [-8,0,8])if(Math.abs(dx)<r){const depth=Math.floor(Math.sqrt(r*r-dx*dx));for(const face of [-1,1])b.set(-4+dx,y,face*depth,glass,'Envelope');}
+  if(y===19)for(let dx=-3;dx<=3;dx++)b.set(-4+dx,y,Math.floor(Math.sqrt(r*r-dx*dx)),glass,'Envelope');
+  if([13,19,25].includes(y))room(b,-4,y,y===13?'library':'control');
+ }
+ b.floor(10,-15,20,15,1);
+ for(let z=-15;z<=15;z++)for(let x=10;x<=20;x++){const y=5+Math.round(5*Math.sqrt(Math.max(0,1-((x-15)/5)**2)));const previous=5+Math.round(5*Math.sqrt(Math.max(0,1-((x-1-15)/5)**2)));b.box(x,Math.min(y,previous),z,x,Math.max(y,previous),z,z%5===0?white:glass,'Gallery');if(x===10||x===20)b.box(x,2,z,x,y-1,z,glass,'Gallery');}
+ for(let z=-10;z<=10;z+=5)for(const x of [12,18]){b.set(x,2,z,'minecraft:grass_block','Planter');b.set(x,3,z,'minecraft:oak_leaves','Planter',{persistent:'true',distance:'1'});}
+ b.box(-9,14,7,1,17,7,'minecraft:black_concrete','PlanetWall');for(const [x,id]of[[-7,'minecraft:blue_concrete'],[-3,'minecraft:gold_block'],[0,'minecraft:red_concrete']]as const)b.set(x,16,6,id,'PlanetWall');
+ stairs(b,-4,1,25);
+ for(let x=-4;x<=15;x++){b.set(x,1,0,'minecraft:smooth_quartz','Entry');b.clear(x,2,0);b.clear(x,3,0);}
+ entrance(b,15,-16);b.door(15,2,-15);return b.finish();
 }
-
-export function createLandmarkDistricts(): District[] {
-  const sphere=observatory();
-  const whiteSphere={...sphere,project:parseProject({...sphere.project,blocks:sphere.project.blocks.map(block=>block.category==='Envelope'&&block.pos.y%6!==0?{...block,id:'minecraft:white_concrete',state:{},category:'Walls'}:block)})};
-  return [ringSpire(), commandTower(), twinTowers(), whiteSphere];
-}
+export function createLandmarkDistricts():District[]{return[ringSpire(),commandTower(),twinTowers(),observatory()];}

@@ -1,5 +1,5 @@
 import type { BlockRecord } from '../../core/contracts.ts';
-export type CampusPreset = 'iso' | 'top' | 'front' | 'side';
+export type CampusPreset = 'reference' | 'iso' | 'top' | 'front' | 'side';
 export interface CampusViewer { dispose():void; preset(p:CampusPreset):void; select(uid:string|null):void }
 export interface CampusGeometry {
  readonly children: readonly { readonly userData:{ readonly uids:readonly string[] }; readonly geometry:{addEventListener(type:'dispose',listener:()=>void):void}; readonly material:{addEventListener(type:'dispose',listener:()=>void):void} }[];

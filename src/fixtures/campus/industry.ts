@@ -1,115 +1,113 @@
 import type { MinecraftId } from '../../core/contracts.ts';
 import { DistrictBuilder, type District } from './builder.ts';
-
-const white: MinecraftId = 'minecraft:white_concrete', glass: MinecraftId = 'minecraft:cyan_stained_glass';
-const gold: MinecraftId = 'minecraft:gold_block', dark: MinecraftId = 'minecraft:deepslate_tiles';
+const white:MinecraftId='minecraft:white_concrete',glass:MinecraftId='minecraft:cyan_stained_glass',gold:MinecraftId='minecraft:gold_block',dark:MinecraftId='minecraft:deepslate_tiles';
 function foundation(b:DistrictBuilder,x:number,z:number){b.floor(-x,-z,x,z,0,'minecraft:stone_bricks');b.floor(-x,-z,x,z);}
-/** Hollow stepped shell with open three-wide, four-high front entrance. */
-function hall(b:DistrictBuilder,x0:number,z0:number,x1:number,z1:number,h:number){
-  for(let y=2;y<=h;y++){
-    for(let x=x0;x<=x1;x++)for(const z of [z0,z1])b.set(x,y,z,y===h?gold:((x-x0)%5===0||y<4?white:glass));
-    for(let z=z0;z<=z1;z++)for(const x of [x0,x1])b.set(x,y,z,y===h?gold:((z-z0)%5===0||y<4?white:glass));
-  }
-  const middle=Math.floor((x0+x1)/2);
-  for(let x=x0;x<=x1;x++){
-    const rise=Math.min(4,Math.min(x-x0,x1-x));
-    for(let z=z0;z<=z1;z++)b.set(x,h+1+rise,z,(z-z0)%5===0?white:glass,'Roof');
-  }
-  b.box(middle-1,2,z1,middle+1,5,z1,white);
-  for(let x=middle-1;x<=middle+1;x++)for(let y=2;y<=5;y++)b.clear(x,y,z1);
-}
-function stair(b:DistrictBuilder,x:number,z:number,start:number,rise:number,direction=-1){
-  for(let i=0;i<rise;i++)for(let w=0;w<3;w++){
-    b.box(x+w,start,z+direction*i,x+w,start+i,z+direction*i,white,'Structure');
-    b.set(x+w,start+i+1,z+direction*i,'minecraft:quartz_stairs','Stairs',{facing:direction===-1?'north':'south'});
-    for(let head=2;head<=3;head++)b.clear(x+w,start+i+head,z+direction*i);
-  }
-}
+function stair(b:DistrictBuilder,x:number,z:number,start:number,rise:number,direction=-1){for(let i=0;i<rise;i++)for(let w=0;w<3;w++){b.box(x+w,start,z+direction*i,x+w,start+i,z+direction*i,white,'Structure');b.set(x+w,start+i+1,z+direction*i,'minecraft:quartz_stairs','Stairs',{facing:direction===-1?'north':'south'});for(const h of [2,3])b.clear(x+w,start+i+h,z+direction*i);}}
 function console(b:DistrictBuilder,x:number,y:number,z:number){b.set(x,y,z,'minecraft:polished_blackstone','Workstations');b.set(x,y+1,z,'minecraft:sea_lantern','Workstations');b.set(x+1,y,z,'minecraft:crafting_table','Workstations');}
+function entrance(b:DistrictBuilder,x:number,y:number,z:number,width=3){for(let dx=-Math.floor(width/2);dx<=Math.floor(width/2);dx++)for(let h=1;h<=4;h++)b.clear(x+dx,y+h,z);}
+/** Horizontal ribbed opaque shell; narrow glazing rather than greenhouse envelopes. */
+function industrialHall(b:DistrictBuilder,x0:number,z0:number,x1:number,z1:number,base:number,top:number){
+ b.floor(x0,z0,x1,z1,base);b.box(x0,top,z0,x1,top,z1,dark,'Roof');
+ for(let y=base+1;y<top;y++){
+  for(let x=x0;x<=x1;x++)for(const z of [z0,z1])b.set(x,y,z,(x-x0)%9<2||y<base+3||y>top-3?white:y>=base+4&&y<=base+6?glass:dark);
+  for(let z=z0;z<=z1;z++)for(const x of [x0,x1])b.set(x,y,z,y>=base+4&&y<=base+6?glass:white);
+ }
+ for(let x=x0;x<=x1;x+=9){b.box(x,base,z0,x+1,top,z0,white);b.box(x,base,z1,x+1,top,z1,white);b.box(x,top,z0,x+1,top,z1,white,'Roof');}
+ entrance(b,Math.floor((x0+x1)/2),base,z1);
+}
 function factory():District{
-  const b=new DistrictBuilder({id:'campus-industry',title:'工業工坊與高架鐵道',origin:[-70,0,-65],references:['reference-10'],features:['主廠房玻璃鋸齒屋頂與金色肋骨','熔爐工作列、原料堆、雙煙囪','高架月台、軌道與靜態列車','工廠夾層及三格寬樓梯'],notes:'參考第十張外觀與室內概念；尺寸、設備與高架結構為 AI 設計推估。列車與機械為 Vanilla 裝飾，不宣稱實際運轉。'});
-  foundation(b,32,20);hall(b,-30,-18,6,7,16);hall(b,13,-18,30,5,11);
-  for(const x of [-25,-15,-5])for(const z of [-13,-6]){b.box(x,2,z,x+3,3,z+2,'minecraft:iron_block','Machinery');b.set(x+1,4,z+1,'minecraft:blast_furnace','Workstations');b.set(x+2,4,z+1,'minecraft:hopper','Machinery');console(b,x,2,z+4);}
-  b.floor(-28,-17,4,-9,8);for(let x=-28;x<=4;x++)b.set(x,9,-11,'minecraft:iron_bars','Railings');
-  stair(b,-28,-2,1,7);for(let x=-28;x<=-26;x++)b.clear(x,9,-11);console(b,-20,9,-15);console(b,17,2,-12);b.box(24,2,-14,28,4,-10,'minecraft:barrel','Storage');
-  for(const x of [17,26]){b.box(x,2,0,x+2,29,2,'minecraft:stone_bricks');b.box(x,28,0,x+2,28,2,gold);b.clear(x+1,29,1);}
-  b.floor(-31,10,31,19,7,dark);
-  for(let x=-30;x<=30;x+=10)for(const z of [11,18])b.box(x,2,z,x+1,6,z+1,white);
-  for(let x=-31;x<=31;x++)for(const z of [13,16])b.set(x,8,z,'minecraft:rail','Rail',{shape:'east_west'});
-  for(let x=-26;x<=18;x++){
-    b.box(x,9,13,x,9,16,dark,'Train');b.box(x,10,13,x,12,16,white,'Train');
-    for(const z of [13,16])if(x%8!==0)b.set(x,11,z,glass,'Train');
-    for(let z=13;z<=16;z++)b.set(x,13,z,'minecraft:smooth_quartz_slab','Train');
-  }
-  for(let x=-25;x<=17;x++)for(let y=10;y<=11;y++)for(const z of [14,15])b.clear(x,y,z);
-  for(const x of [-16,0,16])for(let y=10;y<=11;y++)b.clear(x,y,16);
-  stair(b,25,3,1,6,1);b.floor(25,9,27,9,7,dark);return b.finish();
+ const b=new DistrictBuilder({id:'campus-industry',title:'階層工業長廊與高架鐵道',origin:[-100,38,-100],references:['reference-10'],features:['雙層白色肋骨長廠房與深灰窄窗帶','四組傾斜屋頂太陽能板造型','廠外高架列車、月台與支柱','熔爐機械列、原料架及上層操作廊'],notes:'依第十張圖的橫向懸挑工廠、斜面板與高架鐵道重作輪廓；沒有加入圖中未見的煙囪。面板、機械、列車皆為 Vanilla 靜態裝飾，尺寸與設備功能未經實測。'});
+ foundation(b,40,24);industrialHall(b,-38,-22,35,-3,1,11);industrialHall(b,-35,-23,30,-9,13,24);
+ for(const x of [-33,-12,9,28])for(const z of [-21,-10])b.box(x,2,z,x+2,12,z+2,white);
+ for(const x0 of [-30,-15,0,15])for(let x=x0;x<x0+11;x++)for(let z=-21;z<=-13;z++){
+  const y=25+Math.floor((z+21)/2);b.set(x,y,z,x===x0||x===x0+10||z===-21||z===-13?white:'minecraft:black_concrete','Solar panels');
+  if((x-x0)%4===0)b.set(x,y+1,z,'minecraft:light_gray_concrete','Solar panel grid');
+ }
+ for(const y of [2,14])for(const x of [-28,-16,-4,8,20]){b.box(x,y,-19,x+3,y+2,-16,'minecraft:iron_block','Machinery');b.set(x+1,y+3,-17,'minecraft:blast_furnace','Workstations');console(b,x,y,-13);}
+ b.floor(-38,10,38,20,8,dark);for(let x=-36;x<=36;x+=12)for(const z of [11,19])b.box(x,2,z,x+1,7,z+1,white);
+ for(let x=-38;x<=38;x++){for(const z of [13,16])b.set(x,9,z,'minecraft:rail','Rail',{shape:'east_west'});b.set(x,8,20,gold,'Floor');}
+ for(let x=-30;x<=25;x++){b.box(x,10,13,x,10,16,dark,'Train');for(const z of [13,16]){b.set(x,11,z,'minecraft:blue_concrete','Train');b.set(x,12,z,x%9===0?white:glass,'Train');b.set(x,13,z,white,'Train');}b.box(x,14,13,x,14,16,white,'Train');}
+ for(const x of [-18,0,18])for(const y of [11,12])b.clear(x,y,16);
+ stair(b,35,2,1,7,1);b.floor(35,9,37,9,8,dark);
+ // Side flight joins the upper factory floor outside its glazed front wall.
+ stair(b,-39,10,1,12);b.floor(-39,-9,-35,-2,13);entrance(b,-35,13,-9,3);
+ return b.finish();
+}
+function plane(b:DistrictBuilder,cx:number,z:number,y:number,category:string){
+ b.box(cx-1,y,z-7,cx+1,y+2,z+7,white,category);b.box(cx-9,y,z-1,cx+9,y,z+3,white,category);b.box(cx-1,y+3,z-5,cx+1,y+3,z-1,glass,category);b.box(cx,y+3,z+5,cx,y+6,z+7,dark,category);
+ for(const x of [cx-3,cx+3])b.box(x,y,z+3,x,y+1,z+7,dark,category);b.set(cx-3,y+1,z+8,'minecraft:sea_lantern',category);b.set(cx+3,y+1,z+8,'minecraft:sea_lantern',category);
+}
+function roundedHangar(b:DistrictBuilder,cx:number,z0:number,z1:number,radius:number){
+ for(let x=-radius;x<=radius;x++){
+  const roof=6+Math.floor(Math.sqrt(radius*radius-x*x));
+  for(let z=z0;z<=z1;z++)b.set(cx+x,roof,z,(z-z0)%5===0||Math.abs(x)>=radius-1?white:dark,'Roof');
+  for(let y=2;y<roof;y++){b.set(cx+x,y,z0,y>5&&Math.abs(x)<radius-2?glass:dark);if(Math.abs(x)>=radius-1)b.box(cx+x,y,z0,cx+x,y,z1,white);}
+ }
+ for(const x of [cx-radius,cx+radius])b.box(x,2,z1,x,6,z1,gold);
+ b.floor(cx-radius+2,z0+1,cx+radius-2,z0+3,5);console(b,cx+2,2,z0+5);b.box(cx-radius+2,2,z0+4,cx-radius+3,3,z0+6,'minecraft:barrel','Storage');
+ stair(b,cx-radius+2,z0+8,1,4); // upper tread at z0+5; landing extends to z0+4
+ b.floor(cx-radius+2,z0+4,cx-radius+4,z0+4,5);
 }
 function airport():District{
-  const b=new DistrictBuilder({id:'campus-airport',title:'空港跑道與高架發射機庫',origin:[35,0,-75],references:['reference-02'],features:['三座地面機庫與前庭滑行區','長條跑道、中心線及邊燈','玻璃控制塔與內部指揮台','高架發射機庫、靜態太空船與登艦階梯'],notes:'第二張概念圖的機庫、空港、控制塔及發射平台皆有獨立區域。跑道尺寸及航行淨空未實測；太空船為 Vanilla 方塊雕塑，不能飛行。'});
-  foundation(b,52,25);
-  b.floor(-50,12,50,23,1,'minecraft:gray_concrete');
-  for(let x=-48;x<=48;x++){if(Math.floor(x/3)%2===0)b.set(x,1,17,white,'Floor');if(x%5===0)for(const z of [12,23])b.set(x,1,z,'minecraft:sea_lantern','Lighting');}
-  for(const x of [-48,-24,0]){hall(b,x,-23,x+20,-2,11);console(b,x+3,2,-19);b.box(x+15,2,-20,x+17,3,-17,'minecraft:barrel','Storage');
-    b.box(x+8,3,-16,x+10,4,-7,'minecraft:iron_block','Aircraft');b.box(x+3,3,-12,x+15,3,-10,white,'Aircraft');b.set(x+9,5,-14,glass,'Aircraft');}
-  b.box(39,2,-19,47,29,-11,white); // hollow tower shaft and glazing
-  for(let y=2;y<=28;y++)for(let x=40;x<=46;x++)for(let z=-18;z<=-12;z++)b.clear(x,y,z);
-  b.floor(36,-22,50,-8,30);hall(b,36,-22,50,-8,35);
-  // Hall helper starts at ground; clear its lower walls to preserve raised observation cabin.
-  for(let y=2;y<30;y++){for(let x=36;x<=50;x++)for(const z of [-22,-8])b.clear(x,y,z);for(let z=-22;z<=-8;z++)for(const x of [36,50])b.clear(x,y,z);}
-  for(let y=2;y<=30;y++)b.set(40,y,-18,'minecraft:ladder','Stairs',{facing:'east'});
-  for(let y=2;y<=4;y++)b.clear(43,y,-11);b.clear(40,30,-18);console(b,40,31,-12);console(b,45,31,-12);
-  b.floor(4,-23,29,4,17,dark);for(const x of [5,28])for(const z of [-22,3])b.box(x,2,z,x+1,16,z+1,white);
-  for(let z=-23;z<=4;z+=5){b.box(4,18,z,4,27,z,white);b.box(29,18,z,29,27,z,white);b.box(4,28,z,29,28,z,white,'Roof');}
-  b.box(4,29,-23,29,29,4,glass,'Roof');
-  for(let z=-19;z<=0;z++){const w=z<-15?1:z>-3?2:3;b.box(16-w,19,z,16+w,21,z,'minecraft:iron_block','Spacecraft');}
-  b.box(7,19,-11,25,19,-6,white,'Spacecraft');b.box(15,22,-16,17,23,-12,glass,'Spacecraft');b.box(15,22,-1,17,26,1,white,'Spacecraft');
-  b.set(14,20,1,'minecraft:sea_lantern','Spacecraft');b.set(18,20,1,'minecraft:sea_lantern','Spacecraft');
-  stair(b,30,8,1,16);console(b,6,18,1);return b.finish();
+ const b=new DistrictBuilder({id:'campus-airport',title:'懸架立方空港與太空船泊位',origin:[55,36,-105],references:['reference-02'],features:['金框白灰封閉立方空港高架於四柱上','下方開放泊位與懸吊太空船雕塑','南向高空玻璃廊橋與內部雙層操作台','後方三座小機庫、寬停機坪與停放飛機'],notes:'依第二張圖的巨大高架方形機庫、垂直金框及下懸太空船重建主要輪廓；所有高度、支撐與航行淨空為設計推估。飛機與太空船不會飛行，無真實模組機械功能。'});
+ foundation(b,56,34);b.floor(-54,-15,54,2,1,'minecraft:gray_concrete');
+ for(let x=-52;x<=52;x++){if(x%8<4)b.set(x,1,-7,white,'Floor');for(const z of [-14,1])b.set(x,1,z,gold,'Floor');}
+ for(const x of [-39,-13,13])roundedHangar(b,x,-33,-18,10);
+ plane(b,-33,-7,2,'Parked aircraft');plane(b,34,-7,2,'Parked aircraft');
+ for(const x of [-23,22])for(const z of [6,25]){b.box(x,2,z,x+2,19,z+2,white);b.box(x+1,2,z,x+1,19,z,gold);}
+ b.floor(-25,5,25,28,20,dark);b.box(-25,55,5,25,55,28,white,'Roof');
+ for(let y=21;y<55;y++){
+  for(let x=-25;x<=25;x++)for(const z of [5,28]){const rib=Math.abs(x)>=21||Math.abs(x)===13;b.set(x,y,z,rib?white:'minecraft:black_stained_glass');if(Math.abs(x)===20||Math.abs(x)===14)b.set(x,y,z,gold);}
+  for(let z=5;z<=28;z++)for(const x of [-25,25])b.set(x,y,z,z%9<3?white:z%9===3?gold:'minecraft:gray_stained_glass');
+ }
+ for(const y of [20,54]){b.box(-25,y,5,25,y,5,gold);b.box(-25,y,28,25,y,28,gold);b.box(-25,y,5,-25,y,28,gold);b.box(25,y,5,25,y,28,gold);}
+ // Open docking well under the shell; spaceship remains visible below its belly.
+ for(let x=-10;x<=10;x++)for(let z=10;z<=23;z++)b.clear(x,20,z);
+ plane(b,0,16,10,'Suspended spacecraft');for(const x of [-7,7])b.box(x,11,17,x,19,17,'minecraft:iron_bars','Dock supports');
+ b.floor(-24,6,24,10,30);b.floor(-24,23,24,27,30);for(const x of [-20,-10,0,10,20]){console(b,x,21,7);console(b,x,31,25);}
+ b.floor(-4,28,4,34,20);b.box(-4,25,28,4,25,34,white,'Roof');for(let z=29;z<=34;z++)for(const x of [-4,4])b.box(x,21,z,x,24,z,glass);
+ entrance(b,0,20,28,5);
+ stair(b,27,34,1,19);b.floor(25,15,29,16,20);for(let y=21;y<=24;y++)for(let z=15;z<=17;z++)b.clear(25,y,z);
+ stair(b,-23,22,20,10);b.floor(-23,11,-21,12,30);
+ return b.finish();
 }
 function dragonSculpture(b:DistrictBuilder,cx:number,color:MinecraftId){
-  b.box(cx-2,4,-11,cx+2,7,-4,color,'Dragon sculpture');b.box(cx-1,6,-4,cx+1,9,-2,color,'Dragon sculpture');b.box(cx-2,8,-2,cx+2,10,1,color,'Dragon sculpture');
-  for(const side of [-1,1]){
-    b.box(cx+side*2,2,-10,cx+side*2,4,-9,color,'Dragon sculpture');b.box(cx+side*2,2,-5,cx+side*2,4,-4,color,'Dragon sculpture');
-    for(let i=1;i<=6;i++){const x=cx+side*i;b.box(x,7+Math.floor(i/2),-10,x,7+Math.floor(i/2),-5-Math.floor(i/2),color,'Dragon sculpture');b.set(x,8+Math.floor(i/2),-10,'minecraft:bone_block','Dragon sculpture');}
-    b.set(cx+side*2,10,0,'minecraft:sea_lantern','Dragon sculpture');b.set(cx+side*2,11,-2,'minecraft:bone_block','Dragon sculpture');
-  }
-  for(let i=0;i<6;i++)b.set(cx+Math.floor(i/3),5-Math.floor(i/3),-12-i,color,'Dragon sculpture');
+ b.box(cx-2,4,5,cx+2,7,12,color,'Dragon sculpture');b.box(cx-1,6,12,cx+1,9,14,color,'Dragon sculpture');b.box(cx-2,8,14,cx+2,10,17,color,'Dragon sculpture');
+ for(const side of [-1,1]){
+  for(const z of [6,11])b.box(cx+side*2,2,z,cx+side*2,4,z+1,color,'Dragon sculpture');
+  for(let i=1;i<=8;i++){const x=cx+side*i;b.box(x,7+Math.floor(i/2),6,x,7+Math.floor(i/2),11-Math.floor(i/2),color,'Dragon sculpture');b.set(x,8+Math.floor(i/2),6,'minecraft:bone_block','Dragon sculpture');}
+  b.set(cx+side*2,10,16,'minecraft:sea_lantern','Dragon sculpture');b.set(cx+side*2,11,14,'minecraft:bone_block','Dragon sculpture');
+ }
+ for(let i=0;i<7;i++)b.set(cx+Math.floor(i/3),5-Math.floor(i/3),4-i,color,'Dragon sculpture');
 }
 function dragons():District{
-  const b=new DistrictBuilder({id:'campus-dragons',title:'三龍棲舍與照護圍場',origin:[75,0,75],references:['reference-03'],features:['紅、黑、白三座可辨識龍雕塑','三座玻璃棲舍與後方觀察夾層','藍玻璃靜態水槽、乾草餵食區與戶外圍場','翼、角、四足與長尾的方塊造型'],notes:'第三張概念圖的龍、機庫和照護空間轉為估計尺寸。三龍全是 Vanilla 靜態裝飾，沒有使用模組生物，也不代表可用的馴龍機制。水槽使用藍色玻璃表現水面，不含實際流體。'});
-  foundation(b,32,22);
-  for(const [i,cx] of [-21,0,21].entries()){
-    hall(b,cx-9,-20,cx+9,6,17);dragonSculpture(b,cx,['minecraft:red_concrete','minecraft:black_concrete','minecraft:white_concrete'][i] as MinecraftId);
-    b.floor(cx-8,-19,cx+8,-16,12);stair(b,cx-8,-5,1,11);console(b,cx+5,13,-19);
-    for(let x=cx-8;x<=cx+8;x++)for(const z of [10,21])b.set(x,2,z,'minecraft:oak_fence','Enclosure');
-    for(let z=10;z<=21;z++)for(const x of [cx-8,cx+8])b.set(x,2,z,'minecraft:oak_fence','Enclosure');
-    b.floor(cx-7,12,cx-3,16,1,'minecraft:blue_stained_glass');b.box(cx+3,2,12,cx+6,3,15,'minecraft:hay_block','Feed');
-    for(let x=cx-1;x<=cx+1;x++)b.clear(x,2,10);
-  }
-  return b.finish();
+ const b=new DistrictBuilder({id:'campus-dragons',title:'六連棲舍與三龍展示停機坪',origin:[105,8,145],references:['reference-03'],features:['六座白色分節圓拱棲舍與深灰屋面','室外紅、黑、白三龍雕塑與展翼長尾','灰色寬停機坪、金色分隔線與照護槽','每座棲舍後方儲物夾層與操作台'],notes:'依第三張圖的六連白灰機庫及室外龍群重作；屋頂不再使用溫室型青玻璃。三龍均為 Vanilla 靜態雕塑；藍玻璃水槽沒有實際流體，尺寸及馴龍機制未驗證。'});
+ foundation(b,44,27);b.floor(-43,-6,43,25,1,'minecraft:gray_concrete');
+ for(const cx of [-35,-21,-7,7,21,35]){roundedHangar(b,cx,-25,-8,6);for(let z=-6;z<=25;z++)b.set(cx-7,1,z,gold,'Floor');b.floor(cx-4,-23,cx-2,-21,1,'minecraft:blue_stained_glass');b.box(cx+2,2,-23,cx+4,3,-21,'minecraft:hay_block','Feed');}
+ for(const [i,x] of [-28,0,28].entries())dragonSculpture(b,x,['minecraft:red_concrete','minecraft:black_concrete','minecraft:white_concrete'][i] as MinecraftId);
+ b.box(-43,2,26,43,2,26,white,'Railings');for(let x=-42;x<=42;x+=7)b.set(x,3,26,'minecraft:lantern','Lighting');
+ return b.finish();
 }
 function workshop():District{
-  const b=new DistrictBuilder({id:'campus-workshop',title:'斜撐玻璃工坊與附魔塔',origin:[105,0,10],references:['reference-07'],features:['四層玻璃塔、交叉斜撐與金色水平線','鐵砧、鍛造台、製圖與木作工作站','頂層附魔台、書架與環形走道','各層三格寬樓梯與入口通道'],notes:'第七張外觀及室內概念的斜向玻璃以整數格階梯肋骨近似。附魔配置與書架效力未作遊戲驗證；全部尺寸與內部安排為設計推估。'});
-  foundation(b,15,16);
-  for(let y=2;y<=31;y++){
-    for(let x=-12;x<=12;x++)for(const z of [-13,13])b.set(x,y,z,glass);
-    for(let z=-13;z<=13;z++)for(const x of [-12,12])b.set(x,y,z,glass);
-    const diagonal=-12+Math.min(24,Math.floor((y-2)*24/29));
-    for(const x of [diagonal,-diagonal])for(const z of [-13,13])b.set(x,y,z,white);
-    for(const z of [-13+Math.floor((y-2)*26/29),13-Math.floor((y-2)*26/29)])for(const x of [-12,12])b.set(x,y,z,white);
-  }
-  for(const y of [1,9,17,25]){
-    b.floor(-12,-13,12,13,y);for(let x=-12;x<=12;x++)for(const z of [-13,13])b.set(x,y+1,z,gold);for(let z=-13;z<=13;z++)for(const x of [-12,12])b.set(x,y+1,z,gold);
-
-    for(let x=-6;x<=6;x+=4)console(b,x,y+1,-9);
-  }
-  // Alternate stair banks; build after floors and keep both headroom cells clear.
-  for(const y of [1,9,17])stair(b,y===9?8:-10,8,y,8);
-  b.box(-12,32,-13,12,32,13,white,'Roof');
-  for(let x=-1;x<=1;x++)for(let y=2;y<=5;y++)b.clear(x,y,13);
-  b.set(5,2,4,'minecraft:anvil','Workstations');b.set(7,2,4,'minecraft:smithing_table','Workstations');b.set(5,10,4,'minecraft:cartography_table','Workstations');b.set(7,10,4,'minecraft:stonecutter','Workstations');
-  b.set(2,26,2,'minecraft:enchanting_table','Workstations');for(let x=-2;x<=6;x++)b.box(x,26,-2,x,27,-2,'minecraft:bookshelf','Workstations');
-  return b.finish();
+ const b=new DistrictBuilder({id:'campus-workshop',title:'階梯斜撐玻璃工坊塔',origin:[132,12,40],references:['reference-07'],features:['窄高階梯輪廓、粗白色對角外骨骼','三層退台花園與金色頂緣','五層鍛造、製圖及附魔工作室','內部分離樓梯與寬入口'],notes:'第七張圖的窄高玻璃工坊、外露斜撐及退台植栽以合法整數格近似。室內及尺寸為設計推估，附魔機制未作遊戲驗證。'});
+ foundation(b,20,23);
+ for(let y=2;y<=41;y++){
+  const r=y<17?14:y<33?11:8;
+  for(let x=-r;x<=r;x++)for(const z of [-15,15])b.set(x,y,z,glass);
+  for(let z=-15;z<=15;z++)for(const x of [-r,r])b.set(x,y,z,glass);
+  const diagonal=-14+Math.floor((y-2)*22/39);
+  for(const z of [-16,16])for(let w=0;w<2;w++)b.set(diagonal+w,y,z,white);
+  for(const x of [-r,r])for(const z of [-15,15])b.box(x,y,z,x+1,y,z,white);
+ }
+ for(const y of [1,9,17,25,33]){
+  const r=y<17?14:y<33?11:8;b.floor(-r,-15,r,15,y);
+  for(let x=-r;x<=r;x++)for(const z of [-15,15])b.set(x,y+1,z,white);
+  for(const x of [-5,0,5])console(b,x,y+1,-11);
+ }
+ for(const [y,r] of [[16,14],[32,11],[42,8]] as const){b.box(-r,y,-15,r,y,15,white,'Roof');for(let x=-r;x<=r;x++)b.set(x,y+1,-15,gold);for(const x of [-r+1,r-1])b.box(x,y+1,-12,x,y+1,12,'minecraft:oak_leaves','Planters',{persistent:'true',distance:'1'});}
+ // Each terrace roof is also the next landing; flights cut their own headroom last.
+ for(const y of [1,9,17,25])stair(b,y===9||y===25?4:-7,8,y,8);
+ entrance(b,0,1,15,5);b.set(2,2,5,'minecraft:anvil','Workstations');b.set(4,2,5,'minecraft:smithing_table','Workstations');b.set(2,10,5,'minecraft:cartography_table','Workstations');b.set(2,34,3,'minecraft:enchanting_table','Workstations');b.box(-4,34,-4,4,35,-4,'minecraft:bookshelf','Workstations');
+ return b.finish();
 }
 export function createIndustryDistricts():District[]{return [factory(),airport(),dragons(),workshop()];}

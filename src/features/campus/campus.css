@@ -84,3 +84,6 @@
   .campus-export button { flex: 1 1 auto; }
   .campus-materials th, .campus-materials td { padding: 9px; }
 }
+
+/* Wider reference-composition canvas keeps the island silhouette readable. */
+@media(min-width:1101px){.campus-layout{grid-template-columns:190px minmax(0,1fr) 230px;gap:12px}.campus-viewport{height:740px}.campus-districts,.campus-detail{max-height:820px}}

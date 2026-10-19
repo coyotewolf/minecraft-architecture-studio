@@ -17,14 +17,14 @@ export function buildCampusGeometry(blocks, origin = [0,0,0]) {
       const color=shape.axis === ['x','y','z'][axis] ? 0xc6ab76 : box.color ?? shape.color;
       const id=[color,shape.opacity,shape.supported].join(':');
       let batch=batches.get(id);
-      if(!batch){batch={color,opacity:shape.opacity,supported:shape.supported,positions:[],normals:[],uids:[]};batches.set(id,batch);}
+      if(!batch){batch={color,opacity:shape.opacity,supported:shape.supported,positions:[],normals:[],colors:[],uids:[]};batches.set(id,batch);}
       const u=(axis+1)%3,v=(axis+2)%3;
       const corners=[[0,0],[1,0],[1,1],[0,1]].map(([a,b])=>{
         const p=[...box.min]; p[axis]=sign>0?box.max[axis]:box.min[axis]; p[u]=a?box.max[u]:box.min[u];p[v]=b?box.max[v]:box.min[v];
         return p.map((n,j)=>n+pos[j]-origin[j]);
       });
       const normal=[0,0,0]; normal[axis]=sign;
-      for(const i of sign>0?[0,1,2,0,2,3]:[0,2,1,0,3,2]) {batch.positions.push(...corners[i]);batch.normals.push(...normal);}
+      for(const i of sign>0?[0,1,2,0,2,3]:[0,2,1,0,3,2]) {batch.positions.push(...corners[i]);batch.normals.push(...normal);const grain=.90+.1*(Math.sin(pos[0]*12.99+pos[1]*78.2+pos[2]*37.7)*43758.5%1+1)/2;batch.colors.push(grain,grain,grain);}
       batch.uids.push(block.uid,block.uid);visible.add(block.uid);
     }
   });
@@ -33,9 +33,10 @@ export function buildCampusGeometry(blocks, origin = [0,0,0]) {
     const geometry=new THREE.BufferGeometry();
     geometry.setAttribute('position',new THREE.Float32BufferAttribute(batch.positions,3));
     geometry.setAttribute('normal',new THREE.Float32BufferAttribute(batch.normals,3));
+    geometry.setAttribute('color',new THREE.Float32BufferAttribute(batch.colors,3));
     geometry.computeBoundingSphere();
-    const material=new THREE.MeshStandardMaterial({color:batch.color,roughness:.8,metalness:.03,transparent:batch.opacity<1,opacity:batch.opacity,depthWrite:batch.opacity===1,wireframe:!batch.supported});
-    const mesh=new THREE.Mesh(geometry,material);mesh.userData.uids=batch.uids;group.add(mesh);
+    const material=new THREE.MeshStandardMaterial({color:batch.color,vertexColors:true,roughness:batch.opacity<1?.22:.84,metalness:batch.opacity<1?.14:.03,transparent:batch.opacity<1,opacity:batch.opacity,depthWrite:batch.opacity===1,wireframe:!batch.supported});
+    const mesh=new THREE.Mesh(geometry,material);mesh.userData.uids=batch.uids;mesh.castShadow=batch.opacity===1;mesh.receiveShadow=true;group.add(mesh);
   }
   group.userData.visibleCells=visible.size;group.userData.triangles=[...batches.values()].reduce((n,b)=>n+b.uids.length,0);
   group.updateMatrixWorld(true);return group;
@@ -54,19 +55,24 @@ export function createCampusViewer(host,blocks,onSelect) {
   if(bounds.isEmpty())bounds.set(new THREE.Vector3(-1,0,-1),new THREE.Vector3(1,2,1));
   const center=bounds.getCenter(new THREE.Vector3());
   const origin=center.toArray(),group=buildCampusGeometry(blocks,origin),byUid=new Map(blocks.map(b=>[b.uid,b]));
-  const scene=new THREE.Scene();scene.background=new THREE.Color(0x111b21);scene.add(group);
-  scene.add(new THREE.HemisphereLight(0xe0f5ff,0x546052,2.6));const sun=new THREE.DirectionalLight(0xffe8c0,3);sun.position.set(70,160,90);scene.add(sun);
-  const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1,1.75));renderer.outputColorSpace=THREE.SRGBColorSpace;
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0xa8d7ee);scene.add(group);
+  scene.add(new THREE.HemisphereLight(0xe8f7ff,0x3b5540,1.55));
+  const sun=new THREE.DirectionalLight(0xfff1d2,3.2);sun.position.set(-140,220,120);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-260;sun.shadow.camera.right=260;sun.shadow.camera.top=260;sun.shadow.camera.bottom=-260;sun.shadow.camera.near=1;sun.shadow.camera.far=650;sun.shadow.normalBias=.35;sun.shadow.bias=-.00015;scene.add(sun);
+  // Explicit presentation ocean: no decorative architecture or landscape is substituted for block data.
+  const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1800,1800),new THREE.MeshStandardMaterial({color:0x087caa,roughness:.38,metalness:.25}));
+  ocean.rotation.x=-Math.PI/2;ocean.position.y=-10.5-origin[1];ocean.receiveShadow=true;scene.add(ocean);
+  ocean.material.onBeforeCompile=shader=>{shader.vertexShader='varying vec3 vOcean;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvOcean=position;');shader.fragmentShader='varying vec3 vOcean;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat wave=sin(vOcean.x*1.9+sin(vOcean.y*.9))*sin(vOcean.y*2.3+cos(vOcean.x*.6)); diffuseColor.rgb*=.91+.09*wave;');};
+  const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1,1.75));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
   const canvas=renderer.domElement;canvas.className='campus-canvas';canvas.tabIndex=0;canvas.setAttribute('aria-label','完整園區 3D 總覽');canvas.setAttribute('role','application');canvas.style.touchAction='none';canvas.style.width='100%';canvas.style.height='100%';canvas.style.display='block';host.append(canvas);
-  const camera=new THREE.PerspectiveCamera(42,1,.1,10000);const controls=new OrbitControls(camera,canvas);controls.enableDamping=false;controls.maxPolarAngle=Math.PI*.98;controls.listenToKeyEvents(canvas);
+  const camera=new THREE.PerspectiveCamera(30,1,.1,10000);const controls=new OrbitControls(camera,canvas);controls.enableDamping=false;controls.maxPolarAngle=Math.PI*.98;controls.listenToKeyEvents(canvas);
   const outline=new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(1.02,1.02,1.02)),0xffd36d);outline.visible=false;scene.add(outline);
   // BoxHelper copies its geometry; dispose the temporary source immediately.
   outline.object.geometry.dispose();outline.object.material.dispose();
-  let disposed=false,frame=0,lastPreset='iso',manual=false;
+  let disposed=false,frame=0,lastPreset='reference',manual=false;
   function render(){if(disposed||frame)return;frame=globalThis.requestAnimationFrame(()=>{frame=0;if(disposed)return;renderer.render(scene,camera);canvas.dataset.rendererStats=JSON.stringify({visibleCells:group.userData.visibleCells,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls});});}
   function fit(p=lastPreset){
     lastPreset=p;
-    const direction=new THREE.Vector3(...(p==='top'?[0,1,.001]:p==='front'?[0,.12,1]:p==='side'?[1,.12,0]:[1,.8,1])).normalize();
+    const direction=new THREE.Vector3(...(p==='reference'?[.42,1.05,1.6]:p==='top'?[0,1,.001]:p==='front'?[0,.12,1]:p==='side'?[1,.12,0]:[1,.8,1])).normalize();
     camera.position.copy(direction);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);
     const rotation=new THREE.Matrix4().extractRotation(camera.matrixWorldInverse),v=new THREE.Vector3();
     let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
@@ -81,7 +87,7 @@ export function createCampusViewer(host,blocks,onSelect) {
       // A unit cell lies inside a radius sqrt(3)/2 sphere, including its nearest depth edge.
       distance=Math.max(distance,(Math.abs(v.x-midX)+radius)/(tangent*camera.aspect)+v.z+radius,(Math.abs(v.y-midY)+radius)/tangent+v.z+radius);
     }
-    distance*=1.1;controls.target.copy(target);camera.position.copy(target).addScaledVector(direction,distance);
+    distance*=1.055;controls.target.copy(target);camera.position.copy(target).addScaledVector(direction,distance);
     camera.near=Math.max(.05,distance/10000);camera.far=Math.max(1000,distance*5);camera.updateProjectionMatrix();controls.update();render();
   }
   function resize(){const width=Math.max(host.clientWidth,1),height=Math.max(host.clientHeight,1);renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();if(!manual)fit();else render();}
@@ -97,5 +103,5 @@ export function createCampusViewer(host,blocks,onSelect) {
   const lost=e=>{e.preventDefault();canvas.dataset.contextState='lost';};const restored=()=>{canvas.dataset.contextState='ready';render();};
   for(const [name,fn] of [['pointerdown',pointerDown],['pointermove',pointerMove],['pointerup',pointerUp],['pointercancel',cancel],['keydown',keyboard],['webglcontextlost',lost],['webglcontextrestored',restored]])canvas.addEventListener(name,fn);
   resize();
-  return {preset(p){manual=false;fit(p);},select(uid){const b=byUid.get(uid);outline.visible=!!b;if(b){outline.position.set(b.pos.x+.5-origin[0],b.pos.y+.5-origin[1],b.pos.z+.5-origin[2]);}render();},dispose(){if(disposed)return;disposed=true;globalThis.cancelAnimationFrame(frame);observer.disconnect();controls.removeEventListener('change',render);controls.removeEventListener('start',start);controls.dispose();for(const [name,fn] of [['pointerdown',pointerDown],['pointermove',pointerMove],['pointerup',pointerUp],['pointercancel',cancel],['keydown',keyboard],['webglcontextlost',lost],['webglcontextrestored',restored]])canvas.removeEventListener(name,fn);disposeCampusGeometry(group);outline.geometry.dispose();outline.material.dispose();renderer.dispose();canvas.remove();}};
+  return {preset(p){manual=false;fit(p);},select(uid){const b=byUid.get(uid);outline.visible=!!b;if(b){outline.position.set(b.pos.x+.5-origin[0],b.pos.y+.5-origin[1],b.pos.z+.5-origin[2]);}render();},dispose(){if(disposed)return;disposed=true;globalThis.cancelAnimationFrame(frame);observer.disconnect();controls.removeEventListener('change',render);controls.removeEventListener('start',start);controls.dispose();for(const [name,fn] of [['pointerdown',pointerDown],['pointermove',pointerMove],['pointerup',pointerUp],['pointercancel',cancel],['keydown',keyboard],['webglcontextlost',lost],['webglcontextrestored',restored]])canvas.removeEventListener(name,fn);disposeCampusGeometry(group);ocean.geometry.dispose();ocean.material.dispose();sun.shadow.dispose();outline.geometry.dispose();outline.material.dispose();renderer.dispose();canvas.remove();}};
 }
