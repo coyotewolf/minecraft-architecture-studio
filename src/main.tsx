@@ -1,3 +1,4 @@
+import { CampusPanel } from './features/campus/CampusPanel.tsx';
 import { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { BlockPos, BlockRecord, BlockState, EditTransaction, MinecraftId } from './core/contracts.ts';
@@ -33,8 +34,13 @@ import { ReferencePanel } from './features/references/ReferencePanel.tsx';
 import type { ReferenceImage } from './features/references/storage.ts';
 
 interface PendingEdit { transaction: EditTransaction | null; valid: boolean; message: string; records: readonly BlockRecord[]; cells: number; audit?:string }
-export function App() {
-  const [engine, setEngine] = useState(() => new VoxelEngine(new URLSearchParams(location.search).get('sample')==='house'?createDemoProject():createAtriumProject()));
+export function App(){
+ const [screen,setScreen]=useState<'campus'|'studio'>(()=>new URLSearchParams(location.search).has('sample')?'studio':'campus');
+ const [initial,setInitial]=useState<Project|undefined>(undefined);
+ return screen==='campus'?<CampusPanel onOpen={project=>{setInitial(project);setScreen('studio');}}/>:<StudioApp initialProject={initial} onCampus={()=>setScreen('campus')}/>;
+}
+export function StudioApp({initialProject,onCampus}:{initialProject?:Project|undefined;onCampus:()=>void}) {
+  const [engine, setEngine] = useState(() => new VoxelEngine(initialProject??(new URLSearchParams(location.search).get('sample')==='house'?createDemoProject():createAtriumProject())));
   const [project, setProject] = useState(() => engine.snapshot());
   const [workspace,setWorkspace]=useState(()=>createWorkspace(project));
   const [buildMode,setBuildMode]=useState(false);
@@ -70,7 +76,7 @@ export function App() {
   const projection=useMemo(()=>viewProjection(project,steps,{layer,mode:viewMode,progress,completed:workspace.completed,exploded,build:buildMode,hideRoof,ghostFuture,estimatedOnly,materialFocus,hiddenMaterials,...(cutAxis?{cut:{axis:cutAxis,value:cutValue}}:{})}),[project,steps,layer,viewMode,progress,workspace.completed,exploded,buildMode,hideRoof,ghostFuture,estimatedOnly,materialFocus,hiddenMaterials,cutAxis,cutValue]);
   const currentWorkspace=useMemo(()=>({...workspace,project,view:{layer,mode:viewMode,progress}}),[workspace,project,layer,viewMode,progress]);
   const latestWorkspace=useRef(currentWorkspace);latestWorkspace.current=currentWorkspace;
-  const persistence=usePersistence(currentWorkspace,record=>openWorkspace(record));
+  const persistence=usePersistence(currentWorkspace,record=>openWorkspace(record),initialProject?.id);
   function publish(next:Project,label:string){setProject(next);const at=new Date().toISOString();setWorkspace(w=>({...w,revisionLog:[...w.revisionLog,{id:crypto.randomUUID(),label,at}].slice(-500)}));}
   function openWorkspace(w:WorkspaceRecord,action:'open'|'metadata'|'restore'='open'){
     if(action==='metadata'&&w.project.id===project.id){setWorkspace(w);if(w.project.title!==project.title)setProject(engine.rename(w.project.title));return;}
@@ -147,6 +153,11 @@ export function App() {
   const axisBounds=useMemo(()=>{const values=project.blocks.map(b=>b.pos[cutAxis||'x']);return values.length?{min:Math.min(...values),max:Math.max(...values)}:{min:0,max:0};},[project,cutAxis]);
   const buildReconciliation=useMemo(()=>reconcileBuild(workspace.approvedDesign,project,workspace.completed),[workspace.approvedDesign,project,workspace.completed]);
   const buildProps:BuildPanelProps={derived:{steps,materials,reconciliation:buildReconciliation},project,approved:workspace.approvedDesign,completed:workspace.completed,prepared:workspace.prepared,layer,onLayer:y=>{setLayer(y);if(viewMode==='all')setViewMode('through');},mode:viewMode,onMode:setViewMode,progress,onProgress:p=>{setProgress(p);setBuildMode(true);clearPreview();},exploded,onExploded:setExploded,onPrepared:(id,quantity)=>setWorkspace(w=>({...w,prepared:{...w.prepared,[id]:quantity}})),onCompleted:completed=>setWorkspace(w=>({...w,completed})),onApprove:()=>setWorkspace(w=>({...w,approvedDesign:project,completed:reconcileBuild(w.approvedDesign,project,w.completed).retainedCompleted}))};
+  async function returnToCampus(){
+    if(switchInFlight.current)return;
+    switchInFlight.current=true;setSwitching(true);
+    try{while(true){const snapshot=latestWorkspace.current;const saved=await persistence.save();if(!saved){setError('儲存失敗，請先下載施工備份再離開。');return;}if(snapshot===latestWorkspace.current)break;}onCampus();}finally{switchInFlight.current=false;setSwitching(false);}
+  }
   function closeDrawer(event:React.MouseEvent<HTMLButtonElement>){event.currentTarget.closest('details')?.removeAttribute('open');}
   function openReferences(){document.querySelector<HTMLDetailsElement>('[data-reference-drawer]')?.setAttribute('open','');}
   function closeOtherDrawers(event:React.SyntheticEvent<HTMLDetailsElement>){const active=event.currentTarget;if(active.open)document.querySelectorAll<HTMLDetailsElement>('.utility-drawer[open]').forEach(d=>{if(d!==active)d.open=false;});}
@@ -154,7 +165,7 @@ export function App() {
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'&&!(event.target instanceof HTMLInputElement)&&!(event.target instanceof HTMLTextAreaElement)){event.preventDefault();history(event.shiftKey);}
     if(event.key==='Escape'){clearPreview();document.querySelectorAll<HTMLDetailsElement>('.utility-drawer[open]').forEach(d=>d.open=false);}
   }}>
-    <header className="studio-header"><div className="studio-brand"><span className="brand-mark" aria-hidden="true">▧</span><div><p className="eyebrow">ARCHITECTURE / JAVA 1.20.1</p><h1>BLOCK ATELIER<span>建築設計工作室</span></h1></div></div><div className="header-actions">
+    <header className="studio-header"><div className="studio-brand"><span className="brand-mark" aria-hidden="true">▧</span><div><p className="eyebrow">ARCHITECTURE / JAVA 1.20.1</p><h1>BLOCK ATELIER<span>建築設計工作室</span></h1></div></div><div className="header-actions"><button disabled={switching} onClick={()=>void returnToCampus()}>返回全基地</button>
       <details className="utility-drawer" data-reference-drawer onToggle={closeOtherDrawers}><summary>設計參考</summary><div className="drawer-content"><button className="drawer-close" onClick={closeDrawer}>關閉面板</button><ReferencePanel projectId={project.id} onSelectionChange={onReferenceSelection}/></div></details>
           <details className="utility-drawer" onToggle={closeOtherDrawers}><summary>專案與備份</summary><div className="drawer-content"><button className="drawer-close" onClick={closeDrawer}>關閉面板</button><ProjectPanel workspace={currentWorkspace} status={persistence.status} onSave={persistence.save} onChange={openWorkspace}/></div></details>
 
@@ -192,7 +203,7 @@ export function App() {
       <aside className="inspection-rail" aria-label="材料與檢查器"><details className="materials-section" open><summary>材料清單</summary><MaterialsPanel {...buildProps}/></details><BlockInspector block={block} unsupportedCount={shapes.filter(s=>!s.supported).length}/></aside>
     </div>
     <ProgressDock {...buildProps}/>
-    <footer className="studio-footer"><span className="save-indicator">● {persistence.status}</span><span>＋X 東 / ＋Y 上 / ＋Z 南 · Java 1.20.1</span><details><summary>設計與施工說明</summary><p>所有座標、材料與下載均來自同一份方塊模型。參考拱廊為概念圖的比例設計，全部座標標記 AI Estimated Area；並非全基地精確還原。原版方塊與狀態經資料驗證，實際施工仍需在遊戲中確認承托與通行。材質為自行製作的示意紋理。</p>{project.blocks.length>=10000&&<p>大型模型可能較慢，建議逐層檢視；50,000 格為容量上限，並非流暢度保證。</p>}</details></footer>
+    <footer className="studio-footer"><span className="save-indicator">● {persistence.status}</span><span>＋X 東 / ＋Y 上 / ＋Z 南 · Java 1.20.1</span><details><summary>設計與施工說明</summary><p>所有座標、材料與下載均來自同一份方塊模型。參考建築為概念圖的比例設計，全部推估座標標記 AI Estimated Area。原版方塊與狀態經資料驗證，實際施工仍需在遊戲中確認承托與通行。材質為自行製作的示意紋理。</p>{project.blocks.length>=10000&&<p>大型模型可能較慢，建議逐層檢視；50,000 格為容量上限，並非流暢度保證。</p>}</details></footer>
   </main>;
 }
 const root=document.getElementById('root');

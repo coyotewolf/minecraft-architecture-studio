@@ -20,7 +20,7 @@ function csvRows(text:string):string[][]{
 }
 async function constructionCsv(page:Page):Promise<string[][]>{await section(page,'專案與備份');const event=page.waitForEvent('download');await page.getByRole('button',{name:'下載玩家施工 CSV',exact:true}).click();const file=await(await event).path();if(!file)throw new Error('Missing construction CSV');const rows=csvRows(await readFile(file,'utf8'));await section(page,'專案與備份',false);return rows;}
 
-async function start(page:Page){await page.goto('/');await expect(page.getByTestId('cell-count')).toHaveText('6137');await expect.poll(()=>instances(page)).toBeGreaterThanOrEqual(6137);}
+async function start(page:Page){await page.goto('/?sample=atrium');await expect(page.getByTestId('cell-count')).toHaveText('6137');await expect.poll(()=>instances(page)).toBeGreaterThanOrEqual(6137);}
 
 test('default reference atrium has real signed coordinates and honest estimated provenance; view filters never change exported design',async({page})=>{
   test.setTimeout(60000);await page.setViewportSize({width:1600,height:1050});await start(page);

@@ -22,7 +22,7 @@ async function storedBoards(page: Page): Promise<{ projectId: string; selectedId
   }));
 }
 async function ready(page: Page) {
-  await page.goto('/'); await expect(page.getByTestId('cell-count')).toHaveText('6137');
+  await page.goto('/?sample=atrium'); await expect(page.getByTestId('cell-count')).toHaveText('6137');
   await expect.poll(() => page.evaluate(() => localStorage.getItem('architecture-studio:last-project'))).not.toBeNull();
   await openReferences(page);
 }

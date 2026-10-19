@@ -2,13 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { loadWorkspace, saveWorkspace, type WorkspaceRecord } from './storage.ts';
 const LAST='architecture-studio:last-project';
 /** Serialize writes so an older slow save cannot overwrite a newer edit. */
-export function usePersistence(workspace:WorkspaceRecord,onRestore:(record:WorkspaceRecord)=>void){
+export function usePersistence(workspace:WorkspaceRecord,onRestore:(record:WorkspaceRecord)=>void,preferredProjectId?:string){
   const [status,setStatus]=useState('正在讀取本機專案…'),[ready,setReady]=useState(false);
   const current=useRef(workspace),restore=useRef(onRestore),queue=useRef(Promise.resolve()),generation=useRef(0);
   current.current=workspace;restore.current=onRestore;
   useEffect(()=>{
     let canceled=false;
-    void (async()=>{try{const id=localStorage.getItem(LAST);if(id){const record=await loadWorkspace(id);if(record&&!canceled)restore.current(record);}
+    void (async()=>{try{const id=preferredProjectId??localStorage.getItem(LAST);if(id){const record=await loadWorkspace(id);if(record&&!canceled)restore.current(record);}
       if(!canceled){setReady(true);setStatus('尚未儲存');}}
       catch(error){if(!canceled)setStatus('讀取失敗，原始儲存資料未覆寫：'+String(error));}})();
     return()=>{canceled=true;};
