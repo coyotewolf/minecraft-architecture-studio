@@ -1,6 +1,6 @@
 # Generic AI provider integration
 
-Status: implementation contract pending acceptance. This document specifies the server adapter being implemented; it does not establish successful live provider calls, deployment, paid generation, or photo-to-building accuracy. No vendor SDK is required.
+Status: configurable server adapter implemented and tested at M8/M10. Real local HTTP adapter tests, four browser AI scenarios, and compiled production-server AI-disabled/manual-edit smoke passed. Configured upstream responses in tests are explicitly synthetic; no live provider, paid generation, deployment or photo-to-building accuracy is established. See progress/M8.md and progress/M10.md. No vendor SDK is required.
 
 ## Disabled by default
 
