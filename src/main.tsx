@@ -23,10 +23,12 @@ import { designDiff } from './features/editor/commands.ts';
 import type { Project } from './core/contracts.ts';
 import { createWorkspace } from './features/projects/storage.ts';
 import './features/studio-panels.css';
+import { AiPanel } from './features/ai/AiPanel.tsx';
+import { validateProposal } from './features/ai/proposals.ts';
 import './style.css';
 import './features/editor/editor.css';
 
-interface PendingEdit { transaction: EditTransaction | null; valid: boolean; message: string; records: readonly BlockRecord[]; cells: number }
+interface PendingEdit { transaction: EditTransaction | null; valid: boolean; message: string; records: readonly BlockRecord[]; cells: number; audit?:string }
 export function App() {
   const [engine, setEngine] = useState(() => new VoxelEngine(createDemoProject()));
   const [project, setProject] = useState(() => engine.snapshot());
@@ -45,6 +47,7 @@ export function App() {
   const [collision, setCollision] = useState<CollisionPolicy>('cancel');
   const [pending, setPending] = useState<PendingEdit|null>(null);
   const [target, setTarget] = useState<BlockPos>({x:0,y:0,z:0});
+  const activeProject=useRef(project);activeProject.current=project;
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ViewerHandle|null>(null);
   const onPick = useRef<(uid:string|null,pick:ViewerPick|null)=>void>(()=>{});
@@ -61,12 +64,12 @@ export function App() {
   }
   const block = project.blocks.find(b=>b.uid===selected)??null;
   function clearPreview(){setPending(null);viewer.current?.preview([],[],true);}
-  function stage(transaction:EditTransaction) {
+  function stage(transaction:EditTransaction,audit?:string,description='') {
     if(buildMode||exploded){setError('請切回編輯模式並關閉分解檢視後修改。');return;}
     const controls=document.querySelector<HTMLDetailsElement>('.editor-section');if(controls)controls.open=true;
     const preview=engine.preview(transaction);
     const records=transaction.changes.flatMap(c=>c.after?[c.after]:c.before?[c.before]:[]);
-    const next:PendingEdit={transaction,valid:preview.ok,message:preview.ok?'確認後才會修改模型。':preview.diagnostics.map(d=>d.message).join('；'),records,cells:transaction.changes.length};
+    const next:PendingEdit={transaction,valid:preview.ok,message:preview.ok?'確認後才會修改模型。'+description:preview.diagnostics.map(d=>d.message).join('；'),records,cells:transaction.changes.length,...(audit?{audit}:{})};
     setPending(next);viewer.current?.preview(records,records.map(shapeForBlock),next.valid);
   }
   function stageAction(pos:BlockPos,action:Exclude<EditorTool,'select'|'eyedropper'>){
@@ -94,7 +97,7 @@ export function App() {
   useEffect(()=>{viewer.current?.workPlane(workY);},[workY,engine]);
   function confirm(){
     if(!pending?.valid||!pending.transaction)return;
-    try {const next=engine.commit(pending.transaction);publish(next,'套用編輯');clearPreview();setError('');}
+    try {const next=engine.commit(pending.transaction);if(pending.audit){setProject(next);setWorkspace(w=>{const priorAi=w.originalAi===true;const entries=[...w.revisionLog,{id:crypto.randomUUID(),label:'接受 AI 提案',at:new Date().toISOString(),detail:pending.audit!,transaction:pending.transaction!}].slice(-500);let cells=entries.reduce((n,r)=>n+(r.transaction?.changes.length??0),0);while(cells>100000){const removed=entries.shift();cells-=removed?.transaction?.changes.length??0;}return {...w,original:priorAi?w.original:next,originalAi:true,revisionLog:entries};});}else publish(next,'套用編輯');clearPreview();setError('');}
     catch(e){setPending({...pending,valid:false,message:e instanceof Error?e.message:'變更失敗'});}
   }
   function history(redo=false){
@@ -123,6 +126,8 @@ export function App() {
     <details className="editor-section"><summary>2D 逐層藍圖</summary><BlueprintPanel project={project} selected={selected} layer={layer} onLayer={setLayer} onCell={pos=>{const b=engine.getAt(pos);setSelected(b?.uid??null);setTarget(pos);if(tool==="eyedropper"&&b){setBlockId(b.id);setBlockState(b.state);setTool("place");}else if(tool==="place"||tool==="remove"||tool==="replace")stageAction(pos,tool);}}/></details>
     <details className="editor-section"><summary>材料與施工引導</summary><BuildPanel project={project} approved={workspace.approvedDesign} completed={workspace.completed} prepared={workspace.prepared} layer={layer} onLayer={setLayer} mode={viewMode} onMode={setViewMode} progress={progress} onProgress={setProgress} exploded={exploded} onExploded={setExploded} onPrepared={(id,quantity)=>setWorkspace({...workspace,prepared:{...workspace.prepared,[id]:quantity}})} onCompleted={completed=>setWorkspace({...workspace,completed})} onApprove={()=>setWorkspace({...workspace,approvedDesign:project,completed:reconcileBuild(workspace.approvedDesign,project,workspace.completed).retainedCompleted})}/></details>
     <details className="editor-section"><summary>專案與備份</summary><ProjectPanel workspace={currentWorkspace} status={persistence.status} onSave={persistence.save} onChange={openWorkspace}/></details>
+    <details className="editor-section"><summary>AI 圖片分析與編輯</summary><AiPanel key={project.id} project={project} onProposal={(raw,scope,audit)=>{try{if(activeProject.current.id!==project.id)throw new Error("專案已切換，請重新產生提案。");const result=validateProposal(engine.snapshot(),raw,scope);stage(result.transaction,audit,result.summary+" "+result.uncertainties.join("；"));}catch(e){clearPreview();setError(e instanceof Error?e.message:"AI 提案無效");}}}/></details>
+    {project.blocks.length>=10000&&<p className="capability-note" role="status">大型模型在軟體繪圖或手機上可能較慢；建議使用目前樓層／下方樓層檢視。50,000 格是本版的容量上限，並非流暢度保證。</p>}
     <p className="capability-note">材質使用示意色，未使用 Minecraft 遊戲貼圖。手動編輯以預覽確認後套用；可保存於本機瀏覽器，下載備份後可在其他裝置匯入。</p>
     <footer className="studio-footer">座標：＋X 向東、＋Y 向上、＋Z 向南；北方為 −Z。{persistence.status}</footer>
   </main>;

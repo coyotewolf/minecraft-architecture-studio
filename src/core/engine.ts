@@ -3,7 +3,7 @@ import { coordinateKey } from './coordinates.ts';
 import { deepFreeze, MAX_TRANSACTION_CHANGES, object, parseBlock, parsePosition, parseProject, parseStructure, stableJson, text } from './model.ts';
 
 function same(a: unknown, b: unknown): boolean { return stableJson(a) === stableJson(b); }
-function parseTransaction(input: unknown): EditTransaction {
+export function parseTransaction(input: unknown): EditTransaction {
   const t = object(input, ['id', 'baseRevision', 'cause', 'collisionPolicy', 'changes', 'structures']);
   if (typeof t.cause !== 'string' || !['user', 'ai_approved', 'import', 'undo', 'redo'].includes(t.cause)) throw new Error('Unknown transaction cause');
   if (t.collisionPolicy !== 'cancel' && t.collisionPolicy !== 'replace' && t.collisionPolicy !== 'skip') throw new Error('Unknown collision policy');

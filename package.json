@@ -12,11 +12,13 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && npm run build:server",
     "preview": "vite preview --host 127.0.0.1",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "test:e2e": "playwright test",
-    "verify:vendor": "node scripts/verify-vendor.mjs"
+    "verify:vendor": "node scripts/verify-vendor.mjs",
+    "build:server": "vite build --ssr server/start.ts --outDir dist-server",
+    "start": "node dist-server/start.js"
   },
   "dependencies": {
     "react": "19.2.8",

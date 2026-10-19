@@ -1,4 +1,5 @@
-import type { Project } from '../../core/contracts.ts';
+import { parseTransaction } from '../../core/engine.ts';
+import type { EditTransaction, Project } from '../../core/contracts.ts';
 import { MAX_COORDINATE } from '../../core/coordinates.ts';
 import { deepFreeze, object, parseProject, stableJson, text } from '../../core/model.ts';
 import { itemStackSize } from '../../core/versioned-registry.ts';
@@ -7,13 +8,14 @@ export interface WorkspaceRecord {
   readonly schemaVersion: 1;
   readonly project: Project;
   readonly original: Project;
+  readonly originalAi?:boolean;
   readonly approvedDesign: Project;
   readonly milestones: readonly { readonly id: string; readonly title: string; readonly createdAt: string; readonly project: Project }[];
   readonly prepared: Readonly<Record<string, number>>;
   readonly completed: readonly string[];
   readonly view: { readonly layer: number; readonly mode: 'all' | 'layer' | 'through' | 'ghost'; readonly progress: number };
   readonly updatedAt: string;
-  readonly revisionLog: readonly { readonly id: string; readonly label: string; readonly at: string }[];
+  readonly revisionLog: readonly { readonly id: string; readonly label: string; readonly at: string; readonly detail?:string; readonly transaction?:EditTransaction }[];
 }
 
 export const MAX_WORKSPACE_BYTES = 128 * 1024 * 1024;
@@ -40,7 +42,7 @@ function unique(ids: readonly string[]): void {
 
 /** Detached validated records are the only values allowed across backup/storage boundaries. */
 export function parseWorkspace(input: unknown): WorkspaceRecord {
-  const w = object(input, ['schemaVersion', 'project', 'original', 'approvedDesign', 'milestones', 'prepared', 'completed', 'view', 'updatedAt', 'revisionLog']);
+  const w = object(input, ['schemaVersion', 'project', 'original','originalAi', 'approvedDesign', 'milestones', 'prepared', 'completed', 'view', 'updatedAt', 'revisionLog']);
   if (w.schemaVersion !== 1) throw new Error('Unsupported workspace schema version');
   const rawMilestones = array(w.milestones, 10).map(value => object(value, ['id', 'title', 'createdAt', 'project']));
   // Count raw snapshots before constructing any normalized copies.
@@ -80,12 +82,18 @@ export function parseWorkspace(input: unknown): WorkspaceRecord {
   if (typeof view.layer !== 'number' || !Number.isSafeInteger(view.layer) || Math.abs(view.layer) > MAX_COORDINATE) throw new Error('Invalid view layer');
   if (view.mode !== 'all' && view.mode !== 'layer' && view.mode !== 'through' && view.mode !== 'ghost') throw new Error('Invalid view mode');
   if (typeof view.progress !== 'number' || !Number.isFinite(view.progress) || view.progress < 0 || view.progress > 100) throw new Error('Invalid view progress');
+  let logCells=0;
   const revisionLog = array(w.revisionLog, 500).map(value => {
-    const r = object(value, ['id', 'label', 'at']);
-    return { id: identifier(r.id), label: text(r.label), at: date(r.at) };
+    const r = object(value, ['id', 'label', 'at','detail','transaction']);
+    if(r.detail!==undefined&&(typeof r.detail!=='string'||r.detail.length>8192))throw new Error('Invalid audit detail');
+    const transaction=r.transaction===undefined?undefined:parseTransaction(r.transaction);
+    logCells+=transaction?.changes.length??0;if(logCells>100000)throw new Error('History cell limit exceeded');
+    return { id: identifier(r.id), label: text(r.label), at: date(r.at),...(r.detail===undefined?{}:{detail:r.detail as string}),...(transaction?{transaction}:{}) };
   });
   unique(revisionLog.map(r => r.id));
-  return deepFreeze({ schemaVersion: 1, project, original, approvedDesign, milestones, prepared, completed,
+  if(w.originalAi!==undefined&&typeof w.originalAi!=='boolean')throw new Error('Invalid original AI marker');
+  const originalAi=w.originalAi??revisionLog.some(r=>r.transaction?.cause==='ai_approved');
+  return deepFreeze({ schemaVersion: 1, project, original, originalAi, approvedDesign, milestones, prepared, completed,
     view: { layer: view.layer, mode: view.mode, progress: view.progress }, updatedAt: date(w.updatedAt), revisionLog });
 }
 

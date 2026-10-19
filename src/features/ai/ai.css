@@ -1,0 +1,16 @@
+.ai-panel { display: grid; gap: .8rem; min-width: 0; }
+.ai-panel fieldset { min-width: 0; display: grid; gap: .65rem; border: 1px solid #465158; border-radius: .5rem; padding: .75rem; }
+.ai-panel label { display: grid; gap: .3rem; min-width: 0; }
+.ai-panel input, .ai-panel select, .ai-panel textarea { min-width: 0; max-width: 100%; }
+.ai-panel textarea { width: 100%; min-height: 6rem; resize: vertical; }
+.ai-coordinate-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.ai-coordinate-grid input { width: 100%; }
+.ai-thumbnails { display: flex; gap: .5rem; flex-wrap: wrap; }
+.ai-thumbnails figure { margin: 0; width: 7rem; }
+.ai-thumbnails img { width: 7rem; height: 5rem; object-fit: contain; background: #151c20; }
+.ai-thumbnails figcaption { font-size: .75rem; overflow-wrap: anywhere; }
+.ai-panel .ai-consent { display: flex; align-items: flex-start; gap: .5rem; }
+.ai-consent input { flex: 0 0 auto; margin-top: .25rem; }
+.ai-panel [role="alert"] { color: #ffb5a7; overflow-wrap: anywhere; }
+.ai-panel p { overflow-wrap: anywhere; white-space: pre-wrap; }
+@media (max-width: 420px) { .ai-coordinate-grid { grid-template-columns: 1fr; } }
