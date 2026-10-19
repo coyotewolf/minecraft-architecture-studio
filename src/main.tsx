@@ -34,6 +34,8 @@ export function App() {
   const [project, setProject] = useState(() => engine.snapshot());
   const [workspace,setWorkspace]=useState(()=>createWorkspace(project));
   const [buildMode,setBuildMode]=useState(false);
+  const [switching,setSwitching]=useState(false);
+  const switchInFlight=useRef(false);
   const [exploded,setExploded]=useState(false);
   const [viewMode,setViewMode]=useState<'all'|'layer'|'through'|'ghost'>('all');
   const [progress,setProgress]=useState(0);
@@ -48,6 +50,7 @@ export function App() {
   const [pending, setPending] = useState<PendingEdit|null>(null);
   const [target, setTarget] = useState<BlockPos>({x:0,y:0,z:0});
   const activeProject=useRef(project);activeProject.current=project;
+  const activeEngine=useRef(engine);activeEngine.current=engine;
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ViewerHandle|null>(null);
   const onPick = useRef<(uid:string|null,pick:ViewerPick|null)=>void>(()=>{});
@@ -55,6 +58,7 @@ export function App() {
   const steps=useMemo(()=>constructionSteps(project),[project]);
   const projection=useMemo(()=>viewProjection(project,steps,{layer,mode:viewMode,progress,completed:workspace.completed,exploded,build:buildMode}),[project,steps,layer,viewMode,progress,workspace.completed,exploded,buildMode]);
   const currentWorkspace=useMemo(()=>({...workspace,project,view:{layer,mode:viewMode,progress}}),[workspace,project,layer,viewMode,progress]);
+  const latestWorkspace=useRef(currentWorkspace);latestWorkspace.current=currentWorkspace;
   const persistence=usePersistence(currentWorkspace,record=>openWorkspace(record));
   function publish(next:Project,label:string){setProject(next);const at=new Date().toISOString();setWorkspace(w=>({...w,revisionLog:[...w.revisionLog,{id:crypto.randomUUID(),label,at}].slice(-500)}));}
   function openWorkspace(w:WorkspaceRecord,action:'open'|'metadata'|'restore'='open'){
@@ -104,13 +108,33 @@ export function App() {
     try {publish(redo?engine.redo():engine.undo(),redo?'重做':'復原');clearPreview();setError('');}
     catch(e){setError(e instanceof Error?e.message:'歷程操作失敗');}
   }
-  async function load(demo:boolean){const saved=await persistence.save();if(!saved&&!window.confirm('儲存失敗。切換專案可能遺失目前修改；建議先下載備份。仍要切換？'))return;clearPreview();setSelected(null);setError('');setTool('select');const next=new VoxelEngine(demo?{...createDemoProject(),id:crypto.randomUUID()}:createEmptyProject(crypto.randomUUID(),'空白專案'));setEngine(next);setProject(next.snapshot());setWorkspace(createWorkspace(next.snapshot()));setLayer(0);setViewMode('all');setProgress(0);setExploded(false);setBuildMode(false);}
+  async function load(demo:boolean){
+    if(switchInFlight.current)return;
+    switchInFlight.current=true;setSwitching(true);
+    const departingId=latestWorkspace.current.project.id;
+    const departingEngine=activeEngine.current;
+    try{
+      // Editing stays usable while storage is slow. Flush again if ANY workspace
+      // field changed during the write, and never replace another opened project.
+      while(true){
+        const snapshot=latestWorkspace.current;
+        const saved=await persistence.save();
+        if(latestWorkspace.current.project.id!==departingId||activeEngine.current!==departingEngine)return;
+        if(latestWorkspace.current!==snapshot)continue;
+        if(!saved&&!window.confirm('儲存失敗。切換專案可能遺失目前修改；建議先下載備份。仍要切換？'))return;
+        break;
+      }
+      clearPreview();setSelected(null);setError('');setTool('select');
+      const next=new VoxelEngine(demo?{...createDemoProject(),id:crypto.randomUUID()}:createEmptyProject(crypto.randomUUID(),'空白專案'));
+      setEngine(next);setProject(next.snapshot());setWorkspace(createWorkspace(next.snapshot()));setLayer(0);setViewMode('all');setProgress(0);setExploded(false);setBuildMode(false);
+    }finally{switchInFlight.current=false;setSwitching(false);}
+  }
   const bounds=useMemo(()=>project.blocks.length?(['x','y','z'] as const).map(axis=>{let min=Infinity,max=-Infinity;for(const b of project.blocks){min=Math.min(min,b.pos[axis]);max=Math.max(max,b.pos[axis]);}return max-min+1;}):[0,0,0],[project.blocks]);
   return <main className="studio" onKeyDown={event=>{
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'&&!(event.target instanceof HTMLInputElement)&&!(event.target instanceof HTMLTextAreaElement)){event.preventDefault();history(event.shiftKey);}
     if(event.key==='Escape')clearPreview();
   }}>
-    <header className="studio-header"><div><p className="eyebrow">MINECRAFT ARCHITECTURE STUDIO</p><h1>從方塊，看見建築</h1><p>Java 1.20.1 · 建築工作台</p></div><div className="project-actions"><button onClick={()=>load(true)}>載入示範木屋</button><button onClick={()=>load(false)}>空白專案</button></div></header>
+    <header className="studio-header"><div><p className="eyebrow">MINECRAFT ARCHITECTURE STUDIO</p><h1>從方塊，看見建築</h1><p>Java 1.20.1 · 建築工作台</p></div><div className="project-actions"><button disabled={switching} onClick={()=>load(true)}>載入示範木屋</button><button disabled={switching} onClick={()=>load(false)}>空白專案</button></div></header>
     <nav aria-label="工作模式"><button aria-pressed={!buildMode} onClick={()=>{setBuildMode(false);clearPreview();}}>編輯模式</button><button aria-pressed={buildMode} onClick={()=>{setBuildMode(true);clearPreview();}}>施工模式</button><span>{exploded?"分解檢視中：僅供觀察，請關閉後編輯。":""}</span></nav>
     <section className="studio-summary" aria-label="模型摘要"><dl className="stat"><dt>目前模型</dt><dd>{project.title}</dd></dl><dl className="stat"><dt>佔用方塊格數</dt><dd data-testid="cell-count">{project.blocks.length}</dd></dl><dl className="stat"><dt>寬 × 高 × 深</dt><dd>{bounds.join(' × ')}</dd></dl><dl className="stat"><dt>版本</dt><dd>Java {project.minecraftVersion}</dd></dl></section>
     <details className="editor-section"><summary>編輯工具與方塊</summary>
@@ -134,4 +158,6 @@ export function App() {
 }
 const root=document.getElementById('root');
 if(root)createRoot(root).render(<StrictMode><App/></StrictMode>);
+
+
 

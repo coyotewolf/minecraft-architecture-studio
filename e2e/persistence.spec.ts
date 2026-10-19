@@ -109,3 +109,62 @@ test('immediate edit then new project saves the previous design before switching
   expect(backup.project.blocks.some(block => block.pos.x === 12 && block.pos.y === 0 && block.pos.z === 0)).toBe(true);
   await saved(page);
 });
+
+async function delayNextNativeOpen(page: Page, delay = 400) {
+  await page.evaluate(delay => {
+    const original = indexedDB.open.bind(indexedDB); let delayed = false;
+    indexedDB.open = (...args) => {
+      const request = original(...args); if (delayed) return request; delayed = true;
+      return new Proxy(request, {
+        get(target, property) { return Reflect.get(target, property, target); },
+        set(target, property, value: unknown) {
+          if (property === 'onsuccess') target.onsuccess = event => setTimeout(() => (value as (event: Event) => void)(event), delay);
+          else Reflect.set(target, property, value, target);
+          return true;
+        },
+      });
+    };
+  }, delay);
+}
+
+test('edits committed during a delayed native save are flushed before project switch', async ({ page }) => {
+  await page.getByRole('textbox', { name: '專案名稱', exact: true }).fill('Mid-save edit survives');
+  await page.getByRole('button', { name: '重新命名', exact: true }).click(); await saved(page);
+  await edit(page); await page.getByRole('radio', { name: '放置', exact: true }).check(); await coordinate(page, 12, 0, 0);
+  await delayNextNativeOpen(page);
+  await page.getByRole('button', { name: '空白專案', exact: true }).click();
+  await expect(page.getByRole('button', { name: '空白專案', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: '套用變更', exact: true }).click();
+  await expect(page.getByTestId('cell-count')).toHaveText('289');
+  await expect(page.getByTestId('cell-count')).toHaveText('0');
+  await page.getByRole('button', { name: '重新整理已儲存專案' }).click();
+  await page.locator('.project-panel li').filter({ hasText: 'Mid-save edit survives' }).getByRole('button', { name: '開啟', exact: true }).click();
+  await expect(page.getByTestId('cell-count')).toHaveText('289');
+  const record = deserializeWorkspace((await download(page, '下載完整備份')).toString());
+  expect(record.project.blocks.some(block => block.pos.x === 12 && block.pos.y === 0 && block.pos.z === 0)).toBe(true);
+});
+
+test('two header switches dispatched in one event turn cannot race to replace the project', async ({ page }) => {
+  await saved(page); await delayNextNativeOpen(page);
+  await page.evaluate(() => {
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('.project-actions button')];
+    buttons.find(button => button.textContent === '空白專案')!.click();
+    buttons.find(button => button.textContent === '載入示範木屋')!.click();
+  });
+  await expect(page.getByTestId('cell-count')).toHaveText('0'); await saved(page);
+  await expect(page.getByTestId('cell-count')).toHaveText('0');
+  await expect(page.getByRole('button', { name: '空白專案', exact: true })).toBeEnabled();
+});
+
+test('opening a replacement workspace during save cancels the old header transition even with the same project ID', async ({ page }) => {
+  await saved(page);
+  const record = deserializeWorkspace((await download(page, '下載完整備份')).toString());
+  const imported = { ...record, project: { ...record.project, title: 'Imported while switching' } };
+  await delayNextNativeOpen(page, 1000);
+  await page.getByRole('button', { name: '空白專案', exact: true }).click();
+  await page.getByLabel('匯入完整備份', { exact: true }).setInputFiles({ name: 'replacement.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) });
+  await expect(page.getByRole('textbox', { name: '專案名稱', exact: true })).toHaveValue('Imported while switching');
+  await expect(page.getByRole('button', { name: '空白專案', exact: true })).toBeEnabled();
+  await expect(page.getByTestId('cell-count')).toHaveText('288'); await saved(page);
+  const current = deserializeWorkspace((await download(page, '下載完整備份')).toString()); expect(current.project).toEqual(imported.project);
+});
