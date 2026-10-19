@@ -1,7 +1,8 @@
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'node_modules/**', 'vendor/**', 'test-results/**', 'playwright-report/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  { files:['src/features/viewer/runtime.js'],languageOptions:{globals:{window:'readonly',ResizeObserver:'readonly'}} },
 );

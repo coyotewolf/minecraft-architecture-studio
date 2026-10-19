@@ -30,3 +30,11 @@ Thumbs.db
 *.litematic
 *.schem
 *.nbt
+
+evidence/*.png
+test-results/
+playwright-report/
+
+# Pinned, licensed upstream runtime; not application build output
+!vendor/three/build/
+!vendor/three/build/*.js

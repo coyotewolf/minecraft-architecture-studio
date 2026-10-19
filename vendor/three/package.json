@@ -1,0 +1,10 @@
+{
+  "name": "three",
+  "version": "0.180.0",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": "./build/three.module.min.js",
+    "./addons/controls/OrbitControls.js": "./examples/jsm/controls/OrbitControls.js"
+  }
+}
