@@ -10,6 +10,8 @@ import { createViewer, type ViewerHandle, type ViewerPick } from './features/vie
 import { CameraToolbar, BlockInspector } from './features/viewer/ViewerPanels.tsx';
 import { EditorPanel, type EditorTool } from './features/editor/EditorPanel.tsx';
 import { changeSelectedState, editAt, type CollisionPolicy } from './features/editor/commands.ts';
+import { BatchPanel } from './features/editor/BatchPanel.tsx';
+import { batchEdit } from './features/editor/batch.ts';
 import './style.css';
 import './features/editor/editor.css';
 
@@ -81,6 +83,7 @@ export function App() {
       <fieldset className="coordinate-editor"><legend>座標操作</legend>{(['x','y','z'] as const).map(axis=><label key={axis}>目標 {axis.toUpperCase()}<input type="number" step="1" min="-30000000" max="30000000" value={target[axis]} onChange={event=>setTarget({...target,[axis]:Number(event.target.value)})}/></label>)}<button disabled={tool==='select'||tool==='eyedropper'} onClick={()=>{if(tool==='place'||tool==='remove'||tool==='replace')stageAction(target,tool);}}>預覽座標操作</button></fieldset>
       <button disabled={!block||block.id!==blockId} onClick={()=>{if(block)try{stage(changeSelectedState(project,block.uid,blockState));}catch(e){setError(e instanceof Error?e.message:'狀態修改失敗');}}}>將狀態套用到選取方塊</button>
     </details>
+    <details className="editor-section"><summary>批次編輯</summary><BatchPanel selectedCount={block?1:0} onPreview={request=>{try{stage(batchEdit(project,request,blockId,blockState,collision));}catch(e){setPending({transaction:null,valid:false,message:e instanceof Error?e.message:"批次失敗",records:[],cells:0});}}}/><p>批次共用上方編輯工具的預覽確認與復原按鈕。</p></details>
     <div className="studio-workspace"><section className="viewport-panel" aria-label="模型檢視">
       <CameraToolbar onPreset={p=>viewer.current?.preset(p)} onReset={()=>viewer.current?.reset()} onFocus={()=>{if(selected)viewer.current?.focus(selected);}} hasSelection={!!block}/>
       <div className="viewport-host" ref={host}><p className="viewer-status" role="status">{error?'無法完成操作：'+error:project.blocks.length?'建築模型 · 點選方塊查看或預覽變更':'空白專案 · 在工作平面放置第一個方塊'}</p><span className="viewer-reticle" aria-hidden="true">＋</span><p className="viewer-help" id="viewer-help">拖曳旋轉 · 右鍵拖曳平移 · 滾輪縮放<br/>觸控：單指旋轉、雙指縮放／平移<br/>鍵盤：方向鍵旋轉、Shift＋方向鍵平移、＋／− 縮放、Enter 操作中心方塊<br/>編輯需確認預覽；Ctrl＋Z 復原、Ctrl＋Shift＋Z 重做。</p></div>
