@@ -3,7 +3,7 @@ import { coordinateKey } from './coordinates.ts';
 import { deepFreeze, MAX_TRANSACTION_CHANGES, object, parseBlock, parsePosition, parseProject, parseStructure, stableJson, text } from './model.ts';
 
 function same(a: unknown, b: unknown): boolean { return stableJson(a) === stableJson(b); }
-function parseTransaction(input: unknown): EditTransaction {
+export function parseTransaction(input: unknown): EditTransaction {
   const t = object(input, ['id', 'baseRevision', 'cause', 'collisionPolicy', 'changes', 'structures']);
   if (typeof t.cause !== 'string' || !['user', 'ai_approved', 'import', 'undo', 'redo'].includes(t.cause)) throw new Error('Unknown transaction cause');
   if (t.collisionPolicy !== 'cancel' && t.collisionPolicy !== 'replace' && t.collisionPolicy !== 'skip') throw new Error('Unknown collision policy');
@@ -48,6 +48,7 @@ export class VoxelEngine implements CommandEngine {
     this.#usedRevisions = new Set([this.#project.designRevision]);
   }
   snapshot(): Project { return this.#project; }
+  rename(title:string):Project { this.#project=deepFreeze({...this.#project,title:text(title)});return this.#project; }
   getAt(pos: { x: number; y: number; z: number }): BlockRecord | null { return this.#cells.get(coordinateKey(pos)) ?? null; }
   getByUid(uid: string): BlockRecord | null { return this.#uids.get(uid) ?? null; }
   get canUndo() { return this.#undo.length > 0; }

@@ -53,3 +53,9 @@ Current workspace is C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-a
 Direct npm DNS remains blocked, but existing tarballs and a pinned MIT Three.js subset produced a clean 183-package npm ci. Bundled Chromium could not spawn; an approved host-shell test run with installed Google Chrome 155.0.8059.79 passed six real browser tests including software WebGL, pointer, keyboard, touch emulation and context restoration. Sandboxed loopback and IAB access to that sandboxed server failed. This does not prove all browsers, physical devices, production hosting or game compatibility. No Higgsfield call or credential access was needed.
 
 M2 is tested; M3–M10 remain future work. Source snapshots/remote Git commits are used; no local Git checkout is claimed.
+
+## M3–M10 execution update — 2026-10-19
+
+The earlier M0/M1/M2 sections are historical capability snapshots. M3–M10 now have bounded gate reports, culminating in progress/M10.md. Actual Astra medium/low assignments and delivered ownership are recorded in AGENT_TASKS.md. Installed Chrome 155 executes desktop, touch-emulated mobile, native IndexedDB, real WebGL/picking, profile and compiled-server journeys; this is host-local browser evidence, not a cloud or physical-phone claim.
+
+The generic server-side AI adapter is implemented and tested with synthetic upstream protocol fixtures and a real disabled-without-key capability endpoint. No live provider credentials were configured, no paid generation occurred, and no output-quality or game acceptance is claimed. Public deployment, authentication/billing integration and full-product advanced features remain outside this tested release; see RELEASE_SCOPE.md. The project directory remains a source snapshot rather than a local Git checkout; GitHub connector commit/ref readbacks establish recovery points.

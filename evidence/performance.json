@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "startedAt": "2026-10-19T15:14:02.233Z",
+  "methodology": "Public JSON file import and editor UI; driver-observed elapsed times include automation overhead. Two requestAnimationFrame callbacks follow measured interactions. Orbit throughput is effective update throughput, not display FPS. Heap samples are not peak memory. Software GPU launch flags are configured by Playwright.",
+  "fixtures": [
+    {
+      "cells": 1000,
+      "dimensions": [
+        10,
+        10,
+        10
+      ],
+      "origin": {
+        "x": -5,
+        "y": -2,
+        "z": -5
+      },
+      "importBytes": 244919,
+      "browser": "155.0.8059.79",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "startedAt": "2026-10-19T15:14:02.648Z",
+      "status": "passed",
+      "importToRenderMs": 547.979600000006,
+      "renderer": {
+        "drawCalls": 34,
+        "geometries": 34,
+        "triangles": 14064,
+        "visibleInstances": 1172
+      },
+      "heapAfterImportBytes": 27585068,
+      "webgl": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "pickRoundTripMs": 283.85459999999875,
+      "orbitInputToPaint": {
+        "samplesMs": [
+          61.84150000000227,
+          50.25010000000475,
+          51.85070000000269,
+          56.573199999998906,
+          58.136300000005576,
+          56.76090000000113,
+          53.359700000000885,
+          52.04939999999624,
+          54.83939999999711,
+          53.26520000000164,
+          57.983000000000175,
+          53.02479999999923,
+          59.44260000000213,
+          56.91150000000198,
+          57.605499999997846,
+          63.6562000000049,
+          58.973400000002584,
+          61.727200000001176,
+          55.832900000001246,
+          56.16900000000169,
+          56.800999999999476,
+          64.84919999999693,
+          58.25610000000597,
+          55.93680000000313,
+          58.56369999999879,
+          59.98200000000361,
+          67.16920000000391,
+          57.03720000000612,
+          52.71940000000177,
+          51.679700000000594
+        ],
+        "meanMs": 57.10822666666815,
+        "medianMs": 56.91150000000198,
+        "p95Ms": 64.84919999999693,
+        "maxMs": 67.16920000000391
+      },
+      "effectiveOrbitUpdatesPerSecond": 17.509255830363298,
+      "heapAfterOrbitBytes": 69159588,
+      "removePreviewRoundTripMs": 247.2998000000007,
+      "removeCommitToRenderMs": 219.6846000000005,
+      "undoToRenderMs": 126.99209999999584,
+      "heapAfterUndoBytes": 38497820,
+      "rendererAfterUndo": {
+        "drawCalls": 35,
+        "geometries": 35,
+        "triangles": 14064,
+        "visibleInstances": 1172
+      },
+      "finishedAt": "2026-10-19T15:14:07.100Z"
+    },
+    {
+      "cells": 10000,
+      "dimensions": [
+        50,
+        4,
+        50
+      ],
+      "origin": {
+        "x": -25,
+        "y": -2,
+        "z": -25
+      },
+      "importBytes": 2473027,
+      "browser": "155.0.8059.79",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "startedAt": "2026-10-19T15:14:07.602Z",
+      "status": "passed",
+      "importToRenderMs": 1922.1633000000002,
+      "renderer": {
+        "drawCalls": 153,
+        "geometries": 153,
+        "triangles": 140736,
+        "visibleInstances": 11728
+      },
+      "heapAfterImportBytes": 81078892,
+      "webgl": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "pickRoundTripMs": 482.4028000000035,
+      "orbitInputToPaint": {
+        "samplesMs": [
+          248.13720000000467,
+          248.7858000000051,
+          252.20180000000255,
+          256.02769999999873,
+          250.11789999999746,
+          246.773199999996,
+          249.29849999999715,
+          249.20660000000498,
+          246.23619999999937,
+          251.21839999999793,
+          260.50079999999434,
+          255.8309999999983,
+          261.14540000000125,
+          255.71749999999884,
+          249.11359999999695,
+          258.42459999999846,
+          260.8830999999991,
+          256.3963999999978,
+          246.98849999999948,
+          250.04750000000058,
+          254.66500000000087,
+          249.5599000000002,
+          250.39289999999892,
+          243.0590000000011,
+          243.01959999999963,
+          244.49399999999878,
+          250.47350000000006,
+          251.68330000000424,
+          255.971000000005,
+          255.530399999996
+        ],
+        "meanMs": 251.7300099999998,
+        "medianMs": 250.47350000000006,
+        "p95Ms": 260.8830999999991,
+        "maxMs": 261.14540000000125
+      },
+      "effectiveOrbitUpdatesPerSecond": 3.972429643371689,
+      "heapAfterOrbitBytes": 40953044,
+      "removePreviewRoundTripMs": 284.62339999999676,
+      "removeCommitToRenderMs": 927.880999999994,
+      "undoToRenderMs": 926.2078000000038,
+      "heapAfterUndoBytes": 111289528,
+      "rendererAfterUndo": {
+        "drawCalls": 154,
+        "geometries": 154,
+        "triangles": 140736,
+        "visibleInstances": 11728
+      },
+      "finishedAt": "2026-10-19T15:14:21.064Z"
+    },
+    {
+      "cells": 50000,
+      "dimensions": [
+        50,
+        20,
+        50
+      ],
+      "origin": {
+        "x": -25,
+        "y": -2,
+        "z": -25
+      },
+      "importBytes": 12408585,
+      "browser": "155.0.8059.79",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "startedAt": "2026-10-19T15:14:21.651Z",
+      "status": "passed",
+      "importToRenderMs": 8362.38459999999,
+      "renderer": {
+        "drawCalls": 229,
+        "geometries": 229,
+        "triangles": 703632,
+        "visibleInstances": 58636
+      },
+      "heapAfterImportBytes": 323587184,
+      "webgl": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "pickRoundTripMs": 1781.590400000001,
+      "orbitInputToPaint": {
+        "samplesMs": [
+          1120.486499999999,
+          1116.521499999988,
+          1129.337200000009,
+          1118.7162000000098,
+          1133.7929000000004,
+          1128.7636000000057,
+          1124.6189999999915,
+          1126.22080000001,
+          1125.3266000000003,
+          1113.0234000000055,
+          1122.1843999999983,
+          1119.1708999999973,
+          1113.0083000000013,
+          1124.2358999999997,
+          1117.1123999999982,
+          1130.4812000000093,
+          1138.0044000000053,
+          1122.8277999999991,
+          1133.9247999999934,
+          1151.3466999999946,
+          1145.5436999999947,
+          1136.2534999999916,
+          1127.9321000000054,
+          1135.49960000001,
+          1134.025999999998,
+          1137.0387000000046,
+          1131.3243999999977,
+          1133.5375000000058,
+          1134.3035999999993,
+          1127.4966999999888
+        ],
+        "meanMs": 1128.4020100000005,
+        "medianMs": 1128.7636000000057,
+        "p95Ms": 1145.5436999999947,
+        "maxMs": 1151.3466999999946
+      },
+      "effectiveOrbitUpdatesPerSecond": 0.8862059797156138,
+      "heapAfterOrbitBytes": 152707268,
+      "removePreviewRoundTripMs": 1013.9924000000028,
+      "removeCommitToRenderMs": 4857.322,
+      "undoToRenderMs": 4020.908599999995,
+      "heapAfterUndoBytes": 403063052,
+      "rendererAfterUndo": {
+        "drawCalls": 230,
+        "geometries": 230,
+        "triangles": 703632,
+        "visibleInstances": 58636
+      },
+      "finishedAt": "2026-10-19T15:15:16.969Z"
+    }
+  ]
+}
