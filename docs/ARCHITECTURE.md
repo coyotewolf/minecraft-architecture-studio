@@ -1,6 +1,6 @@
 # Architecture and contracts
 
-**M0 decision record, 2026-10-19 (Asia/Singapore).** Product scope remains governed by [MASTER_SPEC.md](MASTER_SPEC.md). Implemented M0 boundaries are in `src/core/contracts.ts`, `coordinates.ts`, `registry.ts`, and `project.ts`. The command engine, registry ingestion, renderer and storage are planned; interfaces do not establish those implementations.
+**M0 decision record, 2026-10-19 (Asia/Singapore).** Product scope remains governed by [MASTER_SPEC.md](MASTER_SPEC.md). Implemented M0 boundaries are in `src/core/contracts.ts`, `coordinates.ts`, `registry.ts`, and `project.ts`. M1 adds the canonical engine and pinned registry described in ADR-006 below. Renderer and persistent storage remain planned; interfaces do not establish those implementations.
 
 ## ADR-001 — local-first application and dependencies
 
@@ -24,7 +24,7 @@ Node >=22.12, strict TypeScript, ESLint, Vitest. Commands: `npm ci`, `npm run de
 
 `Evidence.origin` is observed/inferred/ai_estimated/user_created. Confidence, when present, is finite 0–1. Editing an estimated roof preserves its evidence and updates `edits`; it does not turn the origin into observed. Move/setState preserve UID; replacement with a different block identity gets a new UID. Snapshot restores preserve the saved identities, with a fresh design revision.
 
-Sparse storage will use private `Map<coordinateKey, BlockRecord>` plus a UID index. Published snapshots must be deep immutable or defensive copies; a TypeScript ReadonlyMap alone is insufficient. No feature owns a second authoritative grid. M0 only creates an immutable empty model.
+M1 sparse storage uses private `Map<coordinateKey, BlockRecord>` plus a UID index. Published snapshots must be deep immutable or defensive copies; a TypeScript ReadonlyMap alone is insufficient. No feature owns a second authoritative grid. M0 only creates an immutable empty model.
 
 Schema 1 canonical envelope: exact `schemaVersion: 1`, `minecraftVersion: "1.20.1"`, `coordinateConvention: "x-east-y-up-z-south"`, project id/title, designRevision, blocks and logicalStructures. This is not yet a full backup/import implementation. M7 must version the full project envelope with references, original AI snapshot, revision history, custom components, build progress, prepared items and view preferences; migrations reject unsupported versions rather than silently dropping fields.
 
@@ -37,7 +37,7 @@ Source selected and inspected through GitHub:
 - Inspected source: 1,003 blocks and 1,255 items. Blocks blob `f265dc1be54a0b7d6ee60a541c5c5df2c075a51d`; items blob `d00049aa169472e75bc3a953ba5e960995f397d1`.
 - [Wrapper metadata](https://github.com/PrismarineJS/node-minecraft-data/blob/94b717a14e167afdbcdfe708f40f7eed8917fe08/package.json) and [data README](https://github.com/PrismarineJS/minecraft-data/blob/15411f050f040e4c5df09352a75a9912ad8c3eeb/README.md#license) declare MIT. Retain upstream source-rights caveat concerning wiki.vg/minecraft.gamepedia-derived data. This does not license Minecraft textures. No game assets are included.
 
-M1 will ingest a pinned, reproducible projection of IDs, ordered property domains, defaults and item stack limits, with source hashes and attribution. Missing data must fail closed. M0's `normalizeState` applies defaults, rejects extra properties and rejects illegal values against an explicit entry. Its tests use **synthetic fixtures**, not an imported production registry. Namespace syntax alone does not validate a real block ID.
+M1 ingests a pinned, reproducible projection of IDs, ordered property domains, defaults and item stack limits, with source hashes and attribution. Missing data must fail closed. M0's `normalizeState` applies defaults, rejects extra properties and rejects illegal values against an explicit entry. Its tests use **synthetic fixtures**, not an imported production registry. Namespace syntax alone does not validate a real block ID.
 
 Inventory rules are explicit: per-cell mapped item quantity; slabs one item for top/bottom and two for double; valid linked doors/beds/tall plants count once per logical structure. Validate membership, anchor, adjacency and related states before counting. Never use mining drops as placement requirements (stone drops cobblestone; bed drops may be empty in this source).
 
@@ -47,15 +47,15 @@ Item stack maxima come from items, not always 64 (red bed=1). Output separates o
 
 Intent → bounded candidate diff → default normalization → preflight → preview → commit (recheck preconditions) → new immutable snapshot + inverse history. Cancel never publishes. Manual command preview uses the same engine as 2D/3D/import; AI additionally requires explicit human approval of the exact bounded proposal.
 
-`EditTransaction` carries id, baseRevision, cause, collisionPolicy, cell before/after changes and logical-structure before/after changes. M1 must enforce:
+`EditTransaction` carries id, baseRevision, cause, collisionPolicy, cell before/after changes and logical-structure before/after changes. M1 enforces:
 1. Bounded batch size, unique positions and UIDs; change.pos equals both non-null records' positions; no before=null/after=null no-ops.
 2. Exact current base revision and before-images; a preview is not a reservation.
 3. Collision cancel/replace/skip resolved into an explicit accepted diff. A skipped half of a structure may not leave an invalid pair.
-4. Validate the full prospective state, including pair membership and required neighbor updates, before swapping authority. On error publish nothing, including no history/index changes.
+4. Validate the full prospective state, including pair membership, before swapping authority. Game neighbor simulation is deferred and must not be inferred from state-domain validity. On error publish nothing, including no history/index changes.
 5. Commit stores exact inverse and accepted normalized diff. Undo/redo replay accepted data, not AI/intent or newly randomized rules. Every undo/redo creates a fresh revision, so stale previews stay stale. New edits clear redo.
 6. Typed and separately versioned construction progress keeps approvedDesignRevision. Reconcile added/removed/changed content against that design; UID alone does not imply completed construction remains valid.
 
-The engine interface is frozen for M1 implementation; M0 does not claim CRUD/rollback/undo behavior is implemented.
+The frozen command interface is implemented by `VoxelEngine` in M1. The historical M0 gate does not claim CRUD/rollback/undo behavior.
 
 ## Modules and dependency boundaries
 
@@ -84,3 +84,15 @@ No live provider is wired into this app. ChatGPT connector access does not estab
 ## M0 verification scope
 
 Coordinate tests exercise negative flooring, key uniqueness, axes, quarter-turns, boundary precision and immutable outputs. Contract tests exercise empty schema/version defaults, evidence confidence and synthetic state normalization; a type-level negative test prevents treating a mesh reference as a voxel proposal. These do not establish game registry coverage, renderer picking, inventory computation, atomic transactions, persistence or live AI. See [progress/M0.md](progress/M0.md) for executed command evidence and gate.
+
+## ADR-006 — M1 implementation and bounded guarantees
+
+- `core/model.ts` validates unknown input into a detached, deeply frozen canonical snapshot. Exact schema/version/envelope fields, IDs/properties, coordinates, UID uniqueness, provenance and structure links are mandatory. Unknown fields fail closed. Air variants are never stored.
+- `core/engine.ts` owns private coordinate/UID maps, immutable snapshots and history. Before-images and base revisions are rechecked at commit. Collision decisions, normalized states and edit provenance are captured in accepted history. Failed validation publishes nothing. New edits clear redo; undo/redo restore exact block and structure records while allocating a fresh design revision.
+- Existing UID changes preserve block ID and evidence. Move/state updates stamp edit provenance; a different identity requires a new UID. Newly imported records and whole canonical snapshot restoration preserve saved provenance. Import transactions that merge into an existing UID retain its creation/modification history and stamp the current transaction. The engine API is an in-process boundary, not an authorization service; M8 must supply explicit approval around any AI adapter.
+- Door and tall-plant anchors are lower parts, their other member is one cell above. Bed anchors are feet; the head lies one horizontal cell along facing. Members share ID, group link and all non-part state values. Every pair must be complete and referenced exactly once. Support, redstone, fluids, fence/wall neighbors and transient game simulation are not implemented. `minecraft:pitcher_crop` is rejected at model ingress because its conditional height across growth stages needs an additional rule.
+- Limits: 50,000 occupied cells, 25,000 logical pairs, 10,000 combined cell/structure changes per transaction, 32 MiB imported canonical JSON text, 512-character identifiers/titles. These are safety bounds, not measured performance targets. Each commit validates the full candidate snapshot (linear in model size); M9 must measure and optimize before claiming interactive 50k support. History remains in-memory and is not persisted or capped in M1.
+- Canonical JSON sorts object keys, cell coordinates and group IDs with locale-independent ordering. M1 roundtrip covers the design envelope only; M7 still owns storage, CSV, backup migrations and full project/build state. Construction inventory is only a rule contract and conservative registry mapping in M1; item aggregation and build reconciliation remain M6.
+- UI integration remains the runnable M0 shell. M2 consumes the engine snapshot for geometry/picking; M3 owns editing gestures. No separate renderer grid is allowed.
+
+See [REGISTRY_SOURCE.md](REGISTRY_SOURCE.md) for the pinned projection, regeneration procedure, source hashes and explicit unsupported inventory mappings; [progress/M1.md](progress/M1.md) records the executed gate.

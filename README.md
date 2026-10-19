@@ -1,7 +1,7 @@
 # AI Minecraft Architecture Studio
 
 **Specification-first development repository** — Minecraft Java Edition **1.20.1 Vanilla**  
-**Status:** M0 foundation implemented and tested; the voxel editor, AI pipeline and deployment are not implemented. See [M0 evidence](docs/progress/M0.md).
+**Status:** M0 foundation and M1 canonical engine implemented and tested. The interactive voxel editor, AI pipeline and deployment are not implemented. See [M0 evidence](docs/progress/M0.md) and [M1 evidence](docs/progress/M1.md).
 
 ## Vision
 
@@ -49,11 +49,12 @@ Do **not** commit API keys or user-uploaded private building images. Keep secret
 
 - [x] Private repository created and engineering documents committed
 - [x] M0 environment and runnable app validation (see evidence report)
-- [ ] M1–M10 implementation and acceptance
+- [x] M1 canonical engine and pinned Java 1.20.1 registry (see evidence report)
+- [ ] M2–M10 implementation and acceptance
 
-Start with the milestone report and resume from its exact branch/commit. M1–M10 remain unfinished.
+Resume from `codex/m1-engine` and the M1 report. M2–M10 remain unfinished. M1 provides tested core APIs for state validation, atomic edits, undo/redo and canonical JSON; these are not yet connected to editing controls.
 
-## Run the M0 foundation
+## Run the application shell
 
 Node >=22.12 and npm are required.
 

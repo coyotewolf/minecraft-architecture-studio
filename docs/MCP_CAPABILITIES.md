@@ -12,7 +12,7 @@
 | Subagent | collaboration.spawn_agent + followup_task completed contract_review | Inherited model/reasoning only; no distinct tier routing tested |
 | Higgsfield authentication | list_workspaces returned accessible workspace | Read-only access works in THIS agent session |
 | Higgsfield model catalog | models_list(type="3d",limit=20) returned catalog, has_more=false | Metadata, not generated outputs |
-| Versioned registry source | GitHub pinned wrapper/data reads by reviewer | Candidate source verified; production registry import not implemented |
+| Versioned registry source | GitHub pinned wrapper/data reads by reviewer | Pinned source verified; M1 projection generated and used by core tests |
 
 Higgsfield metadata includes sam_3_3d (Meta; single-image textured GLB), image_to_3d and multi_image_to_3d (Meshy; general GLB), and additional Meshy/Tripo/Hunyuan models. Catalog details describe general meshes, not legal Minecraft block coordinates/states. The catalog also exposes Blender scene inspection/edit/import/export tools; those tools were **discovered only**, not executed in this audit. No generation, scene creation, upload or paid job was invoked. No generated output or actual credit debit was tested.
 
@@ -28,14 +28,20 @@ Available tool surfaces include GitHub, Higgsfield, shell/files, Node execution,
 - Paid Higgsfield output is untested because it is not authorized or necessary for M0.
 - Website runtime API credentials, per-user consent/billing, production licensing and provider rate limits remain unverified. Never copy personal connector credentials to the app.
 - Actual game compatibility, NBT/Litematic serialization and in-game tests are not implemented.
-- Full 1.20.1 block registry runtime ingestion and live provider structured output are not implemented.
+- Live provider structured output remains unimplemented. M1 runtime registry ingestion is now tested; conditional pitcher_crop model support remains rejected.
 
 ## Planned
 
-Manual voxel engine and registry (M1), geometry/picking and editor (M2–M5), materials/build reconciliation (M6), persistence/export (M7), optional server-side provider integration and human-approved bounded diffs (M8), responsive/performance/release testing (M9–M10).
+Geometry/picking and editor (M2–M5), materials/build reconciliation (M6), persistence/export (M7), optional server-side provider integration and human-approved bounded diffs (M8), responsive/performance/release testing (M9–M10).
 
 M0 contracts deliberately separate mesh_reference from voxel_proposal; tests are a type-level boundary and synthetic contract checks, **not a live generation/voxelization test**. A missing AI provider does not block the manual editor.
 
 ## Policy
 
 Use independently authorized server-side provider integrations. Validate every external plan against exact schema/game version, bounded coordinates, duplicate/conflicting occupants and a versioned registry. Keep observed/inferred/ai_estimated evidence separate from user modification. Show unavailable capabilities honestly, and seek explicit authorization of cost before paid generation.
+
+## M1 execution update
+
+GitHub create_tree/create_commit/update_ref saved the canonical engine on `codex/m1-engine`; the exact code SHA is in progress/M1.md. Node execution ran actual typecheck/lint/unit/build checks and deterministic registry regeneration. No additional Higgsfield generation or paid operation was called.
+
+Inherited agents remained available, but their local Node filesystem reads stalled and were aborted. The lead successfully used its own Node filesystem/process tools and took over registry implementation. This is a tool-execution limitation, not evidence that model-tier routing was tested. The read-only reviewer was redirected to the committed GitHub ref; actual outcome is recorded in the milestone report.

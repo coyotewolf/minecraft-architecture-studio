@@ -1,6 +1,6 @@
 # Verification and regression plan
 
-**Status:** M0 now has 26 executed passing unit tests and typecheck/lint/build/browser-startup evidence; see [M0 report](progress/M0.md). Later milestone criteria below remain required and unexecuted.
+**Status:** M0 passed with 26 unit tests and browser-startup evidence. M1 expands the suite to 52 passing tests across four files, with executed typecheck/lint/build and pinned-registry regeneration; see [M0 report](progress/M0.md) and [M1 report](progress/M1.md). M2–M10 criteria remain required and unexecuted.
 
 ## Test levels
 
@@ -71,3 +71,7 @@ Every test report records:
 
 A failing required gate is **FAIL** until corrected and retested. A missing external service is **BLOCKED**; dependent AI claims remain unavailable. Never weaken assertions, silently skip failing tests, replace real behavior with permanent mocks or mark an unexecuted test green.
 
+
+## M1 executed scope
+
+`engine.test.ts` covers VXL-001/003/004/005 and the canonical JSON subset of VXL-013, plus immutable snapshots, stale revisions, explicit collision outcomes, evidence/identity preservation, logical-pair bounds and invalid input limits. `versioned-registry.test.ts` checks all 1,000 non-air registry defaults, actual Java state fixtures, stack sizes and conservative item rule metadata. No registry or engine mock is substituted. These tests do not establish renderer picking, materials aggregation, storage, full VXL-013, AI approval or game physics. Branch coverage is still unmeasured; the 90% target remains a target.

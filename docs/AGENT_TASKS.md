@@ -64,3 +64,11 @@ Actual `collaboration.spawn_agent` created `/root/contract_review`; `followup_ta
 Ownership: lead alone writes all source/config/docs and integrates; reviewer had read-only docs/source research, no permitted edits or commits. Inputs: required repository docs; outputs: contract pitfalls, M0 test requirements, source pin/licensing caveat. Review commands were GitHub fetch/fetch_file, not app tests. Registry source findings were integrated into ARCHITECTURE.md. Lead owns actual check commands and final gate.
 
 Decision: real inherited-agent delegation is verified. High/Medium/Low remain responsibility labels rather than claims of tested model-tier switches. Do not infer this capability in another Cloud task. Save restart state on `codex/m0-foundation`; inspect docs/progress/M0.md and the branch head before continuing.
+
+## M1 task execution
+
+- Lead: owns canonical model validation, sparse indexes, transaction/undo/redo, integration, tests and GitHub commits. Core contracts were unchanged.
+- `/root/m1_registry`: delegated registry projection/module/tests/source notes only, with frozen getRegistryEntry/normalizeBlockState/itemStackSize APIs. Local Node reads stalled; no completed implementation was received. The agent was interrupted and file ownership explicitly returned to the lead before lead writes. Do not credit the worker with implemented files or passing tests.
+- `/root/contract_review`: read-only M1 source review. Local filesystem access stalled and the worker correctly reported BLOCKED without approval. Review was resumed through GitHub at the tested source commit; review completed and the provenance fix at 98760cc was approved; see M1.md for evidence.
+- Both workers inherited the selected model/reasoning. No distinct model/effort override was exercised. Agents shared the workspace; no isolated worktree or actual local Git checkout was available.
+- Lead implemented the registry from pinned connector-fetched data, integrated it with the engine, and executed all check commands. Restart from `codex/m1-engine`, not the earlier M0-only branch.
