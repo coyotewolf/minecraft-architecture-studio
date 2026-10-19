@@ -16,6 +16,11 @@ import { BlueprintPanel } from './features/blueprint/BlueprintPanel.tsx';
 import { BuildPanel } from './features/build/BuildPanel.tsx';
 import { constructionSteps, reconcileBuild } from './features/build/model.ts';
 import { viewProjection } from './features/build/projection.ts';
+import { ProjectPanel } from './features/projects/ProjectPanel.tsx';
+import { usePersistence } from './features/projects/usePersistence.ts';
+import type { WorkspaceRecord } from './features/projects/storage.ts';
+import { designDiff } from './features/editor/commands.ts';
+import type { Project } from './core/contracts.ts';
 import { createWorkspace } from './features/projects/storage.ts';
 import './features/studio-panels.css';
 import './style.css';
@@ -46,6 +51,14 @@ export function App() {
   const shapes = useMemo(()=>project.blocks.map(shapeForBlock),[project.blocks]);
   const steps=useMemo(()=>constructionSteps(project),[project]);
   const projection=useMemo(()=>viewProjection(project,steps,{layer,mode:viewMode,progress,completed:workspace.completed,exploded,build:buildMode}),[project,steps,layer,viewMode,progress,workspace.completed,exploded,buildMode]);
+  const currentWorkspace=useMemo(()=>({...workspace,project,view:{layer,mode:viewMode,progress}}),[workspace,project,layer,viewMode,progress]);
+  const persistence=usePersistence(currentWorkspace,record=>openWorkspace(record));
+  function publish(next:Project,label:string){setProject(next);const at=new Date().toISOString();setWorkspace(w=>({...w,revisionLog:[...w.revisionLog,{id:crypto.randomUUID(),label,at}].slice(-500)}));}
+  function openWorkspace(w:WorkspaceRecord,action:'open'|'metadata'|'restore'='open'){
+    if(action==='metadata'&&w.project.id===project.id){setWorkspace(w);if(w.project.title!==project.title)setProject(engine.rename(w.project.title));return;}
+    if(action==='restore'&&w.project.id===project.id){const tx=designDiff(project,w.project.blocks,w.project.logicalStructures,'import');const next=engine.commit(tx);setWorkspace(w);setProject(next);clearPreview();return;}
+    const next=new VoxelEngine(w.project);clearPreview();setSelected(null);setError('');setEngine(next);setProject(next.snapshot());setWorkspace(w);setLayer(w.view.layer);setViewMode(w.view.mode);setProgress(w.view.progress);setExploded(false);setBuildMode(false);setTool('select');
+  }
   const block = project.blocks.find(b=>b.uid===selected)??null;
   function clearPreview(){setPending(null);viewer.current?.preview([],[],true);}
   function stage(transaction:EditTransaction) {
@@ -76,18 +89,19 @@ export function App() {
     return ()=>{viewer.current?.dispose();viewer.current=null;};
   },[engine]);
   useEffect(()=>{viewer.current?.updateModel(project.blocks,shapes);},[project.blocks,shapes]);
-  useEffect(()=>{viewer.current?.setProjection(projection);viewer.current?.select(selected);},[project.blocks,selected,projection]);
+  useEffect(()=>{viewer.current?.setProjection(projection);},[project.blocks,projection]);
+  useEffect(()=>{viewer.current?.select(selected);},[project.blocks,selected,projection]);
   useEffect(()=>{viewer.current?.workPlane(workY);},[workY,engine]);
   function confirm(){
     if(!pending?.valid||!pending.transaction)return;
-    try {const next=engine.commit(pending.transaction);setProject(next);clearPreview();setError('');}
+    try {const next=engine.commit(pending.transaction);publish(next,'套用編輯');clearPreview();setError('');}
     catch(e){setPending({...pending,valid:false,message:e instanceof Error?e.message:'變更失敗'});}
   }
   function history(redo=false){
-    try {setProject(redo?engine.redo():engine.undo());clearPreview();setError('');}
+    try {publish(redo?engine.redo():engine.undo(),redo?'重做':'復原');clearPreview();setError('');}
     catch(e){setError(e instanceof Error?e.message:'歷程操作失敗');}
   }
-  function load(demo:boolean){clearPreview();setSelected(null);setError('');setTool('select');const next=new VoxelEngine(demo?createDemoProject():createEmptyProject(crypto.randomUUID(),'空白專案'));setEngine(next);setProject(next.snapshot());setWorkspace(createWorkspace(next.snapshot()));setLayer(0);setViewMode('all');setProgress(0);setExploded(false);setBuildMode(false);}
+  async function load(demo:boolean){const saved=await persistence.save();if(!saved&&!window.confirm('儲存失敗。切換專案可能遺失目前修改；建議先下載備份。仍要切換？'))return;clearPreview();setSelected(null);setError('');setTool('select');const next=new VoxelEngine(demo?{...createDemoProject(),id:crypto.randomUUID()}:createEmptyProject(crypto.randomUUID(),'空白專案'));setEngine(next);setProject(next.snapshot());setWorkspace(createWorkspace(next.snapshot()));setLayer(0);setViewMode('all');setProgress(0);setExploded(false);setBuildMode(false);}
   const bounds=useMemo(()=>project.blocks.length?(['x','y','z'] as const).map(axis=>{let min=Infinity,max=-Infinity;for(const b of project.blocks){min=Math.min(min,b.pos[axis]);max=Math.max(max,b.pos[axis]);}return max-min+1;}):[0,0,0],[project.blocks]);
   return <main className="studio" onKeyDown={event=>{
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'&&!(event.target instanceof HTMLInputElement)&&!(event.target instanceof HTMLTextAreaElement)){event.preventDefault();history(event.shiftKey);}
@@ -101,15 +115,16 @@ export function App() {
       <fieldset className="coordinate-editor"><legend>座標操作</legend>{(['x','y','z'] as const).map(axis=><label key={axis}>目標 {axis.toUpperCase()}<input type="number" step="1" min="-30000000" max="30000000" value={target[axis]} onChange={event=>setTarget({...target,[axis]:Number(event.target.value)})}/></label>)}<button disabled={tool==='select'||tool==='eyedropper'} onClick={()=>{if(tool==='place'||tool==='remove'||tool==='replace')stageAction(target,tool);}}>預覽座標操作</button></fieldset>
       <button disabled={!block||block.id!==blockId} onClick={()=>{if(block)try{stage(changeSelectedState(project,block.uid,blockState));}catch(e){setError(e instanceof Error?e.message:'狀態修改失敗');}}}>將狀態套用到選取方塊</button>
     </details>
-    <details className="editor-section"><summary>批次編輯</summary><BatchPanel selectedCount={block?1:0} onPreview={request=>{try{stage(batchEdit(project,request,blockId,blockState,collision));}catch(e){setPending({transaction:null,valid:false,message:e instanceof Error?e.message:"批次失敗",records:[],cells:0});}}}/><p>批次共用上方編輯工具的預覽確認與復原按鈕。</p></details>
+    <details className="editor-section"><summary>批次編輯</summary><BatchPanel selectedCount={block?1:0} onPreview={request=>{try{stage(batchEdit(project,request,blockId,blockState,collision));}catch(e){viewer.current?.preview([],[],false);setPending({transaction:null,valid:false,message:e instanceof Error?e.message:"批次失敗",records:[],cells:0});}}}/><p>批次共用上方編輯工具的預覽確認與復原按鈕。</p></details>
     <div className="studio-workspace"><section className="viewport-panel" aria-label="模型檢視">
       <CameraToolbar onPreset={p=>viewer.current?.preset(p)} onReset={()=>viewer.current?.reset()} onFocus={()=>{if(selected)viewer.current?.focus(selected);}} hasSelection={!!block}/>
       <div className="viewport-host" ref={host}><p className="viewer-status" role="status">{error?'無法完成操作：'+error:project.blocks.length?'建築模型 · 點選方塊查看或預覽變更':'空白專案 · 在工作平面放置第一個方塊'}</p><span className="viewer-reticle" aria-hidden="true">＋</span><p className="viewer-help" id="viewer-help">拖曳旋轉 · 右鍵拖曳平移 · 滾輪縮放<br/>觸控：單指旋轉、雙指縮放／平移<br/>鍵盤：方向鍵旋轉、Shift＋方向鍵平移、＋／− 縮放、Enter 操作中心方塊<br/>編輯需確認預覽；Ctrl＋Z 復原、Ctrl＋Shift＋Z 重做。</p></div>
     </section><BlockInspector block={block} unsupportedCount={shapes.filter(s=>!s.supported).length}/></div>
     <details className="editor-section"><summary>2D 逐層藍圖</summary><BlueprintPanel project={project} selected={selected} layer={layer} onLayer={setLayer} onCell={pos=>{const b=engine.getAt(pos);setSelected(b?.uid??null);setTarget(pos);if(tool==="eyedropper"&&b){setBlockId(b.id);setBlockState(b.state);setTool("place");}else if(tool==="place"||tool==="remove"||tool==="replace")stageAction(pos,tool);}}/></details>
     <details className="editor-section"><summary>材料與施工引導</summary><BuildPanel project={project} approved={workspace.approvedDesign} completed={workspace.completed} prepared={workspace.prepared} layer={layer} onLayer={setLayer} mode={viewMode} onMode={setViewMode} progress={progress} onProgress={setProgress} exploded={exploded} onExploded={setExploded} onPrepared={(id,quantity)=>setWorkspace({...workspace,prepared:{...workspace.prepared,[id]:quantity}})} onCompleted={completed=>setWorkspace({...workspace,completed})} onApprove={()=>setWorkspace({...workspace,approvedDesign:project,completed:reconcileBuild(workspace.approvedDesign,project,workspace.completed).retainedCompleted})}/></details>
-    <p className="capability-note">材質使用示意色，未使用 Minecraft 遊戲貼圖。手動編輯以預覽確認後套用；AI、儲存與完整建造引導正在接續開發。</p>
-    <footer className="studio-footer">座標：＋X 向東、＋Y 向上、＋Z 向南；北方為 −Z。目前只保留在記憶體中。</footer>
+    <details className="editor-section"><summary>專案與備份</summary><ProjectPanel workspace={currentWorkspace} status={persistence.status} onSave={persistence.save} onChange={openWorkspace}/></details>
+    <p className="capability-note">材質使用示意色，未使用 Minecraft 遊戲貼圖。手動編輯以預覽確認後套用；可保存於本機瀏覽器，下載備份後可在其他裝置匯入。</p>
+    <footer className="studio-footer">座標：＋X 向東、＋Y 向上、＋Z 向南；北方為 −Z。{persistence.status}</footer>
   </main>;
 }
 const root=document.getElementById('root');

@@ -48,6 +48,7 @@ export class VoxelEngine implements CommandEngine {
     this.#usedRevisions = new Set([this.#project.designRevision]);
   }
   snapshot(): Project { return this.#project; }
+  rename(title:string):Project { this.#project=deepFreeze({...this.#project,title:text(title)});return this.#project; }
   getAt(pos: { x: number; y: number; z: number }): BlockRecord | null { return this.#cells.get(coordinateKey(pos)) ?? null; }
   getByUid(uid: string): BlockRecord | null { return this.#uids.get(uid) ?? null; }
   get canUndo() { return this.#undo.length > 0; }
