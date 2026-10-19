@@ -1,0 +1,56 @@
+.studio-support { min-width: 0; display: grid; gap: 1rem; margin-top: 1rem; }
+.studio-support > .editor-section { min-width: 0; margin: 0; }
+.studio-support > .editor-section > summary {
+  min-height: 44px;
+  padding: .75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--surface);
+  cursor: pointer;
+  line-height: 1.5;
+}
+.studio-support > .editor-section[open] > summary { margin-bottom: .75rem; }
+.studio-support > .editor-section > summary:focus-visible,
+.build-panel :focus-visible, .project-panel :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.build-panel, .project-panel {
+  min-width: 0;
+  max-width: 100%;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+.build-panel > *, .project-panel > * { min-width: 0; max-width: 100%; }
+.build-panel h2, .project-panel h2 { margin-bottom: .75rem; }
+.build-panel h3, .project-panel h3 { margin: 1.1rem 0 .6rem; }
+.build-panel p, .project-panel p { margin-bottom: .75rem; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+.build-panel label, .project-panel label { min-width: 0; min-height: 44px; margin-bottom: .75rem; color: var(--muted); font-size: .85rem; }
+.build-panel input:not([type="checkbox"]), .build-panel select,
+.project-panel input:not([type="checkbox"]), .project-panel select,
+.build-panel button, .project-panel button { min-height: 44px; min-width: 0; max-width: 100%; }
+.build-panel button, .project-panel button { margin: 0 .5rem .5rem 0; }
+.build-panel input[type="number"], .project-panel input[type="number"] { width: 7rem; font-variant-numeric: tabular-nums; }
+.build-panel input[type="range"], .project-panel input[type="range"] { width: 100%; accent-color: var(--accent); padding-inline: 0; }
+.build-panel input[type="checkbox"], .project-panel input[type="checkbox"] { width: 18px; height: 18px; min-height: 18px; margin: 0; accent-color: var(--accent); }
+.build-panel > div[role="status"], .project-panel > div[role="alert"] { padding: .85rem; margin-bottom: 1rem; background: #302c20; border: 1px solid #60543b; border-radius: 7px; }
+.build-panel ul { padding-left: 1.25rem; color: var(--muted); font-size: .85rem; line-height: 1.7; }
+.build-panel > div:has(> table), .material-table-wrapper { min-width: 0; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; border: 1px solid var(--line); border-radius: 7px; }
+.build-panel table, table.material-table { width: 100%; border-collapse: collapse; font-size: .85rem; text-align: left; }
+.build-panel th, .build-panel td, .material-table th, .material-table td { padding: .75rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.build-panel thead th, .material-table thead th { color: var(--muted); background: var(--surface-raised); font-weight: 600; white-space: nowrap; }
+.build-panel tbody th, .material-table tbody th { font-weight: 400; min-width: 12rem; }
+.build-panel td, .material-table td { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.build-panel tr:last-child > *, .material-table tr:last-child > * { border-bottom: 0; }
+.build-panel table input[type="number"], .material-table input[type="number"] { width: 7rem; min-width: 6rem; }
+.project-panel input[type="text"], .project-panel input[type="file"], .project-panel select { width: min(100%, 28rem); }
+.project-panel input[type="file"] { padding: .5rem; }
+.project-panel input[type="file"]::file-selector-button { min-height: 36px; margin-right: .6rem; }
+.project-panel ul { padding-left: 1.25rem; overflow-wrap: anywhere; }
+.project-panel li { margin-bottom: .65rem; }
+@media (max-width: 760px) {
+  .build-panel, .project-panel { padding: 1rem; }
+  .build-panel label, .project-panel label { align-items: flex-start; }
+  .project-panel label { flex-direction: column; }
+  .project-panel input[type="text"], .project-panel input[type="file"], .project-panel select { width: 100%; }
+  .build-panel th, .build-panel td, .material-table th, .material-table td { padding: .6rem; }
+}
