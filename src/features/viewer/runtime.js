@@ -16,6 +16,11 @@ function projectionMap(entries) {
 }
 function chunkKey(pos) { return [Math.floor(pos.x / 16), Math.floor(pos.y / 16), Math.floor(pos.z / 16)].join(','); }
 function hitUid(hit) { return hit?.object.userData.uids?.[hit.instanceId] ?? null; }
+/** Original procedural surface grain; no Minecraft texture assets are redistributed. */
+function surfaceTexture(){
+  const bytes=new Uint8Array(16*16*4);for(let y=0;y<16;y++)for(let x=0;x<16;x++){const i=(y*16+x)*4;const noise=((x*13+y*7+x*y*3)%17);const c=230+noise;bytes.set([c,c,c,255],i);}
+  const t=new THREE.DataTexture(bytes,16,16);t.magFilter=THREE.NearestFilter;t.minFilter=THREE.NearestFilter;t.needsUpdate=true;return t;
+}
 function makeChunk(records, origin) {
   const batches = new Map();
   for (const { block, shape, projection } of records) {
@@ -32,13 +37,14 @@ function makeChunk(records, origin) {
   for (const { part, shape, opacity, entries } of batches.values()) {
     const size = part.max.map((value, axis) => value - part.min[axis]);
     const geometry = new THREE.BoxGeometry(...size);
-    const makeMaterial = color => new THREE.MeshLambertMaterial({ color, transparent: opacity < 1, opacity, depthWrite: opacity === 1, wireframe: !shape.supported });
+    const makeMaterial = color => new THREE.MeshStandardMaterial({ color, roughness:opacity<1?0.28:0.85,metalness:0.03,map:opacity===1&&shape.supported?surfaceTexture():null,transparent: opacity < 1, opacity, depthWrite: opacity === 1, wireframe: !shape.supported });
     let material;
     if (shape.axis) {
       const ends = shape.axis === 'x' ? [0, 1] : shape.axis === 'y' ? [2, 3] : [4, 5];
       material = Array.from({ length: 6 }, (_, index) => makeMaterial(ends.includes(index) ? 0xc6ab76 : shape.color));
     } else material = makeMaterial(part.color ?? shape.color);
     const mesh = new THREE.InstancedMesh(geometry, material, entries.length);
+    mesh.castShadow=opacity===1;mesh.receiveShadow=true;
     mesh.userData.uids = [];
     const matrix = new THREE.Matrix4();
     entries.forEach(({ block, offsetY }, index) => {
@@ -113,7 +119,7 @@ export function disposeGroup(group) {
   group.traverse(object => {
     if (object.geometry && !geometries.has(object.geometry)) { geometries.add(object.geometry); object.geometry.dispose(); }
     if (object.material) for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
-      if (!materials.has(material)) { materials.add(material); material.dispose(); }
+      if (!materials.has(material)) { materials.add(material); material.map?.dispose();material.dispose(); }
     }
     if (object.isInstancedMesh) object.dispose();
     modelStates.delete(object);
@@ -123,7 +129,7 @@ export function disposeGroup(group) {
 export function createViewer(host, blocks, shapes, onSelect, onError = () => {}) {
   const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer.setClearColor(0x172125);
+  renderer.setClearColor(0x15232b);renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.shadowMap.enabled=blocks.length<10000;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   const canvas=renderer.domElement;
   canvas.className='viewer-canvas'; canvas.tabIndex=0; canvas.setAttribute('aria-label','3D 方塊模型');
   canvas.setAttribute('aria-describedby','viewer-help');
@@ -135,10 +141,27 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
   const origin=bounds.getCenter(new THREE.Vector3());
   const extent=bounds.getSize(new THREE.Vector3());
   const model=buildModelGroup(blocks,shapes,origin.toArray());scene.add(model); let modelCenter=new THREE.Vector3(); let workY=0; let previewGroup=null;
-  scene.add(new THREE.AmbientLight(0xffffff,1.6));
-  const sun=new THREE.DirectionalLight(0xffefcf,2.4);sun.position.set(10,18,12);scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0xd8efff,0x556052,2.1));
+  const sun=new THREE.DirectionalLight(0xffefd5,3.2);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.bias=-0.0005;sun.shadow.normalBias=0.04;scene.add(sun);scene.add(sun.target);
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.ShadowMaterial({opacity:0.24}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+  // Canonical bounds own the shadow receiver: slicing/ghosting must not move terrain.
+  // Scale a single plane rather than allocating geometry on every model edit.
+  function updateShadowHelpers(records){
+    const canonical=new THREE.Box3();
+    for(const b of records){canonical.expandByPoint(new THREE.Vector3(b.pos.x,b.pos.y,b.pos.z));canonical.expandByPoint(new THREE.Vector3(b.pos.x+1,b.pos.y+1,b.pos.z+1));}
+    if(canonical.isEmpty())canonical.set(new THREE.Vector3(-1,0,-1),new THREE.Vector3(1,2,1));
+    const size=canonical.getSize(new THREE.Vector3()),center=canonical.getCenter(new THREE.Vector3()).sub(origin);
+    ground.position.set(center.x,canonical.min.y-origin.y-0.02,center.z);
+    ground.scale.set(Math.max(100,size.x*3),Math.max(100,size.z*3),1);
+    const span=Math.max(20,size.length()),distance=Math.max(50,span*2);
+    sun.target.position.copy(center);sun.target.updateMatrixWorld();
+    sun.position.copy(center).add(new THREE.Vector3(-25,40,18).normalize().multiplyScalar(distance));
+    Object.assign(sun.shadow.camera,{left:-span,right:span,top:span,bottom:-span,near:0.5,far:distance+span*2});
+    sun.shadow.camera.updateProjectionMatrix();sun.shadow.needsUpdate=true;
+  }
+  updateShadowHelpers(blocks);
   const gridSize=Math.max(12,Math.ceil(Math.max(extent.x,extent.z))+4);
-  const grid=new THREE.GridHelper(gridSize,Math.min(gridSize,80),0x57706b,0x2d4145);
+  const grid=new THREE.GridHelper(gridSize,Math.min(gridSize,24),0x3c5b60,0x243a42);
   grid.position.y=bounds.min.y-origin.y-0.015;scene.add(grid);
   const camera=new THREE.PerspectiveCamera(40,1,0.05,2000);
   const controls=new OrbitControls(camera,canvas);
@@ -146,7 +169,9 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
   const selection=new THREE.Box3Helper(new THREE.Box3(),0xdff5b2);selection.visible=false;scene.add(selection);
   let lookup=new Map(blocks.map(b=>[b.uid,b])); let selectedUid=null;
   let disposed=false; let viewPreset='isometric'; let userNavigated=false; let fittedTarget=new THREE.Vector3(); let fittedSize=extent.clone();
-  function render(){if(disposed)return;renderer.render(scene,camera);let visibleInstances=0;for(const mesh of model.children)visibleInstances+=mesh.count;canvas.dataset.rendererStats=JSON.stringify({drawCalls:renderer.info.render.calls,geometries:renderer.info.memory.geometries,triangles:renderer.info.render.triangles,visibleInstances});canvas.dataset.camera=JSON.stringify({position:camera.position.toArray(),target:controls.target.toArray(),origin:origin.toArray(),fov:camera.fov,aspect:camera.aspect});}
+  let pendingFrame=null;
+  function render(){if(disposed||pendingFrame!==null)return;pendingFrame=window.requestAnimationFrame(()=>{pendingFrame=null;if(disposed)return;paint();});}
+  function paint(){if(disposed)return;renderer.render(scene,camera);let visibleInstances=0;for(const mesh of model.children)visibleInstances+=mesh.count;canvas.dataset.rendererStats=JSON.stringify({drawCalls:renderer.info.render.calls,geometries:renderer.info.memory.geometries,triangles:renderer.info.render.triangles,visibleInstances});canvas.dataset.camera=JSON.stringify({position:camera.position.toArray(),target:controls.target.toArray(),origin:origin.toArray(),fov:camera.fov,aspect:camera.aspect});}
   function updateProjectedBounds(){
     bounds.makeEmpty();
     const projection=modelStates.get(model).projection;
@@ -167,9 +192,9 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
   function fit(preset='isometric',target=modelCenter,size=extent){
     viewPreset=preset; userNavigated=false; fittedTarget=target.clone(); fittedSize=size.clone();
     const directions={isometric:[1,0.8,1.2],top:[0,1,0.00001],front:[0,0,-1],back:[0,0,1],left:[-1,0,0],right:[1,0,0]};
-    const radius=Math.max(1,size.length()/2),halfFov=THREE.MathUtils.degToRad(camera.fov/2);
-    const limitingFov=Math.min(halfFov,Math.atan(Math.tan(halfFov)*camera.aspect));
-    const distance=radius/Math.sin(limitingFov)*1.12;
+    const halfFov=THREE.MathUtils.degToRad(camera.fov/2),direction=new THREE.Vector3(...directions[preset]).normalize();
+    const forward=direction.clone().negate(),right=new THREE.Vector3().crossVectors(forward,new THREE.Vector3(0,1,0)).normalize(),up=new THREE.Vector3().crossVectors(right,forward).normalize();
+    let distance=2;for(const x of [-.5,.5])for(const y of [-.5,.5])for(const z of [-.5,.5]){const corner=new THREE.Vector3(size.x*x,size.y*y,size.z*z);distance=Math.max(distance,Math.abs(corner.dot(right))/(Math.tan(halfFov)*camera.aspect)+corner.dot(direction),Math.abs(corner.dot(up))/Math.tan(halfFov)+corner.dot(direction));}distance*=1.16;
     camera.far=Math.max(2000,distance*10);camera.updateProjectionMatrix();
     controls.maxDistance=Math.max(200,distance*5);controls.target.copy(target);
     camera.position.copy(target).add(new THREE.Vector3(...directions[preset]).normalize().multiplyScalar(distance));
@@ -203,7 +228,9 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
     preset: p=>fit(p), reset:()=>fit(),
     workPlane:y=>{workY=y;grid.position.y=y-origin.y-0.015;render();},
     updateModel:(nextBlocks,nextShapes)=>{
+      renderer.shadowMap.enabled=nextBlocks.length<10000;
       updateModelGroup(model,nextBlocks,nextShapes);
+      updateShadowHelpers(nextBlocks);
       lookup=new Map(nextBlocks.map(b=>[b.uid,b]));
       updateProjectedBounds();updateSelection();render();
     },
@@ -214,6 +241,6 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
     setProjection:entries=>{const state=modelStates.get(model);updateModelGroup(model,state.blocks,state.shapes,entries);updateProjectedBounds();updateSelection();render();},
     focus:uid=>{const b=lookup.get(uid),view=modelStates.get(model).projection.get(uid)??defaultProjection;if(b&&view.visible&&view.opacity>0)fit('isometric',new THREE.Vector3(b.pos.x+0.5,b.pos.y+0.5+view.offsetY,b.pos.z+0.5).sub(origin),new THREE.Vector3(2,2,2));},
     select:uid=>{selectedUid=uid;updateSelection();render();},
-    dispose:()=>{disposed=true;observer.disconnect();controls.removeEventListener('change',render);controls.dispose();canvas.removeEventListener('pointerdown',onDown);canvas.removeEventListener('pointermove',onMove);canvas.removeEventListener('pointerup',onUp);canvas.removeEventListener('pointercancel',onCancel);canvas.removeEventListener('keydown',onKey);canvas.removeEventListener('wheel',onWheel);canvas.removeEventListener('webglcontextlost',onContextLost);canvas.removeEventListener('webglcontextrestored',onContextRestored);disposeGroup(scene);renderer.dispose();renderer.forceContextLoss();canvas.remove();},
+    dispose:()=>{disposed=true;if(pendingFrame!==null){window.cancelAnimationFrame(pendingFrame);pendingFrame=null;}observer.disconnect();controls.removeEventListener('change',render);controls.dispose();canvas.removeEventListener('pointerdown',onDown);canvas.removeEventListener('pointermove',onMove);canvas.removeEventListener('pointerup',onUp);canvas.removeEventListener('pointercancel',onCancel);canvas.removeEventListener('keydown',onKey);canvas.removeEventListener('wheel',onWheel);canvas.removeEventListener('webglcontextlost',onContextLost);canvas.removeEventListener('webglcontextrestored',onContextRestored);disposeGroup(scene);sun.shadow.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();},
   };
 }

@@ -1,10 +1,16 @@
 import { test, expect, type Page } from '@playwright/test';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 import { performance } from 'node:perf_hooks';
 import { join } from 'node:path';
 import type { BlockRecord, MinecraftId } from '../src/core/contracts.ts';
 import { createEmptyProject } from '../src/core/project.ts';
 import { clickWorld, coordinate } from './helpers.ts';
+
+const profileDevelopment = process.env.STUDIO_PROFILE_DEV === '1';
+const profileOrigin = profileDevelopment ? 'http://127.0.0.1:5180' : 'http://127.0.0.1:5292';
+const buildMode = profileDevelopment ? 'development' : 'production';
+let profileServer: ReturnType<typeof spawn> | undefined;
 
 interface RendererStats { drawCalls: number; geometries: number; triangles: number; visibleInstances: number }
 const cases = [
@@ -49,23 +55,45 @@ function distribution(samples: number[]) {
 }
 
 test.beforeAll(async ({ browserName }, testInfo) => {
+  if (!profileDevelopment) {
+    await access('dist/index.html'); await access('dist-server/start.js');
+    profileServer = spawn(process.execPath, ['dist-server/start.js'], { cwd: process.cwd(), windowsHide: true, stdio: 'ignore',
+      env: { ...process.env, PORT: '5292', STUDIO_AI_URL: '', STUDIO_AI_KEY: '', STUDIO_AI_MODEL: 'disabled-profile', STUDIO_PUBLIC_ORIGIN: profileOrigin } });
+    let startupError: Error | undefined; profileServer.on('error', error => { startupError = error; });
+    await expect.poll(async () => {
+      if (startupError) throw startupError;
+      if (profileServer?.exitCode !== null) throw new Error('Production profile server exited');
+      try { return (await fetch(profileOrigin, { signal: AbortSignal.timeout(1000) })).status; } catch { return 0; }
+    }, { timeout: 10000 }).toBe(200);
+    const capability = await fetch(profileOrigin + '/api/ai/capabilities');
+    expect(await capability.json()).toMatchObject({ enabled: false, model: 'disabled-profile' });
+  }
   await mkdir(testInfo.project.outputDir, { recursive: true });
   // Playwright clears outputDir per run; the marker survives worker restarts after failures.
   try { await writeFile(join(testInfo.project.outputDir, 'performance-initialized'), browserName, { flag: 'wx' }); }
   catch (error) { if ((error as NodeJS.ErrnoException).code === 'EEXIST') return; throw error; }
   await mkdir('evidence', { recursive: true });
   await writeFile('evidence/performance.json', JSON.stringify({
-    schema: 1, startedAt: new Date().toISOString(),
-    methodology: 'Public JSON file import and editor UI; driver-observed elapsed times include automation overhead. Two requestAnimationFrame callbacks follow measured interactions. Orbit throughput is effective update throughput, not display FPS. Heap samples are not peak memory. Software GPU launch flags are configured by Playwright.',
+    schema: 1, buildMode, appOrigin: profileOrigin, startedAt: new Date().toISOString(),
+    methodology: 'Explicit '+buildMode+' build at '+profileOrigin+'. Production excludes React development instrumentation; STUDIO_PROFILE_DEV=1 retains development reproduction. All thresholds and workflows are identical. Public JSON file import and editor UI; driver-observed elapsed times include automation overhead. Two requestAnimationFrame callbacks follow measured interactions. Orbit throughput is effective update throughput, not display FPS. Heap samples are not peak memory. Software GPU launch flags are configured by Playwright.',
     fixtures: [],
   }, null, 2));
+});
+
+test.afterAll(async () => {
+  const child = profileServer;
+  if (child && child.exitCode === null && child.signalCode === null) await new Promise<void>(resolve => {
+    const timer = setTimeout(() => { child.kill('SIGKILL'); resolve(); }, 3000);
+    child.once('exit', () => { clearTimeout(timer); resolve(); }); child.kill();
+  });
+  profileServer = undefined;
 });
 
 for (const scenario of cases) test('@profile ' + scenario.cells + ' canonical cells: real import, picking, orbit, remove and undo', async ({ page, browser }, testInfo) => {
   test.setTimeout(120_000);
   const { buffer, min } = fixture(scenario.cells, scenario.dimensions);
   const report: Record<string, unknown> = {
-    cells: scenario.cells, dimensions: scenario.dimensions, origin: min, importBytes: buffer.byteLength,
+    buildMode, appOrigin: profileOrigin, cells: scenario.cells, dimensions: scenario.dimensions, origin: min, importBytes: buffer.byteLength,
     browser: browser.version(), viewport: page.viewportSize(), startedAt: new Date().toISOString(), status: 'running',
   };
   const cdp = await page.context().newCDPSession(page);
@@ -73,7 +101,7 @@ for (const scenario of cases) test('@profile ' + scenario.cells + ' canonical ce
   const heap = async () => (await cdp.send('Performance.getMetrics')).metrics.find((metric: { name: string; value: number }) => metric.name === 'JSHeapUsedSize')?.value ?? null;
   page.on('dialog', async dialog => { await dialog.accept(); });
   try {
-    await page.goto('/');
+    await page.goto(profileOrigin + '/?sample=house');
     await page.locator('summary').filter({ hasText: /^專案與備份$/ }).click();
     const startImport = performance.now();
     await page.getByLabel('匯入模型 JSON', { exact: true }).setInputFiles({ name: 'profile-' + scenario.cells + '.json', mimeType: 'application/json', buffer });
@@ -90,6 +118,7 @@ for (const scenario of cases) test('@profile ' + scenario.cells + ' canonical ce
       return { vendor: extension ? gl.getParameter(extension.UNMASKED_VENDOR_WEBGL) as string : null,
         renderer: extension ? gl.getParameter(extension.UNMASKED_RENDERER_WEBGL) as string : null };
     });
+    await page.locator('summary').filter({ hasText: /^專案與備份$/ }).click();
     await page.getByRole('button', { name: '正面', exact: true }).click();
     const pickStart = performance.now();
     await clickWorld(page, [min.x + .5, min.y + .5, min.z]);

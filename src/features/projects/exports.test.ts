@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDemoProject } from '../../fixtures/two-floor-house.ts';
 import { createEmptyProject } from '../../core/project.ts';
 import { MAX_IMPORT_BYTES, parseProject } from '../../core/model.ts';
-import { csvToModel, modelToCsv } from './exports.ts';
+import { constructionToCsv, csvToModel, modelToCsv } from './exports.ts';
 
 describe('full canonical XYZ CSV', () => {
   it('roundtrips all demo records including negative positions, states, provenance and logical groups', () => {
@@ -66,3 +66,25 @@ describe('full canonical XYZ CSV', () => {
   });
 });
 
+
+describe('player construction CSV', () => {
+  it('derives one readable row per cell with coordinates, state and estimate flags', () => {
+    const project = createDemoProject();
+    const rows = constructionToCsv(project).trimEnd().split('\r\n');
+    expect(rows).toHaveLength(project.blocks.length + 1);
+    expect(rows[0]).toContain('"Block Name","X","Y","Z"');
+    project.blocks.forEach((block, i) => {
+      expect(rows[i + 1]).toContain('"' + block.id + '"');
+      expect(rows[i + 1]).toContain(['', block.pos.x, block.pos.y, block.pos.z, ''].join('","'));
+      expect(rows[i + 1]).toContain(JSON.stringify(block.state).replaceAll('"', '""'));
+      expect(rows[i + 1]?.endsWith('"' + ['inferred', 'ai_estimated'].includes(block.source.origin) + '"')).toBe(true);
+    });
+  });
+  it('neutralizes spreadsheet formula labels while preserving canonical metadata', () => {
+    const p = createDemoProject(), category = '=HYPERLINK("example")';
+    const project = {...p, blocks: p.blocks.map((b,i) => i ? b : {...b, category})};
+    expect(constructionToCsv(project)).toContain("'=HYPERLINK");
+    expect(project.blocks[0]?.category).toBe(category);
+    expect(csvToModel(modelToCsv(project))).toEqual(project);
+  });
+});

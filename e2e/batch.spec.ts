@@ -10,7 +10,7 @@ async function commit(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/?sample=house');
   await page.getByRole('button', { name: '空白專案', exact: true }).click();
   await page.getByText('編輯工具與方塊', { exact: true }).click();
   await page.getByText('批次編輯', { exact: true }).click();

@@ -7,6 +7,7 @@ import type { BlueprintGrid } from '../src/features/blueprint/BlueprintPanel.tsx
 import { clickWorld } from './helpers.ts';
 
 async function panel(page: Page, name: string, open = true) {
+  if(open && name !== '專案與備份' && name !== 'AI 圖片分析與編輯') for(const drawer of await page.locator('details.utility-drawer[open]').all()) await drawer.locator('summary').click();
   const summary = page.locator('summary').filter({ hasText: new RegExp('^' + name + '$') });
   const expanded = await summary.locator('..').getAttribute('open') !== null;
   if (expanded !== open) await summary.click();
@@ -57,7 +58,7 @@ function downloadedCsv(buffer: Buffer): Project {
 
 test('complete manual release journey preserves design, provenance, materials and construction through backup reimport', async ({ page }) => {
   test.setTimeout(90_000); page.on('dialog', dialog => void dialog.accept());
-  await page.goto('/'); await expect(page.getByTestId('cell-count')).toHaveText('288');
+  await page.goto('/?sample=house'); await expect(page.getByTestId('cell-count')).toHaveText('288');
   await panel(page, '專案與備份');
   const seedFile = await download(page, '下載模型 JSON');
   const original = JSON.parse(seedFile.toString('utf8')) as Project;
@@ -87,7 +88,7 @@ test('complete manual release journey preserves design, provenance, materials an
   await expect(page.locator('.inspector-grid dt', { hasText: '識別碼 UID' }).locator('+ dd')).toHaveText(addedUid);
   await expect(page.locator('.state-list')).toContainText('west'); await expect(page.locator('.state-list')).toContainText('top');
   await panel(page, '材料與施工引導');
-  await expect(page.getByRole('region', { name: '材料與施工', exact: true })).toContainText('佔用格數 289；放置物品總數 288');
+  await expect(page.locator('.materials-panel')).toContainText('佔用格數 289；放置物品總數 288');
   await page.getByRole('spinbutton', { name: 'minecraft:oak_stairs 已備數量', exact: true }).fill('8');
   await saved(page);
   const beforeReload = JSON.parse((await download(page, '下載完整備份')).toString('utf8')) as WorkspaceRecord;
@@ -107,7 +108,7 @@ test('complete manual release journey preserves design, provenance, materials an
   await page.getByRole('button', { name: '標記此步完成', exact: true }).click();
   const progress = page.getByRole('slider', { name: '施工順序進度', exact: true });
   await progress.focus(); await progress.press('End'); await expect(progress).toHaveValue('100');
-  await expect(page.getByRole('region', { name: '材料與施工', exact: true })).toContainText('已完成 1 / 289 格');
+  await expect(page.locator('.progress-dock')).toContainText('已完成 1 / 289 格');
   await saved(page);
   const backup = await download(page, '下載完整備份');
   const expected = JSON.parse(backup.toString('utf8')) as WorkspaceRecord;
@@ -153,7 +154,7 @@ test('built production server serves assets with AI disabled and manual editing 
     expect(capabilities.status).toBe(200);
     expect(await capabilities.json()).toMatchObject({ enabled: false, model: 'disabled-smoke' });
     page.on('dialog', dialog => void dialog.accept());
-    await page.goto(origin); await expect(page.getByTestId('cell-count')).toHaveText('288');
+    await page.goto(origin + '/?sample=house'); await expect(page.getByTestId('cell-count')).toHaveText('288');
     await panel(page, 'AI 圖片分析與編輯');
     await expect(page.locator('.ai-panel').getByRole('status').first()).toContainText('AI 已停用');
     await expect(page.getByRole('button', { name: '傳送並取得提案', exact: true })).toBeDisabled();

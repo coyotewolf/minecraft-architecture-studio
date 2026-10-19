@@ -1,3 +1,4 @@
+import { materialName } from '../build/ui-model.ts';
 import type { Project } from '../../core/contracts.ts';
 import { MAX_BLOCKS, MAX_IMPORT_BYTES, object, parseProject, stableJson } from '../../core/model.ts';
 
@@ -54,4 +55,15 @@ export function csvToModel(text: string): Project {
     return block;
   });
   return parseProject({ ...metadata, blocks });
+}
+
+/** Human-readable construction sheet. Lossless import uses modelToCsv instead. */
+export function constructionToCsv(project: Project): string {
+  const valid = parseProject(project);
+  const safeLabel = (value: string): string => /^[\s]*[=+@-]/.test(value) ? "'" + value : value;
+  const rows = [['Block ID', 'Block Name', 'X', 'Y', 'Z', 'Category', 'Placement State', 'AI Estimated Area'],
+    ...valid.blocks.map(block => [block.id, materialName(block.id), String(block.pos.x), String(block.pos.y), String(block.pos.z),
+      safeLabel(block.category ?? ''), stableJson(block.state), ['inferred', 'ai_estimated'].includes(block.source.origin) ? 'true' : 'false'])];
+  const csv = rows.map(row => row.map(quote).join(',')).join('\r\n') + '\r\n';
+  bounded(csv); return csv;
 }

@@ -40,8 +40,8 @@ export function BlockInspector(props: {
   const { block, unsupportedCount } = props;
   const origins: Record<BlockRecord['source']['origin'], string> = {
     observed: '觀察所得',
-    inferred: '推論所得',
-    ai_estimated: 'AI 估計',
+    inferred: 'AI Estimated Area · 推論所得',
+    ai_estimated: 'AI Estimated Area · 推估設計',
     user_created: '使用者建立',
   };
   const stateKeys = block ? Object.keys(block.state).sort() : [];

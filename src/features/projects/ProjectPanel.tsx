@@ -2,7 +2,7 @@ import { useState, type ReactElement } from 'react';
 import type { Project } from '../../core/contracts.ts';
 import { exportProject, importProject, MAX_IMPORT_BYTES } from '../../core/model.ts';
 import { inventory } from '../build/model.ts';
-import { csvToModel, modelToCsv } from './exports.ts';
+import { constructionToCsv, csvToModel, modelToCsv } from './exports.ts';
 import { createWorkspace, deleteWorkspace, deserializeWorkspace, listWorkspaces, loadWorkspace, MAX_WORKSPACE_BYTES, parseWorkspace, serializeWorkspace, type WorkspaceRecord } from './storage.ts';
 
 export interface ProjectPanelProps { workspace: WorkspaceRecord; status: string; onChange: (workspace: WorkspaceRecord, action?: 'open'|'metadata'|'restore') => void; onSave: () => void }
@@ -95,6 +95,8 @@ export function ProjectPanel(props: ProjectPanelProps): ReactElement {
     <button type="button" onClick={() => run(() => download(serializeWorkspace(w), 'workspace.json', 'application/json'))}>下載完整備份</button>
     <button type="button" onClick={() => run(() => download(exportProject(w.project), 'model.json', 'application/json'))}>下載模型 JSON</button>
     <button type="button" onClick={() => run(() => download(modelToCsv(w.project), 'model.csv', 'text/csv;charset=utf-8'))}>下載完整 XYZ CSV</button>
+    <button type="button" onClick={() => run(() => download(constructionToCsv(w.project), 'construction.csv', 'text/csv;charset=utf-8'))}>下載玩家施工 CSV</button>
+    <p>玩家施工 CSV 展開名稱、XYZ、放置狀態與推估標記，供閱讀施工；重新匯入請使用完整 XYZ CSV 或模型 JSON。</p>
     <button type="button" onClick={() => run(() => materials('json'))}>下載材料 JSON</button>
     <button type="button" onClick={() => run(() => materials('csv'))}>下載材料 CSV</button>
     {(['workspace', 'model', 'csv'] as const).map(format => <label key={format} style={{ display: 'block' }}>

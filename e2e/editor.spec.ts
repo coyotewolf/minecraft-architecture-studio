@@ -1,6 +1,6 @@
 import { test,expect } from '@playwright/test';
 import { clickWorld, coordinate } from './helpers.ts';
-test.beforeEach(async({page})=>{await page.goto('/');await page.getByRole('button',{name:'空白專案',exact:true}).click();await page.getByText('編輯工具與方塊',{exact:true}).click();});
+test.beforeEach(async({page})=>{await page.goto('/?sample=house');await page.getByRole('button',{name:'空白專案',exact:true}).click();await page.getByText('編輯工具與方塊',{exact:true}).click();});
 test('place against real workplane and selected face, preview/cancel, undo/redo',async({page})=>{
  await page.getByRole('radio',{name:'放置',exact:true}).check();await page.getByRole('button',{name:'俯視',exact:true}).click();
  await clickWorld(page,[.5,0,.5]);await expect(page.getByTestId('cell-count')).toHaveText('0');await expect(page.getByRole('region',{name:'變更預覽'})).toContainText('預覽有效');await page.getByRole('button',{name:'取消預覽'}).click();await expect(page.getByTestId('cell-count')).toHaveText('0');
