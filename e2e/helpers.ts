@@ -1,8 +1,8 @@
 import type { Page } from '@playwright/test';
 export async function pixel(page:Page,world:number[]){
-  await page.locator('canvas').scrollIntoViewIfNeeded();
-  const c=JSON.parse((await page.locator('canvas').getAttribute('data-camera'))!);
-  const r=(await page.locator('canvas').boundingBox())!;
+  await page.locator('canvas.viewer-canvas').scrollIntoViewIfNeeded();
+  const c=JSON.parse((await page.locator('canvas.viewer-canvas').getAttribute('data-camera'))!);
+  const r=(await page.locator('canvas.viewer-canvas').boundingBox())!;
   const sub=(a:number[],b:number[])=>a.map((v,i)=>v-b[i]!);
   const dot=(a:number[],b:number[])=>a.reduce((n,v,i)=>n+v*b[i]!,0);
   const norm=(a:number[])=>{const n=Math.hypot(...a);return a.map(v=>v/n)};

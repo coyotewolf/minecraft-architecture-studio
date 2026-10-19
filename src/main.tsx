@@ -12,6 +12,7 @@ import { EditorPanel, type EditorTool } from './features/editor/EditorPanel.tsx'
 import { changeSelectedState, editAt, type CollisionPolicy } from './features/editor/commands.ts';
 import { BatchPanel } from './features/editor/BatchPanel.tsx';
 import { batchEdit } from './features/editor/batch.ts';
+import { BlueprintPanel } from './features/blueprint/BlueprintPanel.tsx';
 import './style.css';
 import './features/editor/editor.css';
 
@@ -25,6 +26,7 @@ export function App() {
   const [blockId, setBlockId] = useState<MinecraftId>('minecraft:stone');
   const [blockState, setBlockState] = useState<BlockState>(() => normalizeBlockState('minecraft:stone', {}));
   const [workY, setWorkY] = useState(0);
+  const [layer,setLayer]=useState(0);
   const [collision, setCollision] = useState<CollisionPolicy>('cancel');
   const [pending, setPending] = useState<PendingEdit|null>(null);
   const [target, setTarget] = useState<BlockPos>({x:0,y:0,z:0});
@@ -88,6 +90,7 @@ export function App() {
       <CameraToolbar onPreset={p=>viewer.current?.preset(p)} onReset={()=>viewer.current?.reset()} onFocus={()=>{if(selected)viewer.current?.focus(selected);}} hasSelection={!!block}/>
       <div className="viewport-host" ref={host}><p className="viewer-status" role="status">{error?'無法完成操作：'+error:project.blocks.length?'建築模型 · 點選方塊查看或預覽變更':'空白專案 · 在工作平面放置第一個方塊'}</p><span className="viewer-reticle" aria-hidden="true">＋</span><p className="viewer-help" id="viewer-help">拖曳旋轉 · 右鍵拖曳平移 · 滾輪縮放<br/>觸控：單指旋轉、雙指縮放／平移<br/>鍵盤：方向鍵旋轉、Shift＋方向鍵平移、＋／− 縮放、Enter 操作中心方塊<br/>編輯需確認預覽；Ctrl＋Z 復原、Ctrl＋Shift＋Z 重做。</p></div>
     </section><BlockInspector block={block} unsupportedCount={shapes.filter(s=>!s.supported).length}/></div>
+    <details className="editor-section"><summary>2D 逐層藍圖</summary><BlueprintPanel project={project} selected={selected} layer={layer} onLayer={setLayer} onCell={pos=>{const b=engine.getAt(pos);setSelected(b?.uid??null);setTarget(pos);if(tool==="eyedropper"&&b){setBlockId(b.id);setBlockState(b.state);setTool("place");}else if(tool==="place"||tool==="remove"||tool==="replace")stageAction(pos,tool);}}/></details>
     <p className="capability-note">材質使用示意色，未使用 Minecraft 遊戲貼圖。手動編輯以預覽確認後套用；AI、儲存與完整建造引導正在接續開發。</p>
     <footer className="studio-footer">座標：＋X 向東、＋Y 向上、＋Z 向南；北方為 −Z。目前只保留在記憶體中。</footer>
   </main>;
