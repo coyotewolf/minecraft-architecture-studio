@@ -77,7 +77,8 @@ export class VoxelEngine implements CommandEngine {
         if (prior && (prior.id !== after.id || !same(prior.source, after.source))) {
           throw new Error('Existing UID must preserve block identity and evidence');
         }
-        if (t.cause !== 'import') after = { ...after, edits: {
+        // New imported records retain saved provenance; merges cannot rewrite an existing UID's history.
+        if (prior || t.cause !== 'import') after = { ...after, edits: {
           createdByTransactionId: prior?.edits.createdByTransactionId ?? t.id,
           lastModifiedByTransactionId: t.id,
           userModified: prior ? prior.edits.userModified || t.cause === 'user' : false,

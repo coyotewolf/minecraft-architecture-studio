@@ -96,6 +96,23 @@ describe('M1 canonical engine', () => {
     expect(() => engine.commit(tx(engine, [{ ...before, source: { origin: 'observed' } }], [before]))).toThrow('identity and evidence');
     expect(() => engine.commit(tx(engine, [{ ...before, id: 'minecraft:dirt' }], [before]))).toThrow('identity and evidence');
   });
+  it('import merges preserve existing creation and modification history', () => {
+    const original = { ...block('log', 0, 'minecraft:oak_log', { axis: 'y' }), edits: {
+      createdByTransactionId: 'original-create', lastModifiedByTransactionId: 'manual-edit', userModified: true,
+    } };
+    const engine = new VoxelEngine(project([original]));
+    const forged = { ...original, state: { axis: 'x' }, edits: {
+      createdByTransactionId: 'rewritten', lastModifiedByTransactionId: 'pretend', userModified: false,
+    } };
+    engine.commit({ ...tx(engine, [forged], [original], 'import-merge'), cause: 'import' });
+    expect(engine.getByUid('log')!.edits).toEqual({
+      createdByTransactionId: 'original-create', lastModifiedByTransactionId: 'import-merge', userModified: true,
+    });
+    engine.undo();
+    expect(engine.getByUid('log')).toEqual(original);
+    const restored = new VoxelEngine(importProject(exportProject(project([original]))));
+    expect(restored.getByUid('log')!.edits).toEqual(original.edits);
+  });
   it('new edit clears redo; no-history operations fail without changes', () => {
     const engine = new VoxelEngine(project());
     expect(() => engine.undo()).toThrow('Nothing');

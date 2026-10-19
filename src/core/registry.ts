@@ -1,7 +1,7 @@
 import type { BlockState, RegistryEntry } from './contracts.ts';
 
 /** Normalizes input against an explicitly supplied registry entry.
- * M0 ships NO production block registry; tests use a clearly named synthetic fixture.
+ * Introduced with synthetic M0 fixtures; M1 versioned-registry.ts supplies pinned production entries.
  */
 export function normalizeState(entry: RegistryEntry, input: BlockState): BlockState {
   for (const key of Object.keys(input)) {

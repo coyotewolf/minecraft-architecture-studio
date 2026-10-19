@@ -100,7 +100,7 @@ export interface Diagnostic {
 export type PreflightResult =
   | { readonly ok: false; readonly diagnostics: readonly Diagnostic[] }
   | { readonly ok: true; readonly normalized: EditTransaction; readonly warnings: readonly Diagnostic[] };
-/** Contract only in M0. No command engine is claimed until M1. */
+/** Frozen M0 boundary, implemented by VoxelEngine in M1. */
 export interface CommandEngine {
   snapshot(): DesignSnapshot;
   preview(transaction: EditTransaction): PreflightResult;
