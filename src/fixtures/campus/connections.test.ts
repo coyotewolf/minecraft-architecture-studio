@@ -1,3 +1,4 @@
+import {HighDetailBuilder} from './high-detail.ts';
 import { expect, test } from 'vitest';
 import type { BlockRecord, BlockState, MinecraftId } from '../../core/contracts.ts';
 import { normalizeBlockState } from '../../core/versioned-registry.ts';
@@ -22,4 +23,16 @@ test('partial blocks and vertically offset supports do not create false full-cub
  const stair=b('minecraft:quartz_stairs',1,0),raised={...b('minecraft:white_concrete',0,1),pos:{x:0,y:3,z:1}};
  const out=connectCampusBlocks([b('minecraft:oak_fence',0,0),stair,raised]);expect(out[0]!.state).toMatchObject({north:'false',south:'false',east:'false',west:'false'});
  expect(connectCampusBlocks(out)).toEqual(out);
+});
+
+test('glass panes attach to panes and glass full cubes, but never partial stairs',()=>{
+ const out=connectCampusBlocks([b('minecraft:glass_pane',0,0),b('minecraft:glass_pane',1,0),b('minecraft:glass',0,-1),b('minecraft:cyan_stained_glass',0,1),b('minecraft:quartz_stairs',-1,0)]);
+ expect(out[0]!.state).toMatchObject({east:'true',north:'true',south:'true',west:'false'});expect(out[1]!.state.west).toBe('true');expect(connectCampusBlocks(out)).toEqual(out);
+});
+
+test('pane connections are resolved globally before adjacent cells enter separate parts',()=>{
+ const builder=new HighDetailBuilder({id:'pane-parts',title:'玻璃分區',origin:[0,0,0],references:['reference-01'],features:[],notes:'推估'});
+ for(let x=0;x<4;x++)builder.set(x,0,0,'minecraft:glass_pane');
+ const parts=builder.finishParts(2);expect(parts).toHaveLength(2);
+ expect(parts[0]!.project.blocks.find(b=>b.pos.x===1)!.state.east).toBe('true');expect(parts[1]!.project.blocks.find(b=>b.pos.x===2)!.state.west).toBe('true');
 });

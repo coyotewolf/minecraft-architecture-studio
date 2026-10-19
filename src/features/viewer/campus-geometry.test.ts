@@ -54,3 +54,18 @@ describe('campus block geometry',()=>{
  });
 });
 
+
+it('amethyst is a full cube and panes remain thin, transparent and direction driven',()=>{
+ expect(shapeForBlock(block('minecraft:amethyst_block')).boxes).toEqual([{min:[0,0,0],max:[1,1,1]}]);
+ const isolated=shapeForBlock(block('minecraft:glass_pane'));expect(isolated.boxes).toEqual([{min:[7/16,0,7/16],max:[9/16,1,9/16]}]);expect(isolated.opacity).toBeLessThan(1);
+ const shape=shapeForBlock(block('minecraft:glass_pane',{north:'true',east:'true'}));expect(shape.boxes).toHaveLength(3);expect(shape.boxes.some(b=>b.min[2]===0)).toBe(true);expect(shape.boxes.some(b=>b.max[0]===1)).toBe(true);expect(shape.boxes.every(b=>Math.min(b.max[0]-b.min[0],b.max[2]-b.min[2])===2/16)).toBe(true);
+ for(const part of shape.boxes)for(let i=0;i<3;i++){expect(part.min[i]).toBeGreaterThanOrEqual(0);expect(part.max[i]).toBeLessThanOrEqual(1);}
+});
+
+it('tulips and alliums have distinct compact blooms above green stems rather than full cubes',()=>{
+ const tulip=shapeForBlock(block('minecraft:pink_tulip')),allium=shapeForBlock(block('minecraft:allium'));
+ expect(tulip.boxes).not.toEqual(allium.boxes);expect(tulip.color).not.toBe(allium.color);
+ for(const shape of [tulip,allium]){expect(shape.supported).toBe(true);expect(shape.boxes[0]).toMatchObject({min:[7/16,0,7/16],max:[9/16,9/16,9/16],color:0x5d8b42});
+  for(const part of shape.boxes){expect(part.max[1]).toBeLessThan(1);expect(part.max[0]-part.min[0]).toBeLessThanOrEqual(.5);expect(part.max[2]-part.min[2]).toBeLessThanOrEqual(.5);for(let i=0;i<3;i++){expect(part.min[i]).toBeGreaterThanOrEqual(0);expect(part.max[i]).toBeLessThanOrEqual(1);}}
+ }
+});

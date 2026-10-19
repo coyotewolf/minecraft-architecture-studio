@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createCampus } from './index.ts';
+import { createCampusV2 as createCampus } from './index.ts';
 import { createLandmarkDistricts } from './landmarks.ts';
 import { createIndustryDistricts } from './industry.ts';
 import { createGardenDistricts } from './gardens.ts';

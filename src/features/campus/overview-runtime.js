@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { shapeForBlock } from '../viewer/geometry.ts';
+import { REFERENCE_CAMERA } from '../../fixtures/campus/reference-layout.ts';
 
 const key = (x,y,z) => x+','+y+','+z;
 const full = s => s.supported && s.opacity === 1 && s.boxes.length === 1 && s.boxes[0].min.every(v=>v===0) && s.boxes[0].max.every(v=>v===1);
@@ -50,7 +51,33 @@ export function disposeCampusGeometry(group) {
   for(const mesh of group.children){mesh.geometry.dispose();mesh.material.dispose();}
 }
 
-export function createCampusViewer(host,blocks,onSelect) {
+/** World-coordinate camera contract; pure projection helpers never modify canonical cells. */
+export function validCampusCamera(c){return !!c&&['perspective','orthographic'].includes(c.projection)&&[c.yaw,c.pitch,c.fov,c.distance,c.span,...(Array.isArray(c.target)?c.target:[])].every(Number.isFinite)&&c.target?.length===3&&c.pitch>=-90&&c.pitch<=90&&c.fov>=10&&c.fov<=100&&c.distance>0&&c.span>0;}
+function cameraFrom(c,aspect=1.5,origin=[0,0,0]){
+ const camera=c.projection==='orthographic'?new THREE.OrthographicCamera(-c.span*aspect/2,c.span*aspect/2,c.span/2,-c.span/2,.1,30000):new THREE.PerspectiveCamera(c.fov,aspect,.1,30000);
+ const yaw=THREE.MathUtils.degToRad(c.yaw),pitch=THREE.MathUtils.degToRad(c.pitch),target=new THREE.Vector3(...c.target).sub(new THREE.Vector3(...origin));
+ camera.position.copy(target).add(new THREE.Vector3(Math.sin(yaw)*Math.cos(pitch),Math.sin(pitch),Math.cos(yaw)*Math.cos(pitch)).multiplyScalar(c.distance));camera.lookAt(target);camera.updateMatrixWorld(true);camera.updateProjectionMatrix();return camera;
+}
+export function projectCampusLandmarks(c,landmarks){
+ if(!validCampusCamera(c))throw new Error('Invalid campus camera');const camera=cameraFrom(c);
+ return landmarks.map(l=>{const p=new THREE.Vector3(...l.world).project(camera),pixel=[(p.x+1)*768,(1-p.y)*512];return {...l,pixel,errorPixels:Math.hypot(pixel[0]-l.reference[0],pixel[1]-l.reference[1]),inFrame:Math.abs(p.x)<=1&&Math.abs(p.y)<=1&&p.z>=-1&&p.z<=1};});
+}
+/** Fit framing at fixed yaw/pitch: orientation must be matched visually before layout calibration. */
+export function calibrateCampusCamera(landmarks,initial){
+ if(landmarks.length<3)throw new Error('At least three landmarks required');
+ let best={...initial,target:[...initial.target]},score=c=>Math.sqrt(projectCampusLandmarks(c,landmarks).reduce((sum,l)=>sum+l.errorPixels*l.errorPixels,0)/landmarks.length),error=score(best);
+ const steps=[12,8,120,25,25,25];
+ for(let scale=0;scale<8;scale++)for(let iteration=0;iteration<16;iteration++){
+  let changed=false;
+  for(let axis=2;axis<6;axis++)for(const sign of [-1,1]){const next={...best,target:[...best.target]},delta=steps[axis]*Math.pow(.55,scale)*sign;
+   if(axis===0)next.yaw+=delta;else if(axis===1)next.pitch=Math.max(5,Math.min(85,next.pitch+delta));else if(axis===2){if(next.projection==='orthographic')next.span=Math.max(10,next.span+delta);else next.distance=Math.max(10,next.distance+delta);}else next.target[axis-3]+=delta;
+   const candidate=score(next);if(candidate<error){best=next;error=candidate;changed=true;}
+  }if(!changed)break;
+ }
+ return {camera:best,rmsePixels:error,landmarks:projectCampusLandmarks(best,landmarks)};
+}
+
+export function createCampusViewer(host,blocks,onSelect,onCamera) {
   const bounds=new THREE.Box3(); for(const b of blocks){bounds.expandByPoint(new THREE.Vector3(b.pos.x,b.pos.y,b.pos.z));bounds.expandByPoint(new THREE.Vector3(b.pos.x+1,b.pos.y+1,b.pos.z+1));}
   if(bounds.isEmpty())bounds.set(new THREE.Vector3(-1,0,-1),new THREE.Vector3(1,2,1));
   const center=bounds.getCenter(new THREE.Vector3());
@@ -60,18 +87,20 @@ export function createCampusViewer(host,blocks,onSelect) {
   const sun=new THREE.DirectionalLight(0xfff1d2,3.2);sun.position.set(-140,220,120);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-260;sun.shadow.camera.right=260;sun.shadow.camera.top=260;sun.shadow.camera.bottom=-260;sun.shadow.camera.near=1;sun.shadow.camera.far=650;sun.shadow.normalBias=.35;sun.shadow.bias=-.00015;scene.add(sun);
   // Explicit presentation ocean: no decorative architecture or landscape is substituted for block data.
   const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1800,1800),new THREE.MeshStandardMaterial({color:0x087caa,roughness:.38,metalness:.25}));
-  ocean.rotation.x=-Math.PI/2;ocean.position.y=-10.5-origin[1];ocean.receiveShadow=true;scene.add(ocean);
+  ocean.rotation.x=-Math.PI/2;ocean.position.y=-4.5-origin[1];ocean.receiveShadow=true;scene.add(ocean);
   ocean.material.onBeforeCompile=shader=>{shader.vertexShader='varying vec3 vOcean;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvOcean=position;');shader.fragmentShader='varying vec3 vOcean;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat wave=sin(vOcean.x*1.9+sin(vOcean.y*.9))*sin(vOcean.y*2.3+cos(vOcean.x*.6)); diffuseColor.rgb*=.91+.09*wave;');};
   const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1,1.75));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
   const canvas=renderer.domElement;canvas.className='campus-canvas';canvas.tabIndex=0;canvas.setAttribute('aria-label','完整園區 3D 總覽');canvas.setAttribute('role','application');canvas.style.touchAction='none';canvas.style.width='100%';canvas.style.height='100%';canvas.style.display='block';host.append(canvas);
-  const camera=new THREE.PerspectiveCamera(30,1,.1,10000);const controls=new OrbitControls(camera,canvas);controls.enableDamping=false;controls.maxPolarAngle=Math.PI*.98;controls.listenToKeyEvents(canvas);
+  let camera=new THREE.PerspectiveCamera(30,1,.1,10000);const controls=new OrbitControls(camera,canvas);controls.enableDamping=false;controls.minDistance=1;controls.maxPolarAngle=Math.PI*.98;controls.listenToKeyEvents(canvas);
   const outline=new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(1.02,1.02,1.02)),0xffd36d);outline.visible=false;scene.add(outline);
   // BoxHelper copies its geometry; dispose the temporary source immediately.
   outline.object.geometry.dispose();outline.object.material.dispose();
   let disposed=false,frame=0,lastPreset='reference',manual=false;
-  function render(){if(disposed||frame)return;frame=globalThis.requestAnimationFrame(()=>{frame=0;if(disposed)return;renderer.render(scene,camera);canvas.dataset.rendererStats=JSON.stringify({visibleCells:group.userData.visibleCells,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls});});}
+  function readCamera(){const delta=camera.position.clone().sub(controls.target),distance=delta.length();return {projection:camera.isOrthographicCamera?'orthographic':'perspective',yaw:THREE.MathUtils.radToDeg(Math.atan2(delta.x,delta.z)),pitch:THREE.MathUtils.radToDeg(Math.asin(delta.y/distance)),fov:camera.isPerspectiveCamera?camera.fov:30,distance,span:camera.isOrthographicCamera?(camera.top-camera.bottom)/camera.zoom:2*distance*Math.tan(THREE.MathUtils.degToRad(camera.fov/2)),target:controls.target.clone().add(new THREE.Vector3(...origin)).toArray()};}
+  function setCamera(c){if(!validCampusCamera(c))throw new Error('Invalid campus camera');manual=true;const aspect=Math.max(host.clientWidth,1)/Math.max(host.clientHeight,1);camera=cameraFrom(c,aspect,origin);controls.object=camera;controls.target.copy(new THREE.Vector3(...c.target).sub(new THREE.Vector3(...origin)));controls.update();render();}
+  function render(){if(disposed||frame)return;frame=globalThis.requestAnimationFrame(()=>{frame=0;if(disposed)return;renderer.render(scene,camera);canvas.dataset.camera=JSON.stringify(readCamera());onCamera?.(readCamera());canvas.dataset.rendererStats=JSON.stringify({visibleCells:group.userData.visibleCells,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls});});}
   function fit(p=lastPreset){
-    lastPreset=p;
+    lastPreset=p;if(p==='reference'&&blocks.length>500000){setCamera(REFERENCE_CAMERA);return;}if(!camera.isPerspectiveCamera){camera=new THREE.PerspectiveCamera(30,Math.max(host.clientWidth,1)/Math.max(host.clientHeight,1),.1,10000);controls.object=camera;}
     const direction=new THREE.Vector3(...(p==='reference'?[.42,1.05,1.6]:p==='top'?[0,1,.001]:p==='front'?[0,.12,1]:p==='side'?[1,.12,0]:[1,.8,1])).normalize();
     camera.position.copy(direction);camera.lookAt(0,0,0);camera.updateMatrixWorld(true);
     const rotation=new THREE.Matrix4().extractRotation(camera.matrixWorldInverse),v=new THREE.Vector3();
@@ -90,7 +119,7 @@ export function createCampusViewer(host,blocks,onSelect) {
     distance*=1.055;controls.target.copy(target);camera.position.copy(target).addScaledVector(direction,distance);
     camera.near=Math.max(.05,distance/10000);camera.far=Math.max(1000,distance*5);camera.updateProjectionMatrix();controls.update();render();
   }
-  function resize(){const width=Math.max(host.clientWidth,1),height=Math.max(host.clientHeight,1);renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();if(!manual)fit();else render();}
+  function resize(){const width=Math.max(host.clientWidth,1),height=Math.max(host.clientHeight,1);renderer.setSize(width,height,false);if(camera.isOrthographicCamera){const half=(camera.top-camera.bottom)/2;camera.left=-half*width/height;camera.right=half*width/height;}else camera.aspect=width/height;camera.updateProjectionMatrix();if(!manual)fit();else render();}
   const observer=new globalThis.ResizeObserver(resize);observer.observe(host);
   controls.addEventListener('change',render);const start=()=>{manual=true;};controls.addEventListener('start',start);
   function pick(x,y){camera.updateMatrixWorld(true);const rect=canvas.getBoundingClientRect(),ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2((x-rect.left)/rect.width*2-1,1-(y-rect.top)/rect.height*2),camera);const hit=ray.intersectObjects(group.children,false)[0];onSelect(hit?.object.userData.uids[hit.faceIndex]??null);}
@@ -103,5 +132,5 @@ export function createCampusViewer(host,blocks,onSelect) {
   const lost=e=>{e.preventDefault();canvas.dataset.contextState='lost';};const restored=()=>{canvas.dataset.contextState='ready';render();};
   for(const [name,fn] of [['pointerdown',pointerDown],['pointermove',pointerMove],['pointerup',pointerUp],['pointercancel',cancel],['keydown',keyboard],['webglcontextlost',lost],['webglcontextrestored',restored]])canvas.addEventListener(name,fn);
   resize();
-  return {preset(p){manual=false;fit(p);},select(uid){const b=byUid.get(uid);outline.visible=!!b;if(b){outline.position.set(b.pos.x+.5-origin[0],b.pos.y+.5-origin[1],b.pos.z+.5-origin[2]);}render();},dispose(){if(disposed)return;disposed=true;globalThis.cancelAnimationFrame(frame);observer.disconnect();controls.removeEventListener('change',render);controls.removeEventListener('start',start);controls.dispose();for(const [name,fn] of [['pointerdown',pointerDown],['pointermove',pointerMove],['pointerup',pointerUp],['pointercancel',cancel],['keydown',keyboard],['webglcontextlost',lost],['webglcontextrestored',restored]])canvas.removeEventListener(name,fn);disposeCampusGeometry(group);ocean.geometry.dispose();ocean.material.dispose();sun.shadow.dispose();outline.geometry.dispose();outline.material.dispose();renderer.dispose();canvas.remove();}};
+  return {camera:readCamera,setCamera,project(landmarks){return projectCampusLandmarks(readCamera(),landmarks);},preset(p){manual=false;fit(p);},select(uid){const b=byUid.get(uid);outline.visible=!!b;if(b){outline.position.set(b.pos.x+.5-origin[0],b.pos.y+.5-origin[1],b.pos.z+.5-origin[2]);}render();},dispose(){if(disposed)return;disposed=true;globalThis.cancelAnimationFrame(frame);observer.disconnect();controls.removeEventListener('change',render);controls.removeEventListener('start',start);controls.dispose();for(const [name,fn] of [['pointerdown',pointerDown],['pointermove',pointerMove],['pointerup',pointerUp],['pointercancel',cancel],['keydown',keyboard],['webglcontextlost',lost],['webglcontextrestored',restored]])canvas.removeEventListener(name,fn);disposeCampusGeometry(group);ocean.geometry.dispose();ocean.material.dispose();sun.shadow.dispose();outline.geometry.dispose();outline.material.dispose();renderer.dispose();canvas.remove();}};
 }

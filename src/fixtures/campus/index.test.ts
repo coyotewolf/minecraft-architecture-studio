@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createCampus, campusToJson, campusToCsv, assembleCampus } from './index.ts';
+import { createCampusV2 as createCampus, campusToJson, campusToCsv, assembleCampus } from './index.ts';
 import { inventory } from '../../features/build/model.ts';
 import { shapeForBlock } from '../../features/viewer/geometry.ts';
 const campus=createCampus();

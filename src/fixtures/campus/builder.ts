@@ -5,7 +5,7 @@ import { createEmptyProject } from '../../core/project.ts';
 import { parseProject } from '../../core/model.ts';
 
 export interface DistrictSpec { id:string; title:string; origin:readonly[number,number,number]; references:readonly string[]; features:readonly string[]; notes:string }
-export interface District extends DistrictSpec { project:Project }
+export interface District extends DistrictSpec { project:Project; parentGroupId?:string; partLabel?:string }
 /** Integer local design coordinates become immutable world coordinates at this boundary. */
 export class DistrictBuilder {
   private cells=new Map<string,BlockRecord>();
@@ -43,4 +43,5 @@ export class DistrictBuilder {
 
   finish():District {return {...this.spec,project:parseProject({...createEmptyProject(this.spec.id+'-reference-v2',this.spec.title),designRevision:`${this.spec.id}-v1`,blocks:connectCampusBlocks([...this.cells.values()]),logicalStructures:this.structures})};}
 }
+
 

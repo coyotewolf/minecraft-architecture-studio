@@ -1,0 +1,151 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\playwright.config.ts",
+    "rootDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.59.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5180 --strictPort",
+      "url": "http://127.0.0.1:5180",
+      "reuseExistingServer": false,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "campus.spec.ts",
+      "file": "campus.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "district studio preserves global coordinates, edits and construction completion across return and reopening",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 480000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 89762,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.block-inspector')\nExpected substring: \u001b[32m\"ring-control-spire:-24\u001b[7m4,36,122\u001b[27m\"\u001b[39m\nReceived string:    \u001b[31m\"\u001b[7m方塊資訊識別碼 UID\u001b[27mring-control-spire:-24\u001b[7m5,44,87方塊 IDminecraft:gray_concreteX（東西）-245Y（高度）44Z（南北）87分類Structure來源AI Estimated Area · 推估設計（ai_estimated）信心值（0–1）0.35使用者已修改否完整方塊狀態此方塊沒有狀態屬性。\u001b[27m\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.block-inspector')\u001b[22m\n\u001b[2m    9 × locator resolved to <section aria-label=\"方塊資訊\" class=\"block-inspector\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"方塊資訊識別碼 UIDring-control-spire:-245,44,87方塊 IDminecraft:gray_concreteX（東西）-245Y（高度）44Z（南北）87分類Structure來源AI Estimated Area · 推估設計（ai_estimated）信心值（0–1）0.35使用者已修改否完整方塊狀態此方塊沒有狀態屬性。\"\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.block-inspector')\nExpected substring: \u001b[32m\"ring-control-spire:-24\u001b[7m4,36,122\u001b[27m\"\u001b[39m\nReceived string:    \u001b[31m\"\u001b[7m方塊資訊識別碼 UID\u001b[27mring-control-spire:-24\u001b[7m5,44,87方塊 IDminecraft:gray_concreteX（東西）-245Y（高度）44Z（南北）87分類Structure來源AI Estimated Area · 推估設計（ai_estimated）信心值（0–1）0.35使用者已修改否完整方塊狀態此方塊沒有狀態屬性。\u001b[27m\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.block-inspector')\u001b[22m\n\u001b[2m    9 × locator resolved to <section aria-label=\"方塊資訊\" class=\"block-inspector\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"方塊資訊識別碼 UIDring-control-spire:-245,44,87方塊 IDminecraft:gray_concreteX（東西）-245Y（高度）44Z（南北）87分類Structure來源AI Estimated Area · 推估設計（ai_estimated）信心值（0–1）0.35使用者已修改否完整方塊狀態此方塊沒有狀態屬性。\"\u001b[22m\n\n    at C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts:72:195",
+                    "location": {
+                      "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts",
+                      "column": 195,
+                      "line": 72
+                    },
+                    "snippet": "  70 |  expect(foundation).toBeDefined();const groundY=foundation.pos.y;const ringPart=ringParts.find(d=>d.project.blocks.some(b=>b.uid===foundation.uid))!,ringProject=ringPart.project,initial=ringProject.blocks.length;const edit={x:foundation.pos.x,y:foundation.pos.y+1,z:foundation.pos.z};\n  71 |  await ring(page);await page.getByRole('combobox',{name:'施工分檔',exact:true}).selectOption(ringPart.id);await page.getByRole('button',{name:'進入此區逐層施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial));await expect(page.locator('.studio-summary')).toContainText(ringProject.title);\n> 72 |  await page.getByRole('button',{name:'正面',exact:true}).click();await clickWorld(page,[foundation.pos.x+.5,foundation.pos.y+.5,foundation.pos.z+1]);await expect(page.locator('.block-inspector')).toContainText(foundation.uid);\n     |                                                                                                                                                                                                   ^\n  73 |  await openSection(page,'編輯工具與方塊');await page.getByRole('radio',{name:'放置',exact:true}).check();await page.getByRole('combobox',{name:'方塊種類',exact:true}).selectOption('minecraft:stone');await coordinate(page,edit.x,edit.y,edit.z);await page.getByRole('button',{name:'套用變更',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial+1));\n  74 |  await page.getByRole('button',{name:'確認施工設計變更',exact:true}).click();await page.getByRole('spinbutton',{name:'施工檢視樓層',exact:true}).fill(String(groundY));await page.getByRole('checkbox',{name:'本層已完成',exact:true}).check();const progress=await page.locator('.progress-dock').innerText();expect(progress).toContain('已完成');\n  75 |  await page.getByRole('button',{name:'返回全基地',exact:true}).click();await ready(page);await ring(page);await page.getByRole('combobox',{name:'施工分檔',exact:true}).selectOption(ringPart.id);await page.getByRole('button',{name:'進入此區逐層施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial+1));await expect(page.getByRole('checkbox',{name:'本層已完成',exact:true})).toBeChecked();await expect(page.locator('.progress-dock')).toHaveText(progress,{useInnerText:true});"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts",
+                        "column": 195,
+                        "line": 72
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('.block-inspector')\nExpected substring: \u001b[32m\"ring-control-spire:-24\u001b[7m4,36,122\u001b[27m\"\u001b[39m\nReceived string:    \u001b[31m\"\u001b[7m方塊資訊識別碼 UID\u001b[27mring-control-spire:-24\u001b[7m5,44,87方塊 IDminecraft:gray_concreteX（東西）-245Y（高度）44Z（南北）87分類Structure來源AI Estimated Area · 推估設計（ai_estimated）信心值（0–1）0.35使用者已修改否完整方塊狀態此方塊沒有狀態屬性。\u001b[27m\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('.block-inspector')\u001b[22m\n\u001b[2m    9 × locator resolved to <section aria-label=\"方塊資訊\" class=\"block-inspector\">…</section>\u001b[22m\n\u001b[2m      - unexpected value \"方塊資訊識別碼 UIDring-control-spire:-245,44,87方塊 IDminecraft:gray_concreteX（東西）-245Y（高度）44Z（南北）87分類Structure來源AI Estimated Area · 推估設計（ai_estimated）信心值（0–1）0.35使用者已修改否完整方塊狀態此方塊沒有狀態屬性。\"\u001b[22m\n\n\n  70 |  expect(foundation).toBeDefined();const groundY=foundation.pos.y;const ringPart=ringParts.find(d=>d.project.blocks.some(b=>b.uid===foundation.uid))!,ringProject=ringPart.project,initial=ringProject.blocks.length;const edit={x:foundation.pos.x,y:foundation.pos.y+1,z:foundation.pos.z};\n  71 |  await ring(page);await page.getByRole('combobox',{name:'施工分檔',exact:true}).selectOption(ringPart.id);await page.getByRole('button',{name:'進入此區逐層施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial));await expect(page.locator('.studio-summary')).toContainText(ringProject.title);\n> 72 |  await page.getByRole('button',{name:'正面',exact:true}).click();await clickWorld(page,[foundation.pos.x+.5,foundation.pos.y+.5,foundation.pos.z+1]);await expect(page.locator('.block-inspector')).toContainText(foundation.uid);\n     |                                                                                                                                                                                                   ^\n  73 |  await openSection(page,'編輯工具與方塊');await page.getByRole('radio',{name:'放置',exact:true}).check();await page.getByRole('combobox',{name:'方塊種類',exact:true}).selectOption('minecraft:stone');await coordinate(page,edit.x,edit.y,edit.z);await page.getByRole('button',{name:'套用變更',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial+1));\n  74 |  await page.getByRole('button',{name:'確認施工設計變更',exact:true}).click();await page.getByRole('spinbutton',{name:'施工檢視樓層',exact:true}).fill(String(groundY));await page.getByRole('checkbox',{name:'本層已完成',exact:true}).check();const progress=await page.locator('.progress-dock').innerText();expect(progress).toContain('已完成');\n  75 |  await page.getByRole('button',{name:'返回全基地',exact:true}).click();await ready(page);await ring(page);await page.getByRole('combobox',{name:'施工分檔',exact:true}).selectOption(ringPart.id);await page.getByRole('button',{name:'進入此區逐層施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial+1));await expect(page.getByRole('checkbox',{name:'本層已完成',exact:true})).toBeChecked();await expect(page.locator('.progress-dock')).toHaveText(progress,{useInnerText:true});\n    at C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts:72:195"
+                    },
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T19:16:00.742Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\test-results\\campus-district-studio-pre-6c040-across-return-and-reopening\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts",
+                    "column": 195,
+                    "line": 72
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "908b0a273b53a7bc24ac-20921a5c3ffcdbe42572",
+          "file": "campus.spec.ts",
+          "line": 64,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-19T19:15:58.718Z",
+    "duration": 125147.46399999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}
