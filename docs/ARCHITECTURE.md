@@ -1,6 +1,6 @@
 # Architecture and contracts
 
-**M0 decision record, 2026-10-19 (Asia/Singapore).** Product scope remains governed by [MASTER_SPEC.md](MASTER_SPEC.md). Implemented M0 boundaries are in `src/core/contracts.ts`, `coordinates.ts`, `registry.ts`, and `project.ts`. M1 adds the canonical engine and pinned registry described in ADR-006 below. Renderer and persistent storage remain planned; interfaces do not establish those implementations.
+**M0 decision record, 2026-10-19 (Asia/Singapore).** Product scope remains governed by [MASTER_SPEC.md](MASTER_SPEC.md). Implemented M0 boundaries are in `src/core/contracts.ts`, `coordinates.ts`, `registry.ts`, and `project.ts`. M1 adds the canonical engine and pinned registry described in ADR-006 below. M2 adds the tested viewer in ADR-007; persistent storage remains planned. Interfaces alone do not establish implementation.
 
 ## ADR-001 — local-first application and dependencies
 
@@ -66,7 +66,7 @@ The frozen command interface is implemented by `VoxelEngine` in M1. The historic
 | core/commands | Atomic preflight/commit/undo/redo | Independent model |
 | core/validation | Syntax, pairing, support, stability diagnostics | Cosmetic approximations |
 | core/geometry | State-aware shapes | Invented blocks or licensed textures |
-| features/viewer | R3F cameras, picking, view masks | Material counts |
+| features/viewer | Three.js cameras, picking, view masks | Material counts |
 | features/blueprint | XZ-per-Y selectors and engine commands | Separate grid |
 | features/materials | Inventory projections/checklists | Hand-entered design totals |
 | features/build | Dependency order and revision reconciliation | Direct edits |

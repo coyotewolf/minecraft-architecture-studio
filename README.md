@@ -1,7 +1,7 @@
 # AI Minecraft Architecture Studio
 
 **Specification-first development repository** — Minecraft Java Edition **1.20.1 Vanilla**  
-**Status:** M0 foundation and M1 canonical engine implemented and tested. The interactive voxel editor, AI pipeline and deployment are not implemented. See [M0 evidence](docs/progress/M0.md) and [M1 evidence](docs/progress/M1.md).
+**Status:** M0–M2 implemented and tested: canonical engine plus an interactive 3D inspection viewer. Editing, persistence, AI and deployment remain unfinished. See [M2 evidence](docs/progress/M2.md).
 
 ## Vision
 
@@ -11,8 +11,8 @@ Convert one or multiple architectural photos into an **editable and buildable Mi
 
 1. Connect this **private GitHub repository** to Codex Cloud and select **High** reasoning for initial architecture.
 2. Read [AGENTS.md](AGENTS.md) and [the full product specification](docs/MASTER_SPEC.md).
-3. Paste [the first-task prompt](docs/WORK_START_PROMPT.md) into your initial Codex task.
-4. Run **M0 — Environment and Architecture** first. Only mark it PASS after commands, tests and evidence have been recorded.
+3. Paste [the continuation prompt](docs/WORK_START_PROMPT.md) into your initial Codex task.
+4. Resume from **codex/m2-viewer** and [the M2 report](docs/progress/M2.md). M0–M2 have executed gates; next is M3 basic editing. Recheck the environment before relying on prior results.
 5. Continue milestones using [ROADMAP](docs/ROADMAP.md) and [TEST_PLAN](docs/TEST_PLAN.md). Each stage must implement, test, review, integrate, regress, commit and record its gate decision.
 6. Review any required MCP access, generation cost and environment secrets before use.
 
@@ -50,11 +50,12 @@ Do **not** commit API keys or user-uploaded private building images. Keep secret
 - [x] Private repository created and engineering documents committed
 - [x] M0 environment and runnable app validation (see evidence report)
 - [x] M1 canonical engine and pinned Java 1.20.1 registry (see evidence report)
-- [ ] M2–M10 implementation and acceptance
+- [x] M2 state-aware 3D inspection, camera controls, exact picking and real browser tests
+- [ ] M3–M10 implementation and acceptance
 
-Resume from `codex/m1-engine` and the M1 report. M2–M10 remain unfinished. M1 provides tested core APIs for state validation, atomic edits, undo/redo and canonical JSON; these are not yet connected to editing controls.
+Resume from `codex/m2-viewer` and the M2 report. Next: connect the tested engine APIs to M3 placement, removal, replacement and undo/redo controls.
 
-## Run the application shell
+## Run the inspection viewer
 
 Node >=22.12 and npm are required.
 
@@ -63,7 +64,7 @@ npm ci
 npm run dev
 ```
 
-Open http://127.0.0.1:5173. The screen is an in-memory empty-project shell, not a voxel editor or saved project.
+Open http://127.0.0.1:5173. Inspect a 288-cell two-floor demonstration model, select blocks and navigate by pointer, keyboard or touch. The empty project and demonstration live only in memory.
 
 ```sh
 npm run typecheck
@@ -76,3 +77,9 @@ npm run check
 
 The lockfile pins dependencies. The M0 environment installed from an existing offline npm cache; normal clean environments can use npm ci with registry access. Do not commit node_modules, caches, builds, personal photos or credentials.
 
+
+## Browser validation and rendering scope
+
+Run npm run verify:vendor to check the pinned Three.js source, npm run check for 105 tests/typecheck/lint/build, and npm run test:e2e for six real-browser scenarios. Install a Playwright Chromium browser first (npx playwright install chromium), or set BROWSER_EXECUTABLE_PATH to an available Chrome executable. The runner starts its own local test server.
+
+Rendering uses schematic colors and a bounded state-aware cube/log/stair/slab/door/bed/glass set. Unknown shapes are wireframe markers with a warning. This is not full Minecraft texture/geometry coverage or a deployed website. Three.js r180 is included as an MIT-licensed, hash-verified runtime subset because direct npm access was unavailable during development; see vendor/three/PROVENANCE.md and ADR-007.

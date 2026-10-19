@@ -45,3 +45,11 @@ Use independently authorized server-side provider integrations. Validate every e
 GitHub create_tree/create_commit/update_ref saved the canonical engine on `codex/m1-engine`; the exact code SHA is in progress/M1.md. Node execution ran actual typecheck/lint/unit/build checks and deterministic registry regeneration. No additional Higgsfield generation or paid operation was called.
 
 Inherited agents remained available, but their local Node filesystem reads stalled and were aborted. The lead successfully used its own Node filesystem/process tools and took over registry implementation. This is a tool-execution limitation, not evidence that model-tier routing was tested. The read-only reviewer was redirected to the committed GitHub ref; actual outcome is recorded in the milestone report.
+
+## M2 execution update — 2026-10-19
+
+Current workspace is C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio. Two subagents were actually routed to gpt-6-astra medium and low via explicit model/reasoning arguments at user request. Both delivered scoped source files and check evidence. See progress/M2.md.
+
+Direct npm DNS remains blocked, but existing tarballs and a pinned MIT Three.js subset produced a clean 183-package npm ci. Bundled Chromium could not spawn; an approved host-shell test run with installed Google Chrome 155.0.8059.79 passed six real browser tests including software WebGL, pointer, keyboard, touch emulation and context restoration. Sandboxed loopback and IAB access to that sandboxed server failed. This does not prove all browsers, physical devices, production hosting or game compatibility. No Higgsfield call or credential access was needed.
+
+M2 is tested; M3–M10 remain future work. Source snapshots/remote Git commits are used; no local Git checkout is claimed.
