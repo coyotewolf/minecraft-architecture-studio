@@ -44,3 +44,7 @@ M4–M7 報告中的整體測試數包含平行開發中的後續模組；總數
 - 透明實例未逐個深度排序；大型設計的流暢程度必須以量測為準。雲端同步與多人協作屬首版範圍外。
 
 本文件記錄目前可證明的範圍：M0–M10 的限定流程驗收已有執行證據，完整 MASTER_SPEC 並未全部完成。工作集中於 [PR #3](https://github.com/coyotewolf/minecraft-architecture-studio/pull/3)。設定與協定見 [API_PROVIDER.md](API_PROVIDER.md)。
+
+## Architecture workbench follow-up (2026-10-20)
+
+The professional UI, reference gallery and bounded atrium fixture are documented in [UI_REDESIGN.md](progress/UI_REDESIGN.md). Earlier acceptance counts below describe M10 before this redesign; use that follow-up report for current validation. No full-city reconstruction or live AI provider acceptance is added.
