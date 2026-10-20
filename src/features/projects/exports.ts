@@ -3,7 +3,7 @@ import type { Project } from '../../core/contracts.ts';
 import { MAX_BLOCKS, MAX_IMPORT_BYTES, object, parseProject, stableJson } from '../../core/model.ts';
 
 function bounded(text: string): void {
-  if (text.length > MAX_IMPORT_BYTES || new TextEncoder().encode(text).length > MAX_IMPORT_BYTES) throw new Error('模型 CSV 超過 32 MiB 上限');
+  if (text.length > MAX_IMPORT_BYTES || new TextEncoder().encode(text).length > MAX_IMPORT_BYTES) throw new Error('模型 CSV 超過 384 MiB 上限');
 }
 function quote(value: string): string { return '"' + value.replaceAll('"', '""') + '"'; }
 /** JSON strings keep user-controlled labels from becoming spreadsheet formulas. */

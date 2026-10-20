@@ -10,7 +10,7 @@ function rotate(b: ShapeBox, turns: number): ShapeBox {
   for (let i = 0; i < turns; i++) { const a = min, c = max; min = [1-c[2]!, a[1]!, a[0]!]; max = [1-a[2]!, c[1]!, c[0]!]; }
   return box(min as unknown as Vec3, max as unknown as Vec3, b.color);
 }
-const dyeColors: Readonly<Record<string,number>> = {white:0xdedcd1,orange:0xd98535,magenta:0xb75aa9,light_blue:0x80c7de,yellow:0xe0c65a,lime:0x8cb64e,pink:0xd99cab,gray:0x515b60,light_gray:0xa5aaa6,cyan:0x399da6,purple:0x8656a5,blue:0x435b9f,brown:0x795638,green:0x5e793c,red:0xb74640,black:0x252b31};
+const dyeColors: Readonly<Record<string,number>> = {white:0xdedcd1,orange:0xd98535,magenta:0xb75aa9,light_blue:0x80c7de,yellow:0xe0c65a,lime:0x8cb64e,pink:0xd99cab,gray:0x515b60,light_gray:0xa5aaa6,cyan:0x399da6,purple:0x8656a5,blue:0x146db2,brown:0x795638,green:0x5e793c,red:0xb74640,black:0x252b31};
 const cubes: Readonly<Record<string, number>> = {
   'minecraft:deepslate_tiles':0x414a50,'minecraft:polished_blackstone':0x3c3a42,'minecraft:iron_block':0xc7c9c6,'minecraft:bone_block':0xdad3b9,
   'minecraft:amethyst_block':0x9973ba,'minecraft:grass_block':0x71934a,'minecraft:bookshelf':0x9f7950,'minecraft:hay_block':0xc4a641,
@@ -18,7 +18,7 @@ const cubes: Readonly<Record<string, number>> = {
   'minecraft:stone': 0x92989d, 'minecraft:stone_bricks': 0x879298,
   'minecraft:oak_planks': 0xb99a64, 'minecraft:white_concrete': 0xdedcd1,
   'minecraft:glass': 0x9fd7e5, 'minecraft:cyan_stained_glass':0x399da6,'minecraft:light_blue_stained_glass':0x80c7de,
-  'minecraft:smooth_quartz':0xe5e1d4,'minecraft:quartz_block':0xe5e1d4,'minecraft:polished_deepslate':0x465057,'minecraft:dirt':0x70543b,'minecraft:oak_leaves':0x507a43,'minecraft:sea_lantern':0xb7e5d7,'minecraft:yellow_terracotta':0xc9a55d,'minecraft:gray_concrete':0x515b60,'minecraft:black_concrete':0x252b31,'minecraft:spruce_planks':0x785b3c,'minecraft:gold_block':0xdbb857,
+  'minecraft:smooth_quartz':0xe5e1d4,'minecraft:quartz_block':0xe5e1d4,'minecraft:polished_deepslate':0x465057,'minecraft:dirt':0x70543b,'minecraft:oak_leaves':0x507a43,'minecraft:sea_lantern':0xb7e5d7,'minecraft:yellow_terracotta':0xc9a55d,'minecraft:gray_concrete':0x515b60,'minecraft:black_concrete':0x252b31,'minecraft:spruce_planks':0x785b3c,'minecraft:gold_block':0xffbb08,'minecraft:glowstone':0xffc64b,
 };
 /** Deliberately bounded geometry support; unknown shapes are wireframe markers, never plausible cubes. */
 export function shapeForBlock(block: BlockRecord): BlockShape {

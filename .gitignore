@@ -46,3 +46,7 @@ dist-server/
 
 # User-provided concept references remain local
 public/local-references/
+
+# Local complete-building downloads and visual comparison captures
+outputs/
+evidence/**/*.png

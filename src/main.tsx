@@ -156,7 +156,7 @@ export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"
   const materials=useMemo(()=>inventory(project),[project]);
   const estimatedCount=project.blocks.filter(b=>b.source.origin==='ai_estimated'||b.source.origin==='inferred').length;
   const materialIds=useMemo(()=>[...new Set(project.blocks.map(b=>b.id))].sort(),[project]);
-  const axisBounds=useMemo(()=>{const values=project.blocks.map(b=>b.pos[cutAxis||'x']);return values.length?{min:Math.min(...values),max:Math.max(...values)}:{min:0,max:0};},[project,cutAxis]);
+  const axisBounds=useMemo(()=>{let min=Infinity,max=-Infinity;for(const b of project.blocks){const n=b.pos[cutAxis||'x'];min=Math.min(min,n);max=Math.max(max,n);}return project.blocks.length?{min,max}:{min:0,max:0};},[project,cutAxis]);
   const buildReconciliation=useMemo(()=>reconcileBuild(workspace.approvedDesign,project,workspace.completed),[workspace.approvedDesign,project,workspace.completed]);
   const buildProps:BuildPanelProps={derived:{steps,materials,reconciliation:buildReconciliation},project,approved:workspace.approvedDesign,completed:workspace.completed,prepared:workspace.prepared,layer,onLayer:y=>{setLayer(y);if(viewMode==='all')setViewMode('through');},mode:viewMode,onMode:setViewMode,progress,onProgress:p=>{setProgress(p);setBuildMode(true);clearPreview();},exploded,onExploded:setExploded,onPrepared:(id,quantity)=>setWorkspace(w=>({...w,prepared:{...w.prepared,[id]:quantity}})),onCompleted:completed=>setWorkspace(w=>({...w,completed})),onApprove:()=>setWorkspace(w=>({...w,approvedDesign:project,completed:reconcileBuild(w.approvedDesign,project,w.completed).retainedCompleted}))};
   async function returnToCampus(){
@@ -209,7 +209,7 @@ export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"
       <aside className="inspection-rail" aria-label="材料與檢查器"><details className="materials-section" open><summary>材料清單</summary><MaterialsPanel {...buildProps}/></details><BlockInspector block={block} unsupportedCount={shapes.filter(s=>!s.supported).length}/></aside>
     </div>
     <ProgressDock {...buildProps}/>
-    <footer className="studio-footer"><span className="save-indicator">● {persistence.status}</span><span>＋X 東 / ＋Y 上 / ＋Z 南 · Java 1.20.1</span><details><summary>設計與施工說明</summary><p>所有座標、材料與下載均來自同一份方塊模型。參考建築為概念圖的比例設計，全部推估座標標記 AI Estimated Area。原版方塊與狀態經資料驗證，實際施工仍需在遊戲中確認承托與通行。材質為自行製作的示意紋理。</p>{project.blocks.length>=10000&&<p>大型模型可能較慢，建議逐層檢視；50,000 格為容量上限，並非流暢度保證。</p>}</details></footer>
+    <footer className="studio-footer"><span className="save-indicator">● {persistence.status}</span><span>＋X 東 / ＋Y 上 / ＋Z 南 · Java 1.20.1</span><details><summary>設計與施工說明</summary><p>所有座標、材料與下載均來自同一份方塊模型。參考建築為概念圖的比例設計，全部推估座標標記 AI Estimated Area。原版方塊與狀態經資料驗證，實際施工仍需在遊戲中確認承托與通行。材質為自行製作的示意紋理。</p>{project.blocks.length>=10000&&<p>整棟建築可在同一專案施工；大型模型建議逐層檢視，互動速度依裝置而異。</p>}</details></footer>
   </main>;
 }
 const root=document.getElementById('root');

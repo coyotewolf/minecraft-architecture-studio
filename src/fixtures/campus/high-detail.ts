@@ -1,5 +1,5 @@
 import { connectCampusBlocks } from './connections.ts';
-import type { BlockRecord, BlockState, MinecraftId, LogicalStructure } from '../../core/contracts.ts';
+import type { BlockRecord, BlockState, MinecraftId, LogicalStructure, Project } from '../../core/contracts.ts';
 import { normalizeBlockState } from '../../core/versioned-registry.ts';
 import { createEmptyProject } from '../../core/project.ts';
 import { parseProject } from '../../core/model.ts';
@@ -30,6 +30,11 @@ export class HighDetailBuilder {
     this.structures.push({uid:group,kind:'door',anchorUid:uids[0]!,memberUids:uids});
   }
   bed(x:number,y:number,z:number){const group=`${this.spec.id}:bed:${x},${y},${z}`;const uids:string[]=[];for(const part of ['foot','head']){const zz=z-(part==='head'?1:0);this.set(x,y,zz,'minecraft:red_bed','Decoration',{facing:'north',part,occupied:'false'});const key=`${x+this.spec.origin[0]},${y+this.spec.origin[1]},${zz+this.spec.origin[2]}`;const b=this.cells.get(key)!;this.cells.set(key,{...b,logicalStructureId:group});uids.push(b.uid);}this.structures.push({uid:group,kind:'bed',anchorUid:uids[0]!,memberUids:uids});}
+  /** One complete building; construction layers are views, never separate design files. */
+  finishProject():Project {
+    const blocks=connectCampusBlocks([...this.cells.values()]).map(block=>({...block,constructionPhaseId:this.spec.id+':'+block.constructionPhaseId!.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}));
+    return parseProject({...createEmptyProject(this.spec.id+'-complete-v4',this.spec.title),designRevision:this.spec.id+'-v4',blocks,logicalStructures:this.structures});
+  }
   finishParts(maxCells=45000):District[] {
     if(!Number.isInteger(maxCells)||maxCells<2||maxCells>=50000)throw new Error('Part cell limit must be 2..49999');
     const blocks=connectCampusBlocks([...this.cells.values()]);

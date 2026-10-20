@@ -21,3 +21,10 @@ describe('merged campus surfaces',()=>{
   disposeCampusGeometry(group);expect(geometries).toBe(2);expect(materials).toBe(2);
  });
 });
+
+
+it('culls shared faces only between matching full glass cells',()=>{
+ const same=buildCampusGeometry([block(0,0,0,'minecraft:glass'),block(1,0,0,'minecraft:glass')]);
+ const different=buildCampusGeometry([block(0,0,0,'minecraft:glass'),block(1,0,0,'minecraft:blue_stained_glass')]);
+ try{expect(same.userData.triangles).toBe(20);expect(different.userData.triangles).toBe(24);expect(pickCampus(same,[-2,.5,.5],[1,0,0])).toBe('0,0,0');}finally{disposeCampusGeometry(same);disposeCampusGeometry(different);}
+});

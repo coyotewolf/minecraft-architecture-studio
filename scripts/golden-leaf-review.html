@@ -1,4 +1,4 @@
 <!doctype html><html><body style="margin:0;background:#121719"><div id="view" style="width:100vw;height:100vh"></div><script type="module">
-import {createGoldenLeafParts} from '/src/fixtures/buildings/golden-leaf.ts';import {createCampusViewer} from '/src/features/campus/overview-runtime.js';
-const blocks=createGoldenLeafParts().flatMap(p=>p.project.blocks);window.viewer=createCampusViewer(document.getElementById('view'),blocks,()=>{},undefined,{background:0x121719,ocean:false});window.viewer.setCamera({projection:'orthographic',yaw:180,pitch:6,fov:30,distance:400,span:222,target:[.5,101,.5]});window.ready=true;
+import {createGoldenLeafProject} from '/src/fixtures/buildings/golden-leaf.ts';import {createCampusViewer} from '/src/features/campus/overview-runtime.js';
+const blocks=createGoldenLeafProject().blocks;window.viewer=createCampusViewer(document.getElementById('view'),blocks,()=>{},undefined,{background:0x121719,ocean:false});window.viewer.setCamera({projection:'orthographic',yaw:180,pitch:6,fov:30,distance:400,span:238,target:[.5,107,.5]});window.ready=true;
 </script></body></html>

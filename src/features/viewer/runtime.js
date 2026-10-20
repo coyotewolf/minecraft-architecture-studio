@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { buildCampusGeometry } from '../campus/overview-runtime.js';
 
 const modelStates = new WeakMap();
 const defaultProjection = Object.freeze({ visible: true, opacity: 1, offsetY: 0 });
@@ -15,7 +16,7 @@ function projectionMap(entries) {
   return result;
 }
 function chunkKey(pos) { return [Math.floor(pos.x / 16), Math.floor(pos.y / 16), Math.floor(pos.z / 16)].join(','); }
-function hitUid(hit) { return hit?.object.userData.uids?.[hit.instanceId] ?? null; }
+function hitUid(hit) { return hit?.object.userData.uids?.[hit.object.isInstancedMesh?hit.instanceId:hit.faceIndex] ?? null; }
 /** Original procedural surface grain; no Minecraft texture assets are redistributed. */
 function surfaceTexture(){
   const bytes=new Uint8Array(16*16*4);for(let y=0;y<16;y++)for(let x=0;x<16;x++){const i=(y*16+x)*4;const noise=((x*13+y*7+x*y*3)%17);const c=230+noise;bytes.set([c,c,c,255],i);}
@@ -61,11 +62,23 @@ function makeChunk(records, origin) {
   return meshes;
 }
 
+/** Whole buildings use exposed-face batches; view offsets stay in temporary render records. */
+function updateLargeModel(group,state,blocks,shapes,entries){
+  const proposed=entries===undefined?state.projection:projectionMap(entries),projection=new Map();
+  for(const [uid,v] of proposed)if(!v.visible||v.opacity!==1||v.offsetY!==0)projection.set(uid,v);
+  if(state.blocks===blocks&&state.largeReady&&projection.size===state.projection.size&&[...projection].every(([uid,v])=>{const old=state.projection.get(uid);return old&&v.visible===old.visible&&v.opacity===old.opacity&&v.offsetY===old.offsetY;}))return group;
+  const batches=new Map(),created=[];
+  for(const block of blocks){const view=projection.get(block.uid)??defaultProjection;if(!view.visible||view.opacity===0)continue;const key=view.opacity+':'+view.offsetY;let batch=batches.get(key);if(!batch){batch={opacity:view.opacity,blocks:[]};batches.set(key,batch);}batch.blocks.push(view.offsetY?{...block,pos:{...block.pos,y:block.pos.y+view.offsetY}}:block);}
+  try{for(const batch of batches.values()){const built=buildCampusGeometry(batch.blocks,state.origin);for(const mesh of [...built.children]){mesh.material.opacity*=batch.opacity;mesh.material.transparent=mesh.material.opacity<1;mesh.material.depthWrite=mesh.material.opacity===1;created.push(mesh);}}}catch(error){for(const mesh of created)disposeGroup(mesh);throw error;}
+  for(const child of [...group.children]){group.remove(child);disposeGroup(child);}for(const mesh of created)group.add(mesh);
+  state.blocks=blocks;state.shapes=shapes;state.projection=projection;state.largeReady=true;state.chunks.clear();group.updateMatrixWorld(true);return group;
+}
 /** Chunk-local updates are shared by live model edits and view-only projections. */
 export function updateModelGroup(group, blocks, shapes, entries) {
   const state = modelStates.get(group);
   if (!state) throw new Error('Unknown model group');
   if (blocks.length !== shapes.length) throw new Error('Block and shape counts differ');
+  if(state.large||blocks.length>50000){state.large=true;return updateLargeModel(group,state,blocks,shapes,entries);}
   const proposed = entries === undefined ? state.projection : projectionMap(entries);
   const projection = new Map();
   const buckets = new Map();
@@ -171,7 +184,7 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {})
   let disposed=false; let viewPreset='isometric'; let userNavigated=false; let fittedTarget=new THREE.Vector3(); let fittedSize=extent.clone();
   let pendingFrame=null;
   function render(){if(disposed||pendingFrame!==null)return;pendingFrame=window.requestAnimationFrame(()=>{pendingFrame=null;if(disposed)return;paint();});}
-  function paint(){if(disposed)return;renderer.render(scene,camera);let visibleInstances=0;for(const mesh of model.children)visibleInstances+=mesh.count;canvas.dataset.rendererStats=JSON.stringify({drawCalls:renderer.info.render.calls,geometries:renderer.info.memory.geometries,triangles:renderer.info.render.triangles,visibleInstances});canvas.dataset.camera=JSON.stringify({position:camera.position.toArray(),target:controls.target.toArray(),origin:origin.toArray(),fov:camera.fov,aspect:camera.aspect});}
+  function paint(){if(disposed)return;renderer.render(scene,camera);let visibleInstances=0;for(const mesh of model.children)visibleInstances+=mesh.isInstancedMesh?mesh.count:mesh.userData.visibleCellCount??0;canvas.dataset.rendererStats=JSON.stringify({drawCalls:renderer.info.render.calls,geometries:renderer.info.memory.geometries,triangles:renderer.info.render.triangles,visibleInstances});canvas.dataset.camera=JSON.stringify({position:camera.position.toArray(),target:controls.target.toArray(),origin:origin.toArray(),fov:camera.fov,aspect:camera.aspect});}
   function updateProjectedBounds(){
     bounds.makeEmpty();
     const projection=modelStates.get(model).projection;

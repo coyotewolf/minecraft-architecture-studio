@@ -4,6 +4,7 @@ const LAST='architecture-studio:last-project';
 /** Serialize writes so an older slow save cannot overwrite a newer edit. */
 export function usePersistence(workspace:WorkspaceRecord,onRestore:(record:WorkspaceRecord)=>void,preferredProjectId?:string){
   const [status,setStatus]=useState('正在讀取本機專案…'),[ready,setReady]=useState(false);
+  const savedSource=useRef<WorkspaceRecord|null>(null),saving=useRef<{source:WorkspaceRecord;promise:Promise<boolean>}|null>(null);
   const current=useRef(workspace),restore=useRef(onRestore),queue=useRef(Promise.resolve()),generation=useRef(0);
   current.current=workspace;restore.current=onRestore;
   useEffect(()=>{
@@ -14,18 +15,22 @@ export function usePersistence(workspace:WorkspaceRecord,onRestore:(record:Works
     return()=>{canceled=true;};
   },[]);
   function save(){
+    const source=current.current;
+    if(savedSource.current===source)return Promise.resolve(true);
+    if(saving.current?.source===source)return saving.current.promise;
     const token=++generation.current,record={...current.current,updatedAt:new Date().toISOString()};
     let saved=false;
     setStatus('儲存中…');
     queue.current=queue.current.catch(()=>{}).then(async()=>{
-      try{await saveWorkspace(record);saved=true;
+      try{await saveWorkspace(record);saved=true;savedSource.current=source;
         if(token===generation.current){
           let suffix='';try{localStorage.setItem(LAST,record.project.id);}catch{suffix='（瀏覽器無法記住下次開啟位置）';}
           setStatus('已儲存於此瀏覽器'+suffix);setReady(true);
         }
       }catch(error){if(token===generation.current)setStatus('儲存失敗，修改仍保留在畫面中：'+String(error));}
     });
-    return queue.current.then(()=>saved);
+    const promise=queue.current.then(()=>saved).finally(()=>{if(saving.current?.source===source)saving.current=null;});
+    saving.current={source,promise};return promise;
   }
   const saveRef=useRef(save);saveRef.current=save;
   useEffect(()=>{
