@@ -11,7 +11,9 @@ function initialCollection():BuildingCollection {return parseCollection({schemaV
 function download(text:string,name='building-collection.json'){const url=URL.createObjectURL(new Blob([text],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function setComparisonCamera(v:CampusViewer,blocks:readonly BlockRecord[],host:HTMLElement|null,view:'front'|'rear'){
  if(!blocks.length)return;const min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];for(const b of blocks)for(const [i,a] of (['x','y','z'] as const).entries()){min[i]=Math.min(min[i]!,b.pos[a]);max[i]=Math.max(max[i]!,b.pos[a]+1);}
- const height=max[1]!-min[1]!,width=max[0]!-min[0]!,depth=max[2]!-min[2]!,aspect=(host?.clientWidth||500)/(host?.clientHeight||500);v.preset('front');const c=v.camera();v.setCamera({...c,projection:'orthographic',yaw:view==='front'?180:0,pitch:6,span:Math.max(height*Math.cos(Math.PI/30)+depth*Math.sin(Math.PI/30),width/aspect)*1.12,target:[(min[0]!+max[0]!)/2,(min[1]!+max[1]!)/2,(min[2]!+max[2]!)/2]});
+ const width=max[0]!-min[0]!,aspect=(host?.clientWidth||500)/(host?.clientHeight||500),pitch=14,angle=pitch*Math.PI/180,cos=Math.cos(angle),sin=Math.sin(angle),side=view==='front'?1:-1;
+ let low=Infinity,high=-Infinity;for(const b of blocks){low=Math.min(low,b.pos.y*cos+(side>0?b.pos.z:b.pos.z+1)*side*sin);high=Math.max(high,(b.pos.y+1)*cos+(side>0?b.pos.z+1:b.pos.z)*side*sin);}
+ const cz=(min[2]!+max[2]!)/2,cy=((low+high)/2-side*cz*sin)/cos;v.preset('front');const c=v.camera();v.setCamera({...c,projection:'orthographic',yaw:view==='front'?180:0,pitch,span:Math.max(high-low,width/aspect)*1.08,target:[(min[0]!+max[0]!)/2,cy,cz]});
 }
 export function CollectionPanel({onOpen,onCampus}:CollectionPanelProps){
  const [collection,setCollection]=useState<BuildingCollection|null>(null),[active,setActive]=useState(''),[status,setStatus]=useState('正在讀取本機收藏…'),[busy,setBusy]=useState(false),[failed,setFailed]=useState(false);
