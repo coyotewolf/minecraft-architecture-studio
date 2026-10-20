@@ -45,6 +45,7 @@ try {
     return { id: part.id, cells: part.project.blocks.length, bounds: bounds(part.project.blocks), registryValid: true, logicalStructures: part.project.logicalStructures.length };
   });
   const envelope = bounds(blocks);
+  assert(envelope.span.y <= 100, 'Whole building including base, lights and trees exceeds 100 blocks');
   const ys = [...new Set([envelope.min.y, ...[.05,.15,.3,.5,.7,.85,.95,1].map(f => Math.round(envelope.min.y+(envelope.max.y-envelope.min.y)*f))])];
   const sections = ys.map(y => {
     const cells = blocks.filter(b => b.pos.y === y);

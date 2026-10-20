@@ -18,7 +18,7 @@ export function buildCampusGeometry(blocks, origin = [0,0,0]) {
       if(full(shape) && occupied.has(key(...neighbor))) continue;
       if(shape.opacity<1&&shape.boxes.length===1&&shape.boxes[0].min.every(v=>v===0)&&shape.boxes[0].max.every(v=>v===1)&&transparentCells.get(key(...neighbor))===block.id)continue;
       const color=shape.axis === ['x','y','z'][axis] ? 0xc6ab76 : box.color ?? shape.color;
-      const surface=block.id==='minecraft:gold_block'?'gold':block.id.includes('glass')?'glass':/quartz|white_concrete/.test(block.id)?'quartz':/lantern|glowstone|shroomlight/.test(block.id)?'light':'plain';
+      const surface=block.id==='minecraft:gold_block'?'gold':block.id.includes('glass')?'glass':block.id.endsWith('_leaves')?'foliage':/quartz|white_concrete/.test(block.id)?'quartz':/lantern|glowstone|shroomlight/.test(block.id)?'light':'plain';
       const id=[color,shape.opacity,shape.supported,surface].join(':');
       let batch=batches.get(id);
       if(!batch){batch={color,opacity:shape.opacity,supported:shape.supported,surface,positions:[],normals:[],colors:[],uids:[]};batches.set(id,batch);}
@@ -39,10 +39,10 @@ export function buildCampusGeometry(blocks, origin = [0,0,0]) {
     geometry.setAttribute('normal',new THREE.Float32BufferAttribute(batch.normals,3));
     geometry.setAttribute('color',new THREE.Float32BufferAttribute(batch.colors,3));
     geometry.computeBoundingSphere();
-    const material=new THREE.MeshStandardMaterial({color:batch.surface==='gold'?0xffbb08:batch.color,vertexColors:true,roughness:batch.surface==='gold'?.48:batch.opacity<1?.2:.84,metalness:batch.surface==='gold'?.08:batch.opacity<1?.08:.03,transparent:batch.opacity<1,opacity:batch.surface==='glass'?Math.max(.90,batch.opacity):batch.opacity,depthWrite:batch.opacity===1,wireframe:!batch.supported});
+    const material=new THREE.MeshStandardMaterial({color:batch.surface==='gold'?0xffbb08:batch.color,vertexColors:true,roughness:batch.surface==='gold'?.48:batch.opacity<1?.2:.84,metalness:batch.surface==='gold'?.08:batch.opacity<1?.08:.03,transparent:batch.opacity<1,opacity:batch.surface==='glass'?Math.max(.72,batch.opacity):batch.opacity,depthWrite:batch.opacity===1,wireframe:!batch.supported});
     if(batch.surface==='gold'){material.emissive.setHex(0xffb900);material.emissiveIntensity=.16;}
-    if(batch.surface==='light'){material.emissive.setHex(0xffb739);material.emissiveIntensity=.85;}
-    if(batch.surface!=='plain'&&batch.surface!=='light'){
+    if(batch.surface==='light'){material.emissive.setHex(0xffba49);material.emissiveIntensity=2.4;}
+    if(batch.surface!=='plain'){
       material.onBeforeCompile=shader=>{
         shader.uniforms.voxelOrigin={value:new THREE.Vector3(...origin)};
         shader.vertexShader='varying vec3 vVoxelPosition; varying vec3 vVoxelNormal; uniform vec3 voxelOrigin;\n'+shader.vertexShader;
@@ -55,6 +55,18 @@ export function buildCampusGeometry(blocks, origin = [0,0,0]) {
           float inset=smoothstep(.012,.045,edge);
           diffuseColor.rgb*=mix(1.-${strength},1.,inset);
           diffuseColor.rgb*=.96+.04*sin(floor(uv.x)*17.3+floor(uv.y)*23.7);
+        `);
+        if(batch.surface==='foliage')shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+          vec3 leafNormal=abs(vVoxelNormal);vec2 leafUv=leafNormal.y>.5?vVoxelPosition.xz:leafNormal.x>.5?vVoxelPosition.zy:vVoxelPosition.xy;
+          float leafNoise=fract(sin(dot(floor(leafUv*8.),vec2(91.7,273.3)))*43758.5453);
+          diffuseColor.rgb*=.72+.42*step(.35,leafNoise);
+        `);
+        // Original warm pixel pattern on actual canonical light faces; no invented light blocks.
+        if(batch.surface==='light')shader.fragmentShader=shader.fragmentShader.replace('#include <emissivemap_fragment>',`#include <emissivemap_fragment>
+          vec3 lightNormal=abs(vVoxelNormal);vec2 lightUv=lightNormal.y>.5?vVoxelPosition.xz:lightNormal.x>.5?vVoxelPosition.zy:vVoxelPosition.xy;
+          vec2 lightCell=fract(lightUv);float lightEdge=min(min(lightCell.x,1.-lightCell.x),min(lightCell.y,1.-lightCell.y));
+          float lightNoise=fract(sin(dot(floor(lightUv*8.),vec2(127.1,311.7)))*43758.5453);
+          totalEmissiveRadiance*=mix(.18,1.,smoothstep(.04,.16,lightEdge))*(.65+.6*step(.4,lightNoise));
         `);
       };
       material.customProgramCacheKey=()=>batch.surface;
@@ -106,7 +118,7 @@ export function createCampusViewer(host,blocks,onSelect,onCamera,options={}) {
   const origin=center.toArray(),group=buildCampusGeometry(blocks,origin),byUid=new Map(blocks.map(b=>[b.uid,b]));
   const scene=new THREE.Scene();scene.background=new THREE.Color(options.background??0xa8d7ee);scene.add(group);
   scene.add(new THREE.HemisphereLight(0xe8f7ff,options.ocean===false?0x3b4048:0x3b5540,options.ocean===false?1.1:1.55));
-  const sun=new THREE.DirectionalLight(0xfff1d2,options.ocean===false?2.6:3.2);sun.position.set(-140,220,options.ocean===false?-160:120);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-260;sun.shadow.camera.right=260;sun.shadow.camera.top=260;sun.shadow.camera.bottom=-260;sun.shadow.camera.near=1;sun.shadow.camera.far=650;sun.shadow.normalBias=.35;sun.shadow.bias=-.00015;scene.add(sun);
+  const sun=new THREE.DirectionalLight(0xfff1d2,options.ocean===false?2.6:3.2);sun.position.set(-140,220,options.ocean===false?-160:120);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);const size=bounds.getSize(new THREE.Vector3()),shadowExtent=options.ocean===false?Math.max(40,Math.max(size.x,size.y,size.z)*.8):260;sun.shadow.camera.left=-shadowExtent;sun.shadow.camera.right=shadowExtent;sun.shadow.camera.top=shadowExtent;sun.shadow.camera.bottom=-shadowExtent;sun.shadow.camera.near=1;sun.shadow.camera.far=650;sun.shadow.normalBias=options.ocean===false?.22:.35;sun.shadow.bias=-.00015;scene.add(sun);
   if(options.ocean===false){const fill=new THREE.DirectionalLight(0xfff3df,1.8);fill.position.set(110,160,180);scene.add(fill);}
   // Explicit presentation ocean: no decorative architecture or landscape is substituted for block data.
   const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1800,1800),new THREE.MeshStandardMaterial({color:0x087caa,roughness:.38,metalness:.25}));
@@ -157,3 +169,4 @@ export function createCampusViewer(host,blocks,onSelect,onCamera,options={}) {
   resize();
   return {camera:readCamera,setCamera,project(landmarks){return projectCampusLandmarks(readCamera(),landmarks);},preset(p){manual=false;fit(p);},select(uid){const b=byUid.get(uid);outline.visible=!!b;if(b){outline.position.set(b.pos.x+.5-origin[0],b.pos.y+.5-origin[1],b.pos.z+.5-origin[2]);}render();},dispose(){if(disposed)return;disposed=true;globalThis.cancelAnimationFrame(frame);observer.disconnect();controls.removeEventListener('change',render);controls.removeEventListener('start',start);controls.dispose();for(const [name,fn] of [['pointerdown',pointerDown],['pointermove',pointerMove],['pointerup',pointerUp],['pointercancel',cancel],['keydown',keyboard],['webglcontextlost',lost],['webglcontextrestored',restored]])canvas.removeEventListener(name,fn);disposeCampusGeometry(group);ocean.geometry.dispose();ocean.material.dispose();sun.shadow.dispose();outline.geometry.dispose();outline.material.dispose();renderer.dispose();canvas.remove();}};
 }
+

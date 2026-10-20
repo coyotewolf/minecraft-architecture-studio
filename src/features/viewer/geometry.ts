@@ -39,7 +39,7 @@ export function shapeForBlock(block: BlockRecord): BlockShape {
   if (id.endsWith('_slab')) return {...common, boxes:[box([0,s.type === 'top' ? 0.5 : 0,0],[1,s.type === 'bottom' ? 0.5 : 1,1])]};
   if (id.endsWith('_door') && !id.endsWith('_trapdoor')) {
     const turn = directions.indexOf(s.facing as Facing) + (s.open === 'true' ? s.hinge === 'left' ? 1 : 3 : 0);
-    return {...common, color:0x98734a, boxes:[rotate(box([0,0,0],[3/16,1,1]),turn%4)]};
+    return {...common, color:id==='minecraft:iron_door'?0xc7c9c6:0x98734a, boxes:[rotate(box([0,0,0],[3/16,1,1]),turn%4)]};
   }
   if (id.endsWith('_bed')) {
     // Model authored facing north. Only the outer end has legs; the pair shares its middle edge.
