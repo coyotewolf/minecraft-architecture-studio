@@ -27,6 +27,7 @@ import './features/studio-panels.css';
 import { AiPanel } from './features/ai/AiPanel.tsx';
 import { validateProposal } from './features/ai/proposals.ts';
 import './style.css';
+import { CollectionPanel } from './features/collection/CollectionPanel.tsx';
 import './features/editor/editor.css';
 import './studio-redesign.css';
 import { createAtriumProject } from './fixtures/glass-atrium.ts';
@@ -35,11 +36,16 @@ import type { ReferenceImage } from './features/references/storage.ts';
 
 interface PendingEdit { transaction: EditTransaction | null; valid: boolean; message: string; records: readonly BlockRecord[]; cells: number; audit?:string }
 export function App(){
- const [screen,setScreen]=useState<'campus'|'studio'>(()=>new URLSearchParams(location.search).has('sample')?'studio':'campus');
+ const [screen,setScreen]=useState<'campus'|'collection'|'studio'>(()=>new URLSearchParams(location.search).has('sample')?'studio':new URLSearchParams(location.search).get('view')==='collection'?'collection':'campus');
+ const [origin,setOrigin]=useState<'campus'|'collection'>('campus');
  const [initial,setInitial]=useState<Project|undefined>(undefined);
- return screen==='campus'?<CampusPanel onOpen={project=>{setInitial(project);setScreen('studio');}}/>:<StudioApp initialProject={initial} onCampus={()=>setScreen('campus')}/>;
+ function navigate(next:'campus'|'collection'){const url=new URL(location.href);url.searchParams.delete('sample');if(next==='collection')url.searchParams.set('view','collection');else url.searchParams.delete('view');history.replaceState(null,'',url);setScreen(next);}
+ function open(project:Project,from:'campus'|'collection'){setInitial(project);setOrigin(from);setScreen('studio');}
+ if(screen==='collection')return <CollectionPanel onOpen={project=>open(project,'collection')} onCampus={()=>navigate('campus')}/>;
+ if(screen==='campus')return <CampusPanel onOpen={project=>open(project,'campus')} onCollection={()=>navigate('collection')}/>;
+ return <StudioApp initialProject={initial} onCampus={()=>navigate(origin)} returnLabel={origin==='collection'?'返回建築庫':'返回全基地'}/>;
 }
-export function StudioApp({initialProject,onCampus}:{initialProject?:Project|undefined;onCampus:()=>void}) {
+export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"}:{initialProject?:Project|undefined;onCampus:()=>void;returnLabel?:string}) {
   const [engine, setEngine] = useState(() => new VoxelEngine(initialProject??(new URLSearchParams(location.search).get('sample')==='house'?createDemoProject():createAtriumProject())));
   const [project, setProject] = useState(() => engine.snapshot());
   const [workspace,setWorkspace]=useState(()=>createWorkspace(project));
@@ -165,7 +171,7 @@ export function StudioApp({initialProject,onCampus}:{initialProject?:Project|und
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'&&!(event.target instanceof HTMLInputElement)&&!(event.target instanceof HTMLTextAreaElement)){event.preventDefault();history(event.shiftKey);}
     if(event.key==='Escape'){clearPreview();document.querySelectorAll<HTMLDetailsElement>('.utility-drawer[open]').forEach(d=>d.open=false);}
   }}>
-    <header className="studio-header"><div className="studio-brand"><span className="brand-mark" aria-hidden="true">▧</span><div><p className="eyebrow">ARCHITECTURE / JAVA 1.20.1</p><h1>BLOCK ATELIER<span>建築設計工作室</span></h1></div></div><div className="header-actions"><button disabled={switching} onClick={()=>void returnToCampus()}>返回全基地</button>
+    <header className="studio-header"><div className="studio-brand"><span className="brand-mark" aria-hidden="true">▧</span><div><p className="eyebrow">ARCHITECTURE / JAVA 1.20.1</p><h1>BLOCK ATELIER<span>建築設計工作室</span></h1></div></div><div className="header-actions"><button disabled={switching} onClick={()=>void returnToCampus()}>{returnLabel}</button>
       <details className="utility-drawer" data-reference-drawer onToggle={closeOtherDrawers}><summary>設計參考</summary><div className="drawer-content"><button className="drawer-close" onClick={closeDrawer}>關閉面板</button><ReferencePanel projectId={project.id} onSelectionChange={onReferenceSelection}/></div></details>
           <details className="utility-drawer" onToggle={closeOtherDrawers}><summary>專案與備份</summary><div className="drawer-content"><button className="drawer-close" onClick={closeDrawer}>關閉面板</button><ProjectPanel workspace={currentWorkspace} status={persistence.status} onSave={persistence.save} onChange={openWorkspace}/></div></details>
 

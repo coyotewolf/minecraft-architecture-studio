@@ -1,0 +1,46 @@
+{
+  "projectId": "f588af47-d772-4b99-8b64-112527cc0f6d",
+  "url": "https://higgsfield.ai/3d-jutsu/f588af47-d772-4b99-8b64-112527cc0f6d",
+  "revision": 13,
+  "canonicalCells": 245768,
+  "parts": [
+    45000,
+    45000,
+    45000,
+    45000,
+    45000,
+    20768
+  ],
+  "allPartsComplete": true,
+  "meshObjects": 106,
+  "polygons": 256872,
+  "blenderBounds": [
+    [
+      -64,
+      65
+    ],
+    [
+      -65,
+      69
+    ],
+    [
+      0,
+      203
+    ]
+  ],
+  "transform": "Minecraft (X,Y,Z) to Blender (X,-Z,Y)",
+  "visualInspection": {
+    "front": "Workbench front rendered and inspected",
+    "rear": "Workbench rear rendered and inspected",
+    "sceneLighting": "EEVEE render hit 300s execution limit; full lighting and glass not verified",
+    "sameAsReference": false
+  },
+  "siteEvidence": [
+    "golden-leaf-front.png",
+    "golden-leaf-rear.png",
+    "golden-leaf-top.png",
+    "golden-leaf-side.png",
+    "golden-leaf-comparison.png"
+  ],
+  "gameAcceptance": false
+}

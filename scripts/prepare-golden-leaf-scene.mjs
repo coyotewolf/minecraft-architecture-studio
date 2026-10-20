@@ -1,0 +1,29 @@
+import console from 'node:console';
+import {Buffer} from 'node:buffer';
+import fs from 'node:fs';
+import {createServer} from 'vite';
+const server=await createServer({server:{middlewareMode:true}});
+try{
+ const {createGoldenLeafParts}=await server.ssrLoadModule('/src/fixtures/buildings/golden-leaf.ts');const {shapeForBlock}=await server.ssrLoadModule('/src/features/viewer/geometry.ts');const campus={districts:createGoldenLeafParts()};
+ const preamble=`import bpy, math\nfrom mathutils import Vector\nscene=bpy.context.scene\nscene.unit_settings.system='METRIC'\nscene.unit_settings.scale_length=1\nif 'CAM_main' not in bpy.data.objects:\n    cam=bpy.data.objects.new('CAM_main',bpy.data.cameras.new('CAM_main'))\n    scene.collection.objects.link(cam)\n    cam.location=(0,420,145)\n    cam.rotation_euler=(Vector((0,0,101))-cam.location).to_track_quat('-Z','Y').to_euler()\n    cam.data.type='ORTHO'\n    cam.data.ortho_scale=225\n    scene.camera=cam\n    sun=bpy.data.objects.new('LGT_key',bpy.data.lights.new('LGT_key','SUN'))\n    scene.collection.objects.link(sun)\n    sun.rotation_euler=(.45,-.35,-.5)\n    sun.data.energy=3\n    fill=bpy.data.objects.new('LGT_fill',bpy.data.lights.new('LGT_fill','POINT'))\n    scene.collection.objects.link(fill)\n    fill.location=(-90,-40,90)\n    fill.data.energy=70000\n    fill.data.shadow_soft_size=60\n    if scene.world is None:scene.world=bpy.data.worlds.new('Campus World')\n    scene.world.color=(.3,.35,.4)\nscene.render.engine='BLENDER_EEVEE'\nscene.render.resolution_x=832\nscene.render.resolution_y=1024\nscene.render.resolution_percentage=100\nscene.render.image_settings.media_type='IMAGE'\nscene.render.image_settings.file_format='PNG'\nbatches={}\ndef strip(color,alpha,x,y,z,w,h,d):\n    key=(color,alpha)\n    data=batches.setdefault(key,[[],[]])\n    vs,fs=data\n    k=len(vs)\n    vs.extend([(x,-z-d,y),(x+w,-z-d,y),(x+w,-z,y),(x,-z,y),(x,-z-d,y+h),(x+w,-z-d,y+h),(x+w,-z,y+h),(x,-z,y+h)])\n    for face in [(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)]:fs.append(tuple(k+i for i in face))\n`;
+ fs.mkdirSync('../work/golden-leaf-scenes',{recursive:true});
+ const operations=[];let operationIndex=0;
+ for(const district of campus.districts){
+  const strips=new Map();
+  for(const block of district.project.blocks){const shape=shapeForBlock(block);for(const box of shape.boxes){const {x,y,z}=block.pos;const key=[box.color??shape.color,shape.opacity,y+box.min[1],z+box.min[2],box.max[1]-box.min[1],box.max[2]-box.min[2]].join(',');const list=strips.get(key)??[];list.push([x+box.min[0],x+box.max[0]]);strips.set(key,list);}}
+  const rows=[];
+  for(const [key,list] of strips){const [color,alpha,y,z,h,d]=key.split(',').map(Number);list.sort((a,b)=>a[0]-b[0]);const runs=[];for(const v of list){const last=runs.at(-1);if(last&&last[1]===v[0])last[1]=v[1];else runs.push([...v]);}rows.push(`for x,w in ${JSON.stringify(runs.map(v=>[v[0],v[1]-v[0]]))}:strip(${color},${alpha},x,${y},${z},w,${h},${d})\n`);}
+  const finish=`for (color,alpha),(verts,faces) in batches.items():\n    name='MAT_'+str(color)+'_'+str(alpha)\n    mat=bpy.data.materials.get(name) or bpy.data.materials.new(name)\n    mat.diffuse_color=(((color>>16)&255)/255,((color>>8)&255)/255,(color&255)/255,alpha)\n    mat.use_nodes=True\n    shader=mat.node_tree.nodes.get('Principled BSDF')\n    shader.inputs['Base Color'].default_value=mat.diffuse_color\n    shader.inputs['Roughness'].default_value=.65\n    shader.inputs['Alpha'].default_value=alpha\n    mesh=bpy.data.meshes.new(district_name+'_'+name)\n    mesh.from_pydata(verts,[],faces)\n    mesh.update()\n    obj=bpy.data.objects.new(district_name+'_'+name,mesh)\n    collection.objects.link(obj)\n    mesh.materials.append(mat)\n    obj['canonical_district'] = district_name\n    obj['coordinate_transform']='Minecraft (X,Y,Z) to Blender (X,-Z,Y)'\ncollection['canonical_cells']=${district.project.blocks.length}\ncollection['provenance']='AI Estimated Area'\nresult={'district':district_name,'cells':${district.project.blocks.length},'objects':len(collection.objects),'total_objects':len(bpy.data.objects)}\n`;
+  const chunks=[];let chunk='',bytes=0;
+  for(const row of rows){const size=Buffer.byteLength(row);if(size>220000)throw new Error('Procedural row exceeds safe operation limit');if(bytes+size>220000){chunks.push(chunk);chunk='';bytes=0;}chunk+=row;bytes+=size;}if(chunk)chunks.push(chunk);
+  for(const [part,body] of chunks.entries()){
+   const begin=`district_name=${JSON.stringify(district.id)}\ncollection=bpy.data.collections.get(district_name)\nif collection is None:\n    collection=bpy.data.collections.new(district_name)\n    scene.collection.children.link(collection)\n`;
+   const code=preamble+begin+body+finish+`collection['complete']=${part===chunks.length-1?'True':'False'}\nresult['part']=${part+1}\nresult['parts']=${chunks.length}\n`;
+   if(Buffer.byteLength(code)>256*1024)throw new Error('Operation exceeds server code limit');
+   const file=`${operationIndex++}.py`;fs.writeFileSync(`../work/golden-leaf-scenes/${file}`,code);operations.push({file,district:district.id,part:part+1,parts:chunks.length,cells:district.project.blocks.length,bytes:Buffer.byteLength(code)});console.log(file,district.id,part+1,chunks.length,Buffer.byteLength(code));
+  }
+ }
+ fs.writeFileSync('../work/golden-leaf-scenes/operations.json',JSON.stringify(operations));
+ fs.writeFileSync('../work/golden-leaf-scenes/metadata.json',JSON.stringify(campus.districts.map(d=>({id:d.id,count:d.project.blocks.length,features:d.features,notes:d.notes}))));
+
+}finally{await server.close();}

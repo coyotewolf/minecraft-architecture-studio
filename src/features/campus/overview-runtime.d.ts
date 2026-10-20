@@ -14,4 +14,4 @@ export interface CampusGeometry {
 export function buildCampusGeometry(blocks:readonly BlockRecord[],origin?:readonly[number,number,number]):CampusGeometry;
 export function pickCampus(group:CampusGeometry,origin:readonly[number,number,number],direction:readonly[number,number,number]):string|null;
 export function disposeCampusGeometry(group:CampusGeometry):void;
-export function createCampusViewer(host:HTMLElement,blocks:readonly BlockRecord[],onSelect:(uid:string|null)=>void,onCamera?:(camera:CampusCamera)=>void):CampusViewer;
+export function createCampusViewer(host:HTMLElement,blocks:readonly BlockRecord[],onSelect:(uid:string|null)=>void,onCamera?:(camera:CampusCamera)=>void,options?:{background?:number;ocean?:boolean;label?:string}):CampusViewer;

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "command": "BROWSER_EXECUTABLE_PATH=\"C:/Program Files/Google/Chrome/Application/chrome.exe\" npx playwright test e2e/collection.spec.ts",
+  "final": {
+    "startTime": "2026-10-20T21:27:34.993Z",
+    "duration": 94478.924,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "title": "collection preserves metadata, edited canonical parts and additive backup copies",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 80862
+        }
+      ]
+    },
+    {
+      "title": "mobile collection has no overflow and supports touch view and reference controls",
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 10220
+        }
+      ]
+    }
+  ],
+  "static": {
+    "collectionUnitTests": 13,
+    "typecheck": "PASS",
+    "scopedLint": "PASS"
+  },
+  "canonical": {
+    "initialCells": 245768,
+    "parts": 6,
+    "editedCells": 245769,
+    "afterAdditiveImportCells": 491538
+  },
+  "screenshots": [
+    "evidence/collection-desktop.png",
+    "evidence/collection-mobile.png"
+  ],
+  "verified": [
+    "Collection and entry metadata survive reload",
+    "Actual canonical stone edit survives return and reopen",
+    "Full JSON data and provenance preserved",
+    "Additive import creates fresh project IDs and preserves original entry",
+    "Imported collection survives reload",
+    "Front/rear/top cameras",
+    "390px mobile has no horizontal overflow and accepts actual touch orbit",
+    "Atomic shard storage avoids Chromium single-record size limit"
+  ],
+  "priorEvidence": [
+    "evidence/collection-initial-browser-results.json",
+    "evidence/collection-unsafe-identifier-browser-results.json",
+    "evidence/collection-import-wait-browser-results.json",
+    "evidence/collection-record-limit-browser-results.json"
+  ],
+  "priorIssuesResolved": [
+    "Textarea exact-label test locator replaced by accessible textbox role",
+    "Fixture phase identifiers normalized by fixture owner",
+    "Test edit coordinate now outside all building parts; real overlaps expose recovery cards instead of blocking all access",
+    "Large import uses a file path and explicit 60-second completion bound",
+    "IndexedDB collection now shards bounded projects in one transaction",
+    "Synchronous shard and metadata enqueue failures explicitly abort transaction"
+  ],
+  "limits": [
+    "Collection-only browser suite; historical full campus suite not rerun",
+    "Snapshots are inferred designs, not identical image reconstructions",
+    "No in-game or cross-device persistence acceptance",
+    "Screenshots are local ignored evidence files"
+  ],
+  "browser": {
+    "product": "Google Chrome",
+    "version": "155.0.8059.85",
+    "softwareRendering": "SwiftShader",
+    "port5180Released": true
+  }
+}

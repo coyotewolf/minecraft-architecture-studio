@@ -1,0 +1,422 @@
+{
+  "fixture": "golden-leaf",
+  "validation": "canonical-only",
+  "front": "-Z",
+  "rear": "+Z",
+  "parts": [
+    {
+      "id": "golden-leaf-tower--part-1",
+      "cells": 45000,
+      "bounds": {
+        "min": {
+          "x": -64,
+          "y": 0,
+          "z": -69
+        },
+        "max": {
+          "x": 57,
+          "y": 143,
+          "z": -1
+        },
+        "span": {
+          "x": 122,
+          "y": 144,
+          "z": 69
+        }
+      },
+      "registryValid": true,
+      "logicalStructures": 2
+    },
+    {
+      "id": "golden-leaf-tower--part-2",
+      "cells": 45000,
+      "bounds": {
+        "min": {
+          "x": -32,
+          "y": 0,
+          "z": -32
+        },
+        "max": {
+          "x": 31,
+          "y": 202,
+          "z": -1
+        },
+        "span": {
+          "x": 64,
+          "y": 203,
+          "z": 32
+        }
+      },
+      "registryValid": true,
+      "logicalStructures": 0
+    },
+    {
+      "id": "golden-leaf-tower--part-3",
+      "cells": 45000,
+      "bounds": {
+        "min": {
+          "x": -64,
+          "y": 0,
+          "z": -32
+        },
+        "max": {
+          "x": 64,
+          "y": 202,
+          "z": 31
+        },
+        "span": {
+          "x": 129,
+          "y": 203,
+          "z": 64
+        }
+      },
+      "registryValid": true,
+      "logicalStructures": 0
+    },
+    {
+      "id": "golden-leaf-tower--part-4",
+      "cells": 45000,
+      "bounds": {
+        "min": {
+          "x": -42,
+          "y": 0,
+          "z": 0
+        },
+        "max": {
+          "x": 31,
+          "y": 202,
+          "z": 31
+        },
+        "span": {
+          "x": 74,
+          "y": 203,
+          "z": 32
+        }
+      },
+      "registryValid": true,
+      "logicalStructures": 0
+    },
+    {
+      "id": "golden-leaf-tower--part-5",
+      "cells": 45000,
+      "bounds": {
+        "min": {
+          "x": -55,
+          "y": 0,
+          "z": 0
+        },
+        "max": {
+          "x": 64,
+          "y": 202,
+          "z": 63
+        },
+        "span": {
+          "x": 120,
+          "y": 203,
+          "z": 64
+        }
+      },
+      "registryValid": true,
+      "logicalStructures": 0
+    },
+    {
+      "id": "golden-leaf-tower--part-6",
+      "cells": 20768,
+      "bounds": {
+        "min": {
+          "x": -32,
+          "y": 0,
+          "z": 32
+        },
+        "max": {
+          "x": 55,
+          "y": 145,
+          "z": 64
+        },
+        "span": {
+          "x": 88,
+          "y": 146,
+          "z": 33
+        }
+      },
+      "registryValid": true,
+      "logicalStructures": 0
+    }
+  ],
+  "cells": 245768,
+  "totalItems": 245766,
+  "uniquePositions": 245768,
+  "uniqueUids": 245768,
+  "bounds": {
+    "min": {
+      "x": -64,
+      "y": 0,
+      "z": -69
+    },
+    "max": {
+      "x": 64,
+      "y": 202,
+      "z": 64
+    },
+    "span": {
+      "x": 129,
+      "y": 203,
+      "z": 134
+    }
+  },
+  "sections": [
+    {
+      "y": 0,
+      "cells": 12930,
+      "bounds": {
+        "min": {
+          "x": -64,
+          "y": 0,
+          "z": -69
+        },
+        "max": {
+          "x": 64,
+          "y": 0,
+          "z": 64
+        },
+        "span": {
+          "x": 129,
+          "y": 1,
+          "z": 134
+        }
+      }
+    },
+    {
+      "y": 10,
+      "cells": 584,
+      "bounds": {
+        "min": {
+          "x": -63,
+          "y": 10,
+          "z": -46
+        },
+        "max": {
+          "x": 63,
+          "y": 10,
+          "z": 46
+        },
+        "span": {
+          "x": 127,
+          "y": 1,
+          "z": 93
+        }
+      }
+    },
+    {
+      "y": 30,
+      "cells": 488,
+      "bounds": {
+        "min": {
+          "x": -35,
+          "y": 30,
+          "z": -36
+        },
+        "max": {
+          "x": 35,
+          "y": 30,
+          "z": 35
+        },
+        "span": {
+          "x": 71,
+          "y": 1,
+          "z": 72
+        }
+      }
+    },
+    {
+      "y": 61,
+      "cells": 6299,
+      "bounds": {
+        "min": {
+          "x": -44,
+          "y": 61,
+          "z": -45
+        },
+        "max": {
+          "x": 44,
+          "y": 61,
+          "z": 46
+        },
+        "span": {
+          "x": 89,
+          "y": 1,
+          "z": 92
+        }
+      }
+    },
+    {
+      "y": 101,
+      "cells": 596,
+      "bounds": {
+        "min": {
+          "x": -43,
+          "y": 101,
+          "z": -44
+        },
+        "max": {
+          "x": 43,
+          "y": 101,
+          "z": 44
+        },
+        "span": {
+          "x": 87,
+          "y": 1,
+          "z": 89
+        }
+      }
+    },
+    {
+      "y": 141,
+      "cells": 442,
+      "bounds": {
+        "min": {
+          "x": -32,
+          "y": 141,
+          "z": -33
+        },
+        "max": {
+          "x": 32,
+          "y": 141,
+          "z": 33
+        },
+        "span": {
+          "x": 65,
+          "y": 1,
+          "z": 67
+        }
+      }
+    },
+    {
+      "y": 172,
+      "cells": 262,
+      "bounds": {
+        "min": {
+          "x": -19,
+          "y": 172,
+          "z": -20
+        },
+        "max": {
+          "x": 22,
+          "y": 172,
+          "z": 20
+        },
+        "span": {
+          "x": 42,
+          "y": 1,
+          "z": 41
+        }
+      }
+    },
+    {
+      "y": 192,
+      "cells": 56,
+      "bounds": {
+        "min": {
+          "x": -9,
+          "y": 192,
+          "z": -8
+        },
+        "max": {
+          "x": 0,
+          "y": 192,
+          "z": 8
+        },
+        "span": {
+          "x": 10,
+          "y": 1,
+          "z": 17
+        }
+      }
+    },
+    {
+      "y": 202,
+      "cells": 7,
+      "bounds": {
+        "min": {
+          "x": -2,
+          "y": 202,
+          "z": -1
+        },
+        "max": {
+          "x": 0,
+          "y": 202,
+          "z": 1
+        },
+        "span": {
+          "x": 3,
+          "y": 1,
+          "z": 3
+        }
+      }
+    }
+  ],
+  "materials": [
+    {
+      "itemId": "minecraft:bookshelf",
+      "required": 56
+    },
+    {
+      "itemId": "minecraft:crafting_table",
+      "required": 28
+    },
+    {
+      "itemId": "minecraft:cyan_stained_glass",
+      "required": 26578
+    },
+    {
+      "itemId": "minecraft:dirt",
+      "required": 3046
+    },
+    {
+      "itemId": "minecraft:gold_block",
+      "required": 58942
+    },
+    {
+      "itemId": "minecraft:lantern",
+      "required": 20
+    },
+    {
+      "itemId": "minecraft:oak_door",
+      "required": 2
+    },
+    {
+      "itemId": "minecraft:oak_leaves",
+      "required": 2967
+    },
+    {
+      "itemId": "minecraft:oak_log",
+      "required": 18
+    },
+    {
+      "itemId": "minecraft:pink_tulip",
+      "required": 405
+    },
+    {
+      "itemId": "minecraft:quartz_stairs",
+      "required": 483
+    },
+    {
+      "itemId": "minecraft:sea_lantern",
+      "required": 56
+    },
+    {
+      "itemId": "minecraft:smooth_quartz",
+      "required": 132948
+    },
+    {
+      "itemId": "minecraft:stone_bricks",
+      "required": 12930
+    },
+    {
+      "itemId": "minecraft:white_concrete",
+      "required": 7287
+    }
+  ],
+  "visualAcceptance": "not assessed by this script",
+  "minecraftAcceptance": "not tested"
+}
