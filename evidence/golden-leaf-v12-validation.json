@@ -1,0 +1,34 @@
+{
+  "revision": "golden-leaf-100-v12",
+  "date": "2026-10-21",
+  "unitTests": {
+    "files": 36,
+    "passed": 1385,
+    "failed": 0,
+    "durationSeconds": 29.18,
+    "workers": 2
+  },
+  "buildingTests": 16,
+  "typecheck": "passed",
+  "lint": "passed",
+  "productionBuild": "passed",
+  "servedBundle": "index-Dae_anxt.js",
+  "e2e": {
+    "passed": 3,
+    "failed": 0,
+    "durationMs": 76258.36,
+    "flows": [
+      "complete building edit, undo/redo, reload, additive backup, selection persistence",
+      "mobile touch, reference controls, no horizontal overflow",
+      "current revision URL adds missing V12 once and preserves earlier collection"
+    ]
+  },
+  "unchangedV11FrontFrameCells": 315,
+  "doubleSlabs": 164,
+  "renderRounds": 3,
+  "renderEvidence": "golden-leaf-v12-final",
+  "comparison": "golden-leaf-v12-comparison.png",
+  "visualStatus": "short leaf crown, overlap endpoint and podium proportions improved; curved shell steps, cornice and planting remain different",
+  "minecraftGameAcceptance": "not performed",
+  "paidGenerations": 0
+}

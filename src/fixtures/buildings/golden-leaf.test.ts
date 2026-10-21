@@ -8,7 +8,7 @@ const category=(name:string)=>blocks.filter(b=>b.category===name);
 describe('100-block golden leaf reconstruction',()=>{
  it('caps the entire building including base, trees and tips at 100 blocks and uses a new identity',()=>{
   const ys=blocks.map(b=>b.pos.y);expect(Math.min(...ys)).toBe(0);expect(Math.max(...ys)).toBe(99);expect(Math.max(...ys)-Math.min(...ys)+1).toBeLessThanOrEqual(100);
-  expect(project.id).toBe('golden-leaf-100-complete-v11');expect(project.designRevision).toBe('golden-leaf-100-v11');
+  expect(project.id).toBe('golden-leaf-100-complete-v12');expect(project.designRevision).toBe('golden-leaf-100-v12');
   expect(blocks.some(b=>b.category==='Tall leaf tip'&&b.pos.y===99)).toBe(true);expect(blocks.some(b=>b.category==='Short leaf tip'&&b.pos.y===90)).toBe(true);
  });
  it('retains 26 internal floors with thirteen exposed rear bands and raises the saddle',()=>{
@@ -25,15 +25,16 @@ describe('100-block golden leaf reconstruction',()=>{
   expect(Math.max(...foundation.map(b=>b.pos.x))-Math.min(...foundation.map(b=>b.pos.x))+1).toBe(71);expect(Math.max(...foundation.map(b=>b.pos.z))-Math.min(...foundation.map(b=>b.pos.z))+1).toBe(47);
   for(let x=-12;x<=12;x++)for(const z of [-23,23])expect(cells.has([x,0,z].join(','))).toBe(true);
   for(let x=-36;x<=36;x++)for(let z=-24;z<=24;z++)expect(cells.has([x,0,z].join(',')),[x,z].join(',')).toBe(distance(x,z)<=23);
-  for(const z of [-20,20])for(let x=-12;x<=12;x++)expect(cells.has([x,9,z].join(','))).toBe(true);
+  for(const z of [-16,16])for(let x=-12;x<=12;x++)expect(cells.has([x,8,z].join(','))).toBe(true);
  });
  it('makes both roof decks connected inward-facing crescents with supported planting',()=>{
   for(const side of [-1,1]){
    const roof=category('Annex roof').filter(b=>Math.sign(b.pos.x)===side),set=new Set(roof.map(b=>[b.pos.x,b.pos.z].join(',')));
    expect(roof.length).toBeGreaterThan(100);
-   expect(cells.get([side*27,15,0].join(','))?.category).toBe('Annex inner parapet');expect(cells.get([side*27,15,0].join(','))?.state.type).toBe('bottom');expect(cells.get([side*28,16,0].join(','))?.id).toBe('minecraft:oak_leaves');
+   const parapets=category('Annex inner parapet').filter(b=>Math.sign(b.pos.x)===side);expect(parapets.length).toBeGreaterThan(3);expect(parapets.every(b=>b.state.type==='double')).toBe(true);
+   expect(['minecraft:oak_leaves','minecraft:pink_tulip']).toContain(cells.get([side*33,16,0].join(','))?.id);
    for(const xx of [30,31])for(const y of [15,16])expect(cells.has([side*xx,y,3].join(',')),'two-block roof path').toBe(false);expect(set.has([side*20,0].join(','))).toBe(false);expect(set.has([side*33,0].join(','))).toBe(true);
-   expect(roof.every(b=>Math.hypot((b.pos.x-side*20)/14,b.pos.z/20)<=1&&Math.hypot((b.pos.x-side*13)/13.5,b.pos.z/18.5)>1)).toBe(true);
+   expect(roof.every(b=>Math.hypot((b.pos.x-side*23)/11,b.pos.z/13)<=1&&Math.hypot((b.pos.x-side*18)/10,b.pos.z/11)>1)).toBe(true);
    const q=[roof[0]!.pos],seen=new Set([roof[0]!.pos.x+','+roof[0]!.pos.z]);for(let i=0;i<q.length;i++){const p=q[i]!;for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){const x=p.x+dx!,z=p.z+dz!,key=x+','+z;if(set.has(key)&&!seen.has(key)){seen.add(key);q.push({x,y:14,z});}}}expect(seen.size).toBe(set.size);
   }
   const leaves=blocks.filter(b=>b.id==='minecraft:oak_leaves'),leafCells=new Map(leaves.map(b=>[[b.pos.x,b.pos.y,b.pos.z].join(','),b]));
@@ -42,8 +43,35 @@ describe('100-block golden leaf reconstruction',()=>{
   for(const b of blocks.filter(b=>['minecraft:dirt','minecraft:oak_log','minecraft:pink_tulip'].includes(b.id))){const below=cells.get([b.pos.x,b.pos.y-1,b.pos.z].join(','));expect(below,'plant support '+b.uid).toBeDefined();expect(['minecraft:pink_tulip','minecraft:glowstone'].includes(below!.id),'invalid plant support '+b.uid).toBe(false);}
   for(const b of blocks.filter(b=>['minecraft:dirt','minecraft:oak_log','minecraft:oak_leaves','minecraft:pink_tulip'].includes(b.id)))expect(Math.hypot(Math.max(Math.abs(b.pos.x)-12,0),b.pos.z)).toBeLessThanOrEqual(23);
   expect(category('Annex tree trunk')).toHaveLength(8);
-  for(let y=4;y<=8;y++){for(const x of [-4,4])expect(cells.get([x,y,-20].join(','))?.id).toBe('minecraft:glowstone');for(const x of [5,10])expect(cells.get([x,y,20].join(','))?.id).toBe('minecraft:glowstone');} 
+  for(let y=4;y<=6;y++){for(const x of [-4,4])expect(cells.get([x,y,-16].join(','))?.id).toBe('minecraft:glowstone');for(const x of [5,10])expect(cells.get([x,y,16].join(','))?.id).toBe('minecraft:glowstone');} 
 
+ });
+ it('separates the low central pavilion from compact thick crescent pavilions',()=>{
+  expect(category('Podium roof').every(b=>b.pos.y===8)).toBe(true);expect(category('Annex roof').every(b=>b.pos.y===14)).toBe(true);
+  for(const side of [-1,1]){
+   const roof=category('Annex roof').filter(b=>Math.sign(b.pos.x)===side),zs=roof.map(b=>b.pos.z),xs=roof.map(b=>b.pos.x);
+   expect(Math.max(...zs)-Math.min(...zs)).toBeLessThanOrEqual(26);
+   expect(Math.max(...xs)-Math.min(...xs)+1).toBeGreaterThanOrEqual(16);expect(Math.max(...xs)-Math.min(...xs)+1).toBeLessThanOrEqual(17);
+   for(const z of [-11,11])expect(roof.filter(b=>b.pos.z===z).length).toBeGreaterThanOrEqual(6);
+  }
+  const neck=category('Inset tower neck');expect(neck.length).toBeGreaterThan(100);expect(neck.every(b=>[9,10].includes(b.pos.y)&&b.id==='minecraft:gold_block')).toBe(true);
+  const neckGlass=category('Front neck glazing');expect(neckGlass.length).toBeGreaterThan(20);
+  for(const pane of neckGlass){
+   expect(pane.id).toBe('minecraft:blue_stained_glass');expect([9,10]).toContain(pane.pos.y);
+   expect(cells.get([pane.pos.x,pane.pos.y-1,pane.pos.z].join(',')),'neck glass stands on roof or lower pane').toBeDefined();
+   if(pane.pos.y===10)expect(cells.get([pane.pos.x,11,pane.pos.z].join(',')),'neck meets first facade ledge').toBeDefined();
+   expect(neck.some(b=>b.pos.y===pane.pos.y&&b.pos.x===pane.pos.x&&b.pos.z<0),'no gold bar across window').toBe(false);
+  }
+  expect(neck.filter(b=>b.pos.y===10&&cells.get([b.pos.x,11,b.pos.z].join(','))?.id==='minecraft:gold_block').length).toBeGreaterThan(40);
+  for(const b of neck.filter(b=>b.pos.y===9))expect(cells.get([b.pos.x,8,b.pos.z].join(','))).toBeDefined();
+  for(const soil of blocks.filter(b=>['Podium grouped soil','Annex garden soil'].includes(b.category??'')))for(const [dx,dz]of [[1,0],[-1,0],[0,1],[0,-1]]){
+   const edge=cells.get([soil.pos.x+dx!,soil.pos.y,soil.pos.z+dz!].join(','));
+   expect(edge,'covered roof soil '+soil.uid).toBeDefined();
+   if(edge!.id==='minecraft:smooth_quartz_slab')expect(edge!.state.type).toBe('double');
+  }
+  expect(category('Podium grouped soil').some(b=>b.pos.z<0)).toBe(true);expect(category('Podium grouped soil').some(b=>b.pos.z>0)).toBe(true);
+  const tip=category('Short leaf tip');expect(Math.max(...tip.map(b=>b.pos.x))-Math.min(...tip.map(b=>b.pos.x))+1).toBe(3);
+  for(let y=85;y<=89;y++)expect(category('Short leaf crown').some(b=>b.pos.y===y)).toBe(true);
  });
  it('is one valid canonical model with intact doors, unique cells and honest evidence',()=>{
   expect(parseProject(project).blocks.length).toBe(blocks.length);expect(cells.size).toBe(blocks.length);expect(new Set(blocks.map(b=>b.uid)).size).toBe(blocks.length);
@@ -78,7 +106,7 @@ describe('100-block golden leaf reconstruction',()=>{
   expect(category('Floor').every(b=>b.id==='minecraft:smooth_stone_slab')).toBe(true);
   expect(category('Front slab ledge').every(b=>b.id==='minecraft:smooth_quartz_slab')).toBe(true);
   for(const y of [51,66,75])expect(Math.max(...ribX(y))).toBeGreaterThanOrEqual(y===51?7:y===66?6:5);
-  const dividers=category('Podium planter divider');expect(dividers.some(b=>b.pos.z<0)).toBe(true);expect(dividers.some(b=>b.pos.z>0)).toBe(true);expect(dividers.every(b=>b.id==='minecraft:smooth_quartz_slab'&&b.state.type==='bottom'&&Math.hypot(Math.max(Math.abs(b.pos.x)-12,0),b.pos.z)<=20)).toBe(true);expect(category('Garden shrub crown').length).toBeGreaterThan(20);
+  const dividers=category('Podium planter divider');expect(dividers.some(b=>b.pos.z<0)).toBe(true);expect(dividers.some(b=>b.pos.z>0)).toBe(true);expect(dividers.every(b=>b.id==='minecraft:smooth_quartz_slab'&&b.state.type==='double'&&Math.hypot(Math.max(Math.abs(b.pos.x)-12,0),b.pos.z)<=16)).toBe(true);expect(category('Garden shrub crown').length).toBeGreaterThan(20);
   expect(category('Front curved rib').every(b=>b.pos.z<0&&b.pos.y<=94)).toBe(true);
  });
  it('keeps a shallow continuous facade, ledges behind its edge and ribs two blocks forward',()=>{
@@ -165,8 +193,15 @@ describe('100-block golden leaf reconstruction',()=>{
   expect(category('Rear central spine').every(b=>b.pos.x===0&&b.pos.z>0)).toBe(true);expect(category('Rear overlapping petal').length).toBeGreaterThan(0);
   expect(category('Rear apex white return')).toHaveLength(9);expect(category('Rear apex white return').every(b=>b.pos.x<=0&&b.pos.y>=90&&b.pos.y<=98&&b.id==='minecraft:quartz_stairs')).toBe(true);
   const seam=category('Rear diagonal petal overlap'),lip=category('Rear overlap lip');expect(seam.every(b=>b.id==='minecraft:gold_block')).toBe(true);expect(new Set(seam.map(b=>b.pos.x)).size).toBeGreaterThan(8);
-  for(let y=11;y<=35;y++){const row=lip.filter(b=>b.pos.y===y);expect(row.length).toBeGreaterThan(0);for(const b of row){const ahead=cells.get([b.pos.x,y,b.pos.z+1].join(','));if(y===11&&ahead)expect(ahead.category).toBe('Podium roof');else expect(ahead,'buried gold overlap '+b.uid).toBeUndefined();for(const depth of [1,2])expect(cells.get([b.pos.x,y,b.pos.z-depth].join(','))?.id).toBe('minecraft:gold_block');}if(y<35){const next=lip.filter(b=>b.pos.y===y+1);expect(row.some(a=>next.some(b=>Math.abs(a.pos.x-b.pos.x)<=1&&Math.abs(a.pos.z-b.pos.z)<=2)),'continuous raised overlap '+y).toBe(true);}}
+  for(let y=11;y<=35;y++){const row=lip.filter(b=>b.pos.y===y);expect(row.length).toBeGreaterThan(0);for(const b of row){const ahead=cells.get([b.pos.x,y,b.pos.z+1].join(','));if(y===11&&ahead)expect(ahead.category).toBe('Podium roof');else expect(ahead,'buried gold overlap '+b.uid).toBeUndefined();for(const depth of (y<=32?[1,2]:[1]))expect(cells.get([b.pos.x,y,b.pos.z-depth].join(','))?.id,'lip thickness '+[b.pos.x,y,b.pos.z,depth]).toBe('minecraft:gold_block');}if(y<35){const next=lip.filter(b=>b.pos.y===y+1);expect(row.some(a=>next.some(b=>Math.abs(a.pos.x-b.pos.x)<=1)),'diagonal boundary progresses at most one column '+y).toBe(true);}}
   expect(lip.every(b=>b.id==='minecraft:gold_block')).toBe(true);
+  const raised=[...category('Rear overlapping petal'),...seam,...lip],raisedCells=new Map(blocks.filter(b=>b.id==='minecraft:gold_block'&&b.pos.y>=11&&b.pos.y<=44).map(b=>[[b.pos.x,b.pos.y,b.pos.z].join(','),b])),queue=[raised[0]!],seen=new Set([raised[0]!.uid]);
+  for(let i=0;i<queue.length;i++){const a=queue[i]!;for(const [dx,dy,dz]of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){const b=raisedCells.get([a.pos.x+dx!,a.pos.y+dy!,a.pos.z+dz!].join(','));if(b&&!seen.has(b.uid)){seen.add(b.uid);queue.push(b);}}}
+  expect(raised.filter(b=>seen.has(b.uid)).length,'every raised gold cell connects through the sheet and underlying gold shell').toBe(raised.length);
+  expect(lip.some(b=>b.pos.y===11&&b.pos.x===-15)).toBe(true);const tip=category('Rear white leaf reveal').sort((a,b)=>a.pos.y-b.pos.y||Math.abs(a.pos.x)-Math.abs(b.pos.x)||b.pos.z-a.pos.z||a.pos.x-b.pos.x)[0]!;
+  expect(lip.some(b=>b.pos.x===tip.pos.x&&b.pos.y===tip.pos.y-1&&b.pos.z===tip.pos.z),'lip terminates immediately beneath the actual rear white tip').toBe(true);
+  expect(lip.every(b=>b.pos.y<tip.pos.y)).toBe(true);
+
   for(const y of [20,28,34]){
    const outer=category('Rear overlapping petal').filter(b=>b.pos.y===y),shellRadius=Math.max(...blocks.filter(b=>b.pos.y===y&&b.id==='minecraft:gold_block').map(b=>Math.abs(b.pos.x)));
    expect(outer.length).toBeGreaterThan(20);
@@ -216,7 +251,7 @@ it('connects both controlled entrances to every floor by standing-surface steps,
  for(const y of GOLDEN_LEAF_DESIGN.floorLevels)expect(visited.has(encode(1,1,y+1)),'unreachable floor '+y+'; highest reachable feet '+queue.reduce((max,n)=>Math.max(max,n[2]),0)).toBe(true);
  expect(visited.has(encode(15,48,1.5)),'rear entrance connects to the lobby').toBe(true);
  for(const side of [-1,1])expect(visited.has(encode(side*31*2+1,-7,15)),'crescent roof '+side+' is reachable').toBe(true);
- for(const cx of [-20,20])expect(category('Annex roof garden lamp').filter(b=>Math.abs(b.pos.x-cx)<=14)).toHaveLength(4);
- for(const [x,z]of[[-1,-19],[0,-19],[7,19],[8,19]]as const){const door=cells.get([x,4,z].join(','))!;expect(door.id).toBe('minecraft:iron_door');expect(door.state.hinge).toBe(x===0||x===8?'right':'left');for(const dz of [-1,1])expect(cells.get([x,4,z+dz].join(','))?.id).toBe('minecraft:stone_pressure_plate');}
+ for(const cx of [-25,25])expect(category('Annex roof garden lamp').filter(b=>Math.abs(b.pos.x-cx)<=9)).toHaveLength(4);
+ for(const [x,z]of[[-1,-15],[0,-15],[7,15],[8,15]]as const){const door=cells.get([x,4,z].join(','))!;expect(door.id).toBe('minecraft:iron_door');expect(door.state.hinge).toBe(x===0||x===8?'right':'left');for(const dz of [-1,1])expect(cells.get([x,4,z+dz].join(','))?.id).toBe('minecraft:stone_pressure_plate');}
 },30000);
 
