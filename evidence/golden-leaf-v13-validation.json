@@ -1,0 +1,30 @@
+{
+  "revision": "golden-leaf-100-v13",
+  "unitTests": {
+    "files": 36,
+    "passed": 1387
+  },
+  "fixtureTests": 18,
+  "typescript": "passed",
+  "lint": "passed",
+  "build": "passed",
+  "productionBundle": "index-CvOD2Cwc.js",
+  "productionE2E": {
+    "passed": 3,
+    "flows": [
+      "complete building edit persistence backups",
+      "mobile touch layout",
+      "revision route and latest banner preserves old collection without duplicates"
+    ]
+  },
+  "canonicalExport": "evidence/golden-leaf-v13-export.json",
+  "renders": "evidence/golden-leaf-v13-final",
+  "comparison": "evidence/golden-leaf-v13-comparison.png",
+  "visualLimits": [
+    "short leaf shoulder still broad",
+    "rear seam remains subtle",
+    "voxel contours remain"
+  ],
+  "minecraftInGame": "not tested",
+  "paidGenerationsSubmitted": 0
+}

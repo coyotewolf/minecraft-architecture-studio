@@ -3,14 +3,14 @@ import {HighDetailBuilder} from '../campus/high-detail.ts';
 import type {MinecraftId, Project} from '../../core/contracts.ts';
 import {parseProject} from '../../core/model.ts';
 
-/** V12 refines the canonical 100-block design without overwriting earlier collections. */
-export const GOLDEN_LEAF_DESIGN={id:'golden-leaf-tower',revision:'golden-leaf-100-v12',front:'negative-z',nominalTowerDiameter:48,nominalTowerHeight:88,towerBaseY:11,highestY:99,floorPitch:3,floorCount:26,floorLevels:Array.from({length:26},(_,i)=>11+i*3),referenceInspiredAspect:1090/620,chosenAspect:88/48,proportionNote:'全棟含基座與尖頂 Y0–99，共100格；塔身最大直徑48、膠囊形基座71×47、中央直段24格接左右半圓；裙樓57×33、屋頂Y8，比側亭Y14低6格，左右附樓與屋頂花園採朝內凹的月牙足跡。26道樓板以3格層距排列，半磚保留至少2格淨高；最上兩道隨雙葉收窄；前圖26道層帶、背圖約13道，兩圖可見層帶不完全對應；本設計保留26個通行樓層，後窗以13道外露半磚層帶呼應參考，其餘內樓板退至玻璃後。隱藏結構、尺寸均為 AI Estimated Area。'} as const;
+/** V13 refines the canonical 100-block design without overwriting earlier collections. */
+export const GOLDEN_LEAF_DESIGN={id:'golden-leaf-tower',revision:'golden-leaf-100-v13',front:'negative-z',nominalTowerDiameter:48,nominalTowerHeight:88,towerBaseY:11,highestY:99,floorPitch:3,floorCount:26,floorLevels:Array.from({length:26},(_,i)=>11+i*3),referenceInspiredAspect:1090/620,chosenAspect:88/48,proportionNote:'全棟含基座與尖頂 Y0–99，共100格；塔身最大直徑48、膠囊形基座71×47、中央直段24格接左右半圓；裙樓57×33、屋頂Y8，比側亭Y14低6格，左右附樓與屋頂花園採朝內凹的月牙足跡。26道樓板以3格層距排列，半磚保留至少2格淨高；最上兩道隨雙葉收窄；前圖26道層帶、背圖約13道，兩圖可見層帶不完全對應；本設計保留26個通行樓層，後窗以13道外露半磚層帶呼應參考，其餘內樓板退至玻璃後。隱藏結構、尺寸均為 AI Estimated Area。'} as const;
 const WHITE:MinecraftId='minecraft:smooth_quartz',GOLD:MinecraftId='minecraft:gold_block',GLASS:MinecraftId='minecraft:blue_stained_glass',SLAB:MinecraftId='minecraft:smooth_stone_slab',LAMP:MinecraftId='minecraft:glowstone';
 const leafState={persistent:'true',distance:'1'};
 const floorSet=new Set<number>(GOLDEN_LEAF_DESIGN.floorLevels);
 const rearLedgeLevels=new Set(Array.from({length:13},(_,i)=>38+i*4));
 // Traced width ratios from the reference: a broad lower bowl and a progressively curving shoulder.
-const profile=[[11,16.8],[14.5,18.72],[26,22.56],[38.3,24],[50.6,22.56],[66.4,18.72],[83.2,11.4],[87,8.5],[91,4.7],[95,1.5],[98,.4],[99,.2]] as const;
+const profile=[[11,16.8],[14.5,18.72],[26,22.56],[38.3,24],[50.6,22.56],[66.4,18.72],[83.2,11.4],[87,8.5],[91,4.7],[95,2.4],[98,1.1],[99,.2]] as const;
 const ribProfile=[[11,-5.5],[18,-3.2],[25,0],[35,3.6],[42,5.9],[49,7],[55,7.4],[66.4,6.64],[75,5.5],[78,3.9],[87,2],[94,.4]] as const;
 const smooth=(t:number)=>t*t*(3-2*t);
 function sampleProfile(y:number,profile:readonly (readonly [number,number])[]){
@@ -19,20 +19,25 @@ function sampleProfile(y:number,profile:readonly (readonly [number,number])[]){
  return profile[profile.length-1]![1];
 }
 function bodyRadius(y:number){return y>99?0:sampleProfile(y,profile);}
-function shortSection(y:number){const t=smooth(Math.max(0,Math.min(1,(y-68)/22)));return {cx:6*t,r:y>90?0:bodyRadius(y+9*t)};}
-function radius(y:number,theta=0){
- if(y<=68||Math.sin(theta)<1e-6)return bodyRadius(y);
+// A single pair of nested circular envelopes closes both crowns without added disks.
+function shortSection(y:number){const t=smooth(Math.max(0,Math.min(1,(y-68)/22)));return {cx:10*t,r:y>90?0:sampleProfile(y,[[68,18.2],[76,14],[82,9.2],[86,5.2],[89,2],[90,.6]])};}
+function crownRadius(y:number,theta=0){
+ const tall=bodyRadius(y);if(y<=68||Math.sin(theta)<1e-6)return tall;
  const s=shortSection(y),discriminant=s.r*s.r-s.cx*s.cx*Math.cos(theta)**2;
- return discriminant<0||s.r===0?0:s.cx*Math.sin(theta)+Math.sqrt(discriminant);
+ return discriminant<0||s.r===0?tall:Math.max(tall,s.cx*Math.sin(theta)+Math.sqrt(discriminant));
 }
-function aperture(y:number,rear=false){return rear?(y<35||y>89?0:.52*Math.pow(Math.sin(Math.PI*(y-35)/54),.8)):.48+.27*Math.sin(Math.PI*Math.min(1,(y-11)/88*1.08));}
+// The lower rear bowl expands mainly across X; its depth changes only two blocks.
+// This keeps one broad gold panel instead of many concentric horizontal terraces.
+function rearDepth(y:number){return y<=38?22+2*smooth(Math.max(0,(y-11)/27)):bodyRadius(y);}
+function radius(y:number,theta=0){const r=crownRadius(y,theta);if(Math.cos(theta)>=0||y>38)return r;const depth=rearDepth(y);return r*depth/Math.hypot(depth*Math.sin(theta),r*Math.cos(theta));}
+function rearSurface(y:number,x:number){const r=bodyRadius(y);return Math.floor(rearDepth(y)*Math.sqrt(Math.max(0,1-(x/r)**2)));}
+function aperture(y:number,rear=false){return rear?(y<35||y>89?0:.48*Math.pow(Math.sin(Math.PI*(y-35)/54),.8)):.48+.27*Math.sin(Math.PI*Math.min(1,(y-11)/88*1.08));}
 function windowFacade(y:number,rear=false){
  const angle=Math.asin(aperture(y,rear)),leftRadius=radius(y,rear?-Math.PI+angle:-angle),rightRadius=radius(y,rear?Math.PI-angle:angle),left=-Math.floor(Math.max(0,leftRadius-2)*Math.sin(angle)),right=rightRadius>=4?Math.floor((rightRadius-2)*Math.sin(angle)):0;
  const leftZ=-(leftRadius-2)*Math.cos(angle),rightZ=rightRadius>=4?-(rightRadius-2)*Math.cos(angle):-(leftRadius-2);
  return {left,right,z:(x:number)=>{const t=Math.max(0,Math.min(1,(x-left)/Math.max(1,right-left)));return (rear?-1:1)*Math.round(leftZ+(rightZ-leftZ)*t-2*4*t*(1-t));}};
 }
 const frontFacade=(y:number)=>windowFacade(y);
-function disk(b:HighDetailBuilder,x0:number,z0:number,y:number,r:number,id:MinecraftId,category:string){for(let x=Math.ceil(x0-r);x<=Math.floor(x0+r);x++)for(let z=Math.ceil(z0-r);z<=Math.floor(z0+r);z++)if(Math.hypot(x-x0,z-z0)<=r)b.set(x,y,z,id,category);}
 const capsuleDistance=(x:number,z:number)=>Math.hypot(Math.max(Math.abs(x)-12,0),z);
 const crescent=(x:number,z:number,side:number)=>Math.hypot((x-side*23)/11,z/13)<=1&&Math.hypot((x-side*18)/10,z/11)>1;
 const nearCrescent=(x:number,z:number)=>[-1,1].some(side=>crescent(x,z,side));
@@ -46,7 +51,7 @@ function stairs(b:HighDetailBuilder){
  }
 }
 function buildGoldenLeaf(){
- const shortReturnCells=new Set<string>();
+
  const b=new HighDetailBuilder({id:GOLDEN_LEAF_DESIGN.revision,title:'金色葉塔・百格重建',origin:[0,0,0],references:['golden-leaf-front','golden-leaf-rear'],features:['百格內完整金葉塔、灰色外架與內退深藍窗','26道半磚樓板、前X與後窄葉窗、雙金葉覆疊','雙月牙附樓、膠囊基座與主入口、暖螢石與多層花園'],notes:GOLDEN_LEAF_DESIGN.proportionNote});
  // An actual stadium footprint: straight front/rear runs and circular end caps.
  capsule(b,0,23,'minecraft:stone_bricks','Foundation');capsule(b,1,23,WHITE,'Base terrace');capsule(b,3,16,WHITE,'Lobby floor');
@@ -61,10 +66,11 @@ function buildGoldenLeaf(){
  }
  for(let y=11;y<=99;y++){
   const r=bodyRadius(y),frontAngle=Math.asin(aperture(y)),rearAngle=Math.asin(aperture(y,true)),floor=floorSet.has(y),cap=shortSection(y),facade=frontFacade(y),backFacade=windowFacade(y,true);
-  for(let x=-Math.ceil(r+4);x<=Math.ceil(r+4);x++)for(let z=-Math.ceil(r+4);z<=Math.ceil(r+4);z++){
+  for(let x=-Math.ceil(r+4);x<=Math.ceil(Math.max(r+4,cap.cx+cap.r));x++)for(let z=-Math.ceil(r+4);z<=Math.ceil(Math.max(r+4,rearDepth(y)));z++){
    const theta=Math.atan2(x,-z),a=Math.abs(theta),rr=radius(y,theta),d=Math.hypot(x,z);if(rr<.2)continue;
    const front=a<frontAngle,rear=Math.PI-a<rearAngle,window=front||rear;
-   if((!window||rr<3.2)&&d>=Math.max(0,rr-1.25)&&d<=rr)b.set(x,y,z,GOLD,'Golden petal shell');
+   if((!window||rr<3.2)&&d>=Math.max(0,y===11&&z>0?Math.min(rr-1.5,r-1.25):rr-1.5)&&d<=rr)b.set(x,y,z,GOLD,'Golden petal shell');
+   if(y>=85&&cap.r>0&&x>=7&&Math.hypot(x-cap.cx,z)<=cap.r)b.set(x,y,z,GOLD,'Golden petal shell');
    const inside=x<=0||y<=68||Math.hypot(x-cap.cx,z)<cap.r-3;
    if(floor&&inside&&(!front||z>=facade.z(x)+1)&&(!rear||z<=backFacade.z(x)-1)&&d<rr-3)b.set(x,y,z,SLAB,'Floor',{type:'top'});
   }
@@ -81,7 +87,7 @@ function buildGoldenLeaf(){
   // White returns line the gold edge; the gray structure is separate and further forward.
   for(const rear of [false,true]){const angle=rear?rearAngle:frontAngle;if(angle<=0)continue;
    for(const side of [-1,1]){const theta=rear?side*(Math.PI-angle):side*angle,rr=radius(y,theta);if(rr<4)continue;
-    for(let depth=0;depth<=2;depth++)for(let width=0;width<=(rear&&y>=87?0:1);width++)b.set(Math.round((rr-depth)*Math.sin(theta))+side*width,y,-Math.round((rr-depth)*Math.cos(theta)),WHITE,rear?'Rear white leaf reveal':'Front white leaf reveal');
+    for(let depth=0;depth<=1;depth++)for(let width=0;width<=0;width++)b.set(Math.round((rr-depth)*Math.sin(theta))+side*width,y,-Math.round((rr-depth)*Math.cos(theta)),WHITE,rear?'Rear white leaf reveal':'Front white leaf reveal');
    }
   }
 
@@ -102,27 +108,23 @@ function buildGoldenLeaf(){
   }
  }
  const rearTip=b.finishProject().blocks.filter(block=>block.category==='Rear white leaf reveal').sort((a,b)=>a.pos.y-b.pos.y||Math.abs(a.pos.x)-Math.abs(b.pos.x)||b.pos.z-a.pos.z||a.pos.x-b.pos.x)[0]!.pos;
- // A second gold sheet translates along Z, preserving the original circular curvature.
- // Its diagonal boundary exposes a two-block lip rather than radial contour terraces.
- for(let y=11;y<=44;y++){
-  const seam=y<rearTip.y?Math.round(-15+(y-11)*(rearTip.x+15)/(rearTip.y-12)):Math.ceil(bodyRadius(y)*aperture(y,true))+1,r=bodyRadius(y),depth=y<rearTip.y-3?2:1;
-  for(let x=seam;x<=Math.floor(r);x++){
-   const back=Math.floor(Math.sqrt(Math.max(0,r*r-x*x)));
-   if(back<2)continue;
-   for(let dz=0;dz<=depth;dz++){
-    const z=back+dz,angle=Math.abs(Math.atan2(x,-z));
-    if(Math.PI-angle<Math.asin(aperture(y,true)))continue;
-    b.set(x,y,z,GOLD,x===seam&&y<rearTip.y?(dz===depth?'Rear overlap lip':'Rear diagonal petal overlap'):'Rear overlapping petal');
-   }
+ // One diagonal lap is raised by just one voxel and feathers into the same shell.
+ // Limiting it to three columns avoids translating a whole rear hemisphere.
+ for(let y=11;y<rearTip.y;y++){
+  const seam=Math.round(-15+(y-11)*(rearTip.x+15)/(rearTip.y-12));
+  for(let x=seam;x<=seam+3;x++){
+   const back=rearSurface(y,x);
+   for(let z=back-1;z<=back+(x<=seam+1?1:0);z++)b.set(x,y,z,GOLD,x===seam&&z===back+1?'Rear overlap lip':x===seam?'Rear diagonal petal overlap':'Rear overlapping petal');
   }
  }
- // The white return bends into the tall gold petal instead of continuing as an empty vertical pole.
- for(let y=90;y<=98;y++){const r=bodyRadius(y),x=-Math.round(r*.2),z=Math.round(Math.sqrt(Math.max(0,r*r-x*x)));b.set(x,y,z,'minecraft:quartz_stairs','Rear apex white return',{facing:'west',half:'bottom',shape:'straight'});if(y===90)b.set(0,y,z,WHITE,'Rear apex return junction');}
- // Stair-shaped white edges soften the two upper leaf shoulders with legal block geometry.
- for(let y=80;y<=94;y++)for(const side of [-1,1]){if(side>0&&y>=85)continue;const theta=side*Math.asin(aperture(y)),r=radius(y,theta);if(r<4)continue;const x=Math.round(r*Math.sin(theta))+side,z=-Math.round(r*Math.cos(theta));b.set(x,y,z,'minecraft:quartz_stairs','Upper leaf stepped reveal',{facing:side<0?'west':'east',half:'bottom',shape:'straight'});}
+ // Follow the two envelopes with a single pale trace, ending before each golden tip.
+ for(let y=90;y<=97;y++)for(const rear of [false,true]){
+  const r=bodyRadius(y),x=-Math.round(r*.48),z=(rear?1:-1)*Math.round(Math.sqrt(Math.max(0,r*r-x*x)));
+  b.set(x,y,z,'minecraft:quartz_stairs',rear?'Rear apex white return':'Front apex white return',{facing:'west',half:'bottom',shape:'straight'});
+ }
  b.set(0,99,0,GOLD,'Tall leaf tip');
- for(let y=85;y<=90;y++)disk(b,6,0,y,[4,3.5,3,2.5,1.5,1][y-85]!,GOLD,y===90?'Short leaf tip':'Short leaf crown');
- for(let y=80;y<=90;y++){const cap=shortSection(y),theta=Math.asin(aperture(y)),r=radius(y,theta);{const x=y===90?4:r>=2?Math.round(r*Math.sin(theta)):Math.round(cap.cx-cap.r*.6),z=r>=2?-Math.round(r*Math.cos(theta)):-Math.round(cap.r*.8);b.set(x,y,z,'minecraft:quartz_stairs','Short leaf return',{facing:'east',half:'bottom',shape:'straight'});shortReturnCells.add([x,y,z].join(','));}}
+ // Crown material is classified from the very same envelope used by the lower shell.
+ for(const cell of b.finishProject().blocks.filter(block=>block.id===GOLD&&block.pos.y>=85&&block.pos.x>=7))b.set(cell.pos.x,cell.pos.y,cell.pos.z,GOLD,cell.pos.y===90?'Short leaf tip':'Short leaf crown');
  // Both pavilion volumes, roof decks and planting use the same inward-facing crescent mask.
  for(const side of [-1,1]){
   const inside=(x:number,z:number)=>crescent(x,z,side);
@@ -244,24 +246,12 @@ function buildGoldenLeaf(){
   while(x!==to.x){x+=Math.sign(to.x-x);bridge();}
   while(z!==to.z){z+=Math.sign(to.z-z);bridge();}
  }
- // The upper saddle is a recessed two-column notch, not a large freestanding blue sail.
- const saddleGold=(x:number,y:number,z:number)=>{if(!shortReturnCells.has([x,y,z].join(',')))b.set(x,y,z,GOLD,'Upper saddle gold return');};
- for(const x of [1,4])for(let y=86;y<=94-x;y++)for(const z of [-2,-1,0,1,2])saddleGold(x,y,z);
- for(const x of [2,3]){
-  const top=94-x;for(let y=86;y<=top-3;y++)for(let z=-2;z<=2;z++)saddleGold(x,y,z);
-  for(let y=top-2;y<top;y++)b.set(x,y,0,GLASS,'Upper saddle glazing');
-  b.set(x,top,0,'minecraft:quartz_stairs','Upper saddle white return',{facing:'west',half:'bottom',shape:'straight'});
- }
- // A narrow front return reaches one row below the golden apex, leaving the tip itself gold.
- for(let y=90;y<=98;y++){
-  const r=bodyRadius(y),x=-Math.round(r*.48),z=-Math.max(1,Math.round(Math.sqrt(Math.max(0,r*r-x*x))));
-  b.set(x,y,z,'minecraft:quartz_stairs','Front apex white return',{facing:'west',half:'bottom',shape:'straight'});
- }
  return b;
 }
-function finalProject(project:Project):Project{return parseProject({...project,id:'golden-leaf-100-complete-v12',designRevision:GOLDEN_LEAF_DESIGN.revision,blocks:project.blocks.map(block=>({...block,constructionPhaseId:'golden-leaf:'+block.category!.toLowerCase().replace(/[^a-z0-9]+/g,'-'),...(block.category==='Doors'?{id:'minecraft:iron_door' as const,state:{...block.state,hinge:block.pos.x===0||block.pos.x===8?'right':'left'}}:{})}))});}
+function finalProject(project:Project):Project{return parseProject({...project,id:'golden-leaf-100-complete-v13',designRevision:GOLDEN_LEAF_DESIGN.revision,blocks:project.blocks.map(block=>({...block,constructionPhaseId:'golden-leaf:'+block.category!.toLowerCase().replace(/[^a-z0-9]+/g,'-'),...(block.category==='Doors'?{id:'minecraft:iron_door' as const,state:{...block.state,hinge:block.pos.x===0||block.pos.x===8?'right':'left'}}:{})}))});}
 export function createGoldenLeafProject():Project{return finalProject(buildGoldenLeaf().finishProject());}
 /** Legacy export callers still receive complete canonical chunks, never the editing workspace. */
 export function createGoldenLeafParts():District[]{return buildGoldenLeaf().finishParts().map(part=>({...part,project:{...finalProject(part.project),id:part.project.id}}));}
+
 
 

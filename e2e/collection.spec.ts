@@ -17,8 +17,8 @@ test('collection preserves metadata, edited complete building and additive backu
  await page.getByRole('button',{name:'開啟完整建築施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(current.blocks.length),{timeout:180000});console.info('Returning from complete editor');await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);console.info('Returned to collection');
  const importPath=testInfo.outputPath('collection-backup.json');await writeFile(importPath,JSON.stringify(edited));await page.getByLabel('匯入收藏備份',{exact:true}).setInputFiles(importPath);await expect(page.getByRole('status')).toContainText('已加入備份',{timeout:60000});const imported=await backup(page);expect(imported.entries).toHaveLength(2);expect(imported.entries[0]).toEqual(edited.entries[0]);expect(imported.entries[1]!.project.id).not.toEqual(edited.entries[0]!.project.id);expect(imported.entries[1]!.project.blocks).toEqual(edited.entries[0]!.project.blocks);await page.reload();await ready(page);expect((await backup(page)).entries).toEqual(imported.entries);
  // Reload and returning from the editor must keep the selected building, not jump to the oldest entry.
- await page.getByRole('button',{name:'載入新版金葉塔',exact:true}).click();await expect(page.getByRole('status')).toContainText('已加入 V12',{timeout:60000});await ready(page);
- const freshName='金葉之塔（100 格・葉片基座修正版 V12）';await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue(freshName);
+ await page.getByRole('button',{name:'載入新版金葉塔',exact:true}).click();await expect(page.getByRole('status')).toContainText('已加入 V13',{timeout:60000});await ready(page);
+ const freshName='金葉之塔（100 格・葉片曲面修正版 V13）';await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue(freshName);
  await page.reload();await ready(page);await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue(freshName);
  await page.getByRole('button',{name:'開啟完整建築施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(part.blocks.length),{timeout:180000});
  await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue(freshName);
@@ -36,10 +36,11 @@ test('current revision link adds a missing design once and preserves the old col
  await page.evaluate(async()=>{await new Promise<void>((resolve,reject)=>{const r=indexedDB.deleteDatabase('minecraft-building-collection');r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error);});localStorage.removeItem('minecraft-building-collection-active');});
  // Seed the supported legacy inline storage envelope, then exercise real read/migration/write.
  await page.evaluate(async data=>{const req=indexedDB.open('minecraft-building-collection',3);await new Promise<void>((resolve,reject)=>{req.onupgradeneeded=()=>{for(const name of ['collection','parts','buildings'])if(!req.result.objectStoreNames.contains(name))req.result.createObjectStore(name);};req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error);});const db=req.result,tx=db.transaction('collection','readwrite');tx.objectStore('collection').put(data,'current');await new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});db.close();},older);
- await page.goto('/?view=collection&revision=golden-leaf-100-v12');await ready(page);
- await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V12');
+ await page.goto('/?view=collection&revision=golden-leaf-100-v13');await ready(page);
+ await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V13');
  const upgraded=await backup(page);expect(upgraded.entries).toHaveLength(2);expect(upgraded.entries[0]).toEqual(older.entries[0]);
- await page.goto('/?view=collection&revision=golden-leaf-100-v12');await ready(page);
+ await page.goto('/?view=collection&revision=golden-leaf-100-v13');await ready(page);
  expect((await backup(page)).entries).toEqual(upgraded.entries);
- await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V12');
+ await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V13');
+ await page.getByRole('button',{name:/保留的早期建築/}).click();await expect(page.getByRole('region',{name:'金葉塔更新'})).toBeVisible();await page.getByRole('button',{name:'查看新版 V13',exact:true}).click();await ready(page);await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V13');expect((await backup(page)).entries).toEqual(upgraded.entries);await expect(page.getByRole('region',{name:'金葉塔更新'})).toHaveCount(0);
 });
