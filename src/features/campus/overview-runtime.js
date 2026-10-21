@@ -39,7 +39,7 @@ export function buildCampusGeometry(blocks, origin = [0,0,0]) {
     geometry.setAttribute('normal',new THREE.Float32BufferAttribute(batch.normals,3));
     geometry.setAttribute('color',new THREE.Float32BufferAttribute(batch.colors,3));
     geometry.computeBoundingSphere();
-    const material=new THREE.MeshStandardMaterial({color:batch.surface==='gold'?0xffaa04:batch.color,vertexColors:true,roughness:batch.surface==='gold'?.48:batch.opacity<1?.2:.84,metalness:batch.surface==='gold'?.08:batch.opacity<1?.08:.03,transparent:batch.opacity<1,opacity:batch.surface==='glass'?Math.max(.72,batch.opacity):batch.opacity,depthWrite:batch.opacity===1,wireframe:!batch.supported});
+    const material=new THREE.MeshStandardMaterial({color:batch.surface==='gold'?0xffaa04:batch.color,vertexColors:true,roughness:batch.surface==='gold'?.48:batch.opacity<1?.2:.84,metalness:batch.surface==='gold'?.08:batch.opacity<1?.08:.03,transparent:batch.opacity<1,opacity:batch.surface==='glass'?Math.max(.86,batch.opacity):batch.opacity,depthWrite:batch.opacity===1,wireframe:!batch.supported});
     if(batch.surface==='gold'){material.emissive.setHex(0xffa000);material.emissiveIntensity=.08;}
     if(batch.surface==='light'){material.emissive.setHex(0xff8a20);material.emissiveIntensity=2.4;}
     if(batch.surface!=='plain'){

@@ -9,11 +9,13 @@ reference = Path('public/local-references')
 background = (20, 25, 27)
 font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', 18)
 baseline = Path(sys.argv[3]) if len(sys.argv) > 3 else None
+baseline_label = sys.argv[4] if len(sys.argv)>4 else 'V8'
+current_label = sys.argv[5] if len(sys.argv)>5 else 'V9'
 sheet = Image.new('RGB', (1800, 1840) if baseline else (2400, 930), background)
 draw = ImageDraw.Draw(sheet)
 draw.text((22, 16), 'Reference / canonical model | Equal displayed height, no stretching | Estimated 14-degree view', font=font, fill='white')
 panels=[]
-sources = ([(label, directory/('golden-leaf-'+view+'.png')) for view in ['front','rear'] for label,directory in [('Reference '+view,reference),('V8 '+view,baseline),('V9 '+view,folder)]] if baseline else [('Original front',reference/'golden-leaf-front.png'),('100-block model front',folder/'golden-leaf-front.png'),('Original rear',reference/'golden-leaf-rear.png'),('100-block model rear',folder/'golden-leaf-rear.png')])
+sources = ([(label, directory/('golden-leaf-'+view+'.png')) for view in ['front','rear'] for label,directory in [('Reference '+view,reference),(baseline_label+' '+view,baseline),(current_label+' '+view,folder)]] if baseline else [('Original front',reference/'golden-leaf-front.png'),('100-block model front',folder/'golden-leaf-front.png'),('Original rear',reference/'golden-leaf-rear.png'),('100-block model rear',folder/'golden-leaf-rear.png')])
 for label, path in sources:
  img=Image.open(path).convert('RGBA')
  if img.getextrema()[3][0] < 255: bounds=img.getchannel('A').point(lambda a:255 if a>100 else 0).getbbox()

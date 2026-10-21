@@ -1,0 +1,60 @@
+{
+  "revision": "golden-leaf-100-v10",
+  "date": "2026-10-21",
+  "fullTests": {
+    "files": 36,
+    "passed": 1383,
+    "seconds": 48.71
+  },
+  "fixtureTests": 14,
+  "typecheck": "passed",
+  "lint": "passed",
+  "build": "passed",
+  "productionE2e": {
+    "passed": 2,
+    "seconds": 53.8,
+    "addedCoverage": [
+      "Remember selected building after reload",
+      "Keep selection after returning from editor",
+      "Preserve earlier buildings when adding latest"
+    ]
+  },
+  "export": {
+    "dimensions": [
+      71,
+      100,
+      49
+    ],
+    "foundation": [
+      71,
+      47
+    ],
+    "cells": 51113,
+    "items": 51109,
+    "materials": 17,
+    "slabs": 24248,
+    "glowstone": 236,
+    "floors": 26,
+    "rearLedges": 13,
+    "roundtrip": "passed"
+  },
+  "visual": {
+    "rounds": 2,
+    "views": [
+      "front",
+      "rear",
+      "top",
+      "side",
+      "base-front",
+      "base-top"
+    ],
+    "comparison": "evidence/golden-leaf-v10-comparison.png",
+    "cameraPitch": 14,
+    "cameraCalibrated": false,
+    "independentReview": "improved facade, rhythm and planter edging; no new large holes or cropping",
+    "exactMatch": false
+  },
+  "productionBundle": "index-CMXtl2Km.js",
+  "minecraftInGame": "not tested",
+  "paidGenerations": 0
+}
