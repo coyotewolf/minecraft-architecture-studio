@@ -26,4 +26,6 @@ export function campusToJson(campus:Campus):string {return JSON.stringify({schem
 export function campusToCsv(campus:Campus):string {const q=(v:unknown)=>'"'+String(v).replaceAll('"','""')+'"';return [['District','UID','Block ID','X','Y','Z','Category','Placement State','AI Estimated Area'],...campus.blocks.map(b=>[b.componentId,b.uid,b.id,b.pos.x,b.pos.y,b.pos.z,b.category,JSON.stringify(b.state),b.source.origin==='ai_estimated'||b.source.origin==='inferred'])].map(r=>r.map(q).join(',')).join('\r\n');}
 
 let cachedV3:Campus|undefined;
+/** Allow leaving the full overview to release its otherwise permanent model references. */
+export function releaseCampusCache():void {cached=undefined;cachedV3=undefined;}
 export function createCampus():Campus {if(cachedV3)return cachedV3;const buildings=[...createLandmarkDistrictsV3(),...createIndustryDistrictsV3(),...createGardenDistrictsV3()];cachedV3=assembleCampus([...buildings,...createLandscapeDistrictsV3(buildings)]);return cachedV3;}

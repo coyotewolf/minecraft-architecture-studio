@@ -107,9 +107,27 @@ test('a revision crossing one million total cells loads and persists without los
   tx.objectStore('collection').put({storageVersion:3,collection:{schemaVersion:2,name:'歷代建築',entries}},'current');
   await new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});db.close();
  },seed);
+ await page.addInitScript(()=>{
+  const audit={getAll:[] as string[],buildingGets:[] as string[]};
+  (globalThis as typeof globalThis & {libraryReadAudit:typeof audit}).libraryReadAudit=audit;
+  const getAll=IDBObjectStore.prototype.getAll,get=IDBObjectStore.prototype.get;
+  IDBObjectStore.prototype.getAll=function(...args:Parameters<IDBObjectStore['getAll']>){audit.getAll.push(this.name);return getAll.apply(this,args);};
+  IDBObjectStore.prototype.get=function(...args:Parameters<IDBObjectStore['get']>){if(this.name==='buildings')audit.buildingGets.push(String(args[0]));return get.apply(this,args);};
+ });
  await page.goto('/?view=collection&revision=golden-leaf-100-v14');await ready(page);
  await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V14');
  await expect(page.locator('.collection-library > button')).toHaveCount(20);
+ const audit=await page.evaluate(()=>(globalThis as typeof globalThis & {libraryReadAudit:{getAll:string[];buildingGets:string[]}}).libraryReadAudit);
+ expect(audit.getAll).toEqual([]);
+ expect(audit.buildingGets).toHaveLength(2); // Only old-index newest candidate plus selected V14, never nineteen models.
+ const memorySession=await page.context().newCDPSession(page);
+ await memorySession.send('HeapProfiler.collectGarbage');
+ const memory=await memorySession.send('Runtime.getHeapUsage');
+ console.info('Lazy library heap after GC (MiB):',Math.round(memory.usedSize/1024/1024));
+ await writeFile('evidence/collection-lazy-memory.json',JSON.stringify({entries:20,canonicalCells:1001004,buildingReads:audit.buildingGets,bulkReads:audit.getAll,heapUsedBytes:memory.usedSize,note:'Chromium JS heap after GC, not total process or GPU memory'},null,2));
+ await page.screenshot({path:'evidence/collection-lazy-recovery.png'});
+
+
  await expect(page.getByRole('status')).toHaveText('已載入本機收藏');
  const counts=await page.evaluate(async()=>{
   const r=indexedDB.open('minecraft-building-collection',3);await new Promise<void>(resolve=>{r.onsuccess=()=>resolve();});
@@ -117,14 +135,31 @@ test('a revision crossing one million total cells loads and persists without los
   await new Promise<void>(resolve=>{tx.oncomplete=()=>resolve();});db.close();
   const projects=[];
   for(const blob of blobs.result as Blob[]){const p=JSON.parse(await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).text());projects.push({id:p.id,count:p.blocks.length,first:p.blocks[0].uid,last:p.blocks.at(-1).uid});}
-  return {entries:metadata.result.collection.entries,projects};
+  return {entries:metadata.result.library.entries,projects};
  });
  expect(counts.projects.reduce((n,p)=>n+p.count,0)).toBe(950019+first.project.blocks.length);
  for(let i=0;i<19;i++){
-  expect(counts.entries[i]).toMatchObject({id:'preserved-'+i,notes:'歷史筆記 '+i,project:'preserved-project-'+i});
+  expect(counts.entries[i]).toMatchObject({id:'preserved-'+i,notes:'歷史筆記 '+i,projectId:'preserved-project-'+i});
   expect(counts.projects.find(p=>p.id==='preserved-project-'+i)).toMatchObject({count:50001,first:'kept-0',last:'kept-50000'});
  }
  await page.reload();await ready(page);
  await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V14');
  await expect(page.locator('.collection-library > button')).toHaveCount(20);
+});
+
+test('first-save failure still offers the complete unsaved building download',async({page})=>{
+ test.setTimeout(120000);
+ await page.addInitScript(()=>{
+  const put=IDBObjectStore.prototype.put;
+  IDBObjectStore.prototype.put=function(...args:Parameters<IDBObjectStore['put']>){
+   if(this.name==='buildings')throw new DOMException('Test quota','QuotaExceededError');
+   return put.apply(this,args);
+  };
+ });
+ await page.goto('/?view=collection');await ready(page);
+ await expect(page.getByRole('status')).toContainText('尚未儲存至瀏覽器');
+ const event=page.waitForEvent('download');await page.getByRole('button',{name:'下載完整建築 JSON',exact:true}).click();
+ const file=await(await event).path();expect(file).toBeTruthy();
+ const project=JSON.parse(await readFile(file!,'utf8'));
+ expect(project.designRevision).toBe('golden-leaf-100-v14');expect(project.blocks).toHaveLength(50985);
 });

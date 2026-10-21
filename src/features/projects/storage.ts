@@ -139,14 +139,14 @@ export function deserializeWorkspace(value: string): WorkspaceRecord {
   return unpackWorkspace(JSON.parse(value) as unknown);
 }
 /** A single compressed database record keeps a complete building under browser per-record limits. */
-export async function encodeWorkspace(record:WorkspaceRecord):Promise<{storageVersion:2;project:{id:string};payload:Blob}> {
+export async function encodeWorkspace(record:WorkspaceRecord):Promise<{storageVersion:2;project:{id:string};title:string;updatedAt:string;payload:Blob}> {
   const valid=parseWorkspace(record),json=serializeWorkspace(valid);
   const payload=await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'))).blob();
-  return {storageVersion:2,project:{id:valid.project.id},payload};
+  return {storageVersion:2,project:{id:valid.project.id},title:valid.project.title,updatedAt:valid.updatedAt,payload};
 }
 export async function decodeWorkspace(input:unknown):Promise<WorkspaceRecord> {
   if(!input||typeof input!=='object'||!('storageVersion' in input))return parseWorkspace(input);
-  const p=object(input,['storageVersion','project','payload']);
+  const p=object(input,['storageVersion','project','title','updatedAt','payload']);
   if(p.storageVersion!==2||!(p.payload instanceof Blob))throw new Error('Invalid stored workspace');
   const id=identifier(object(p.project,['id']).id);
   let bytes=0;
@@ -210,6 +210,36 @@ export async function listWorkspaces(): Promise<WorkspaceRecord[]> {
   const values: unknown[] = await transact('readonly', store => store.getAll());
   const records:WorkspaceRecord[]=[];for(const value of values)records.push(await decodeWorkspace(value));
   return records.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.project.id.localeCompare(b.project.id));
+}
+export interface WorkspaceSummary { readonly id:string; readonly title:string; readonly updatedAt:string }
+/** Read list labels only. In particular, never inflate compressed model snapshots. */
+export function workspaceSummary(input:unknown):WorkspaceSummary {
+  if(!input||typeof input!=='object')throw new Error('Invalid stored workspace');
+  const value=input as Record<string,unknown>;
+  if(!value.project||typeof value.project!=='object')throw new Error('Invalid stored workspace');
+  const project=value.project as Record<string,unknown>,id=identifier(project.id);
+  const title=value.storageVersion===2?value.title:project.title;
+  return {id,title:typeof title==='string'&&title.trim()?title:id,updatedAt:typeof value.updatedAt==='string'?value.updatedAt:''};
+}
+export async function listWorkspaceSummaries():Promise<WorkspaceSummary[]> {
+  const db=await openDatabase();
+  try {
+    return await new Promise<WorkspaceSummary[]>((resolve,reject)=>{
+      const summaries:WorkspaceSummary[]=[];
+      const tx=db.transaction('projects','readonly');
+      let failure:unknown;
+      tx.oncomplete=()=>resolve(summaries.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||a.id.localeCompare(b.id)));
+      tx.onabort=()=>reject(failure??tx.error??new Error('IndexedDB transaction aborted'));
+      tx.onerror=()=>{failure=tx.error;};
+      const request=tx.objectStore('projects').openCursor();
+      request.onerror=()=>{failure=request.error;};
+      request.onsuccess=()=>{
+        const cursor=request.result;if(!cursor)return;
+        try {summaries.push(workspaceSummary(cursor.value));cursor.continue();}
+        catch(error){failure=error;tx.abort();}
+      };
+    });
+  } finally {db.close();}
 }
 export async function deleteWorkspace(id: string): Promise<void> {
   const key = identifier(id);

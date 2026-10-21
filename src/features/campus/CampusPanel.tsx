@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Project } from '../../core/contracts.ts';
-import { createCampus, assembleCampus, type Campus } from '../../fixtures/campus/index.ts';
+import { createCampus, assembleCampus, releaseCampusCache, type Campus } from '../../fixtures/campus/index.ts';
 import { campusJsonChunks, campusCsvChunks } from '../../fixtures/campus/stream-export.ts';
 import { loadWorkspace } from '../projects/storage.ts';
 import { createCampusViewer, calibrateCampusCamera, projectCampusLandmarks, validCampusCamera, type CampusCamera, type CampusLandmark, type CampusViewer } from './overview-runtime.js';
@@ -18,7 +18,7 @@ export function CampusPanel({onOpen,onCollection}:Props){
  const projected=useMemo(()=>camera?projectCampusLandmarks(camera,landmarks):[],[camera,landmarks]);
  const rmse=projected.length?Math.sqrt(projected.reduce((sum,l)=>sum+l.errorPixels**2,0)/projected.length):0;
  const host=useRef<HTMLDivElement>(null),viewer=useRef<CampusViewer|null>(null);
- useEffect(()=>{let canceled=false;void Promise.all(createCampus().districts.map(async d=>{const saved=await loadWorkspace(d.project.id);return saved?{...d,project:saved.project}:d;})).then(ds=>{if(!canceled){setCampus(assembleCampus(ds));setReady(true);}}).catch(e=>{if(!canceled){setError('本機分區無法合併：'+String(e));setReady(true);}});return()=>{canceled=true;};},[]);
+ useEffect(()=>{let canceled=false;void Promise.all(campus.districts.map(async d=>{const saved=await loadWorkspace(d.project.id);return saved?{...d,project:saved.project}:d;})).then(ds=>{if(!canceled){setCampus(assembleCampus(ds));setReady(true);}}).catch(e=>{if(!canceled){setError('本機分區無法合併：'+String(e));setReady(true);}});return()=>{canceled=true;releaseCampusCache();};},[]);
  const [partId,setPartId]=useState('');
  const groups=useMemo(()=>{const map=new Map<string,typeof campus.districts[number][]>();for(const d of campus.districts){const id=d.parentGroupId??d.id;const parts=map.get(id)??[];parts.push(d);map.set(id,parts);}return [...map].map(([id,parts])=>({...parts[0]!,id,parts,blocks:parts.flatMap(d=>d.project.blocks)}));},[campus]);
  const district=groups.find(d=>d.id===selected);

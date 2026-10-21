@@ -1,5 +1,4 @@
-import { CampusPanel } from './features/campus/CampusPanel.tsx';
-import { StrictMode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { StrictMode, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { BlockPos, BlockRecord, BlockState, EditTransaction, MinecraftId } from './core/contracts.ts';
 import { VoxelEngine } from './core/engine.ts';
@@ -35,14 +34,16 @@ import { ReferencePanel } from './features/references/ReferencePanel.tsx';
 import type { ReferenceImage } from './features/references/storage.ts';
 
 interface PendingEdit { transaction: EditTransaction | null; valid: boolean; message: string; records: readonly BlockRecord[]; cells: number; audit?:string }
+const CampusPanel=lazy(()=>import('./features/campus/CampusPanel.tsx').then(module=>({default:module.CampusPanel})));
 export function App(){
- const [screen,setScreen]=useState<'campus'|'collection'|'studio'>(()=>new URLSearchParams(location.search).has('sample')?'studio':new URLSearchParams(location.search).get('view')==='collection'?'collection':'campus');
+ const [screen,setScreen]=useState<'home'|'campus'|'collection'|'studio'>(()=>{const params=new URLSearchParams(location.search);return params.has('sample')?'studio':params.get('view')==='collection'?'collection':params.get('view')==='campus'?'campus':'home';});
  const [origin,setOrigin]=useState<'campus'|'collection'>('campus');
  const [initial,setInitial]=useState<Project|undefined>(undefined);
- function navigate(next:'campus'|'collection'){const url=new URL(location.href);url.searchParams.delete('sample');if(next==='collection')url.searchParams.set('view','collection');else url.searchParams.delete('view');history.replaceState(null,'',url);setScreen(next);}
+ function navigate(next:'campus'|'collection'){const url=new URL(location.href);url.searchParams.delete('sample');url.searchParams.set('view',next);history.replaceState(null,'',url);setInitial(undefined);setScreen(next);}
  function open(project:Project,from:'campus'|'collection'){setInitial(project);setOrigin(from);setScreen('studio');}
  if(screen==='collection')return <CollectionPanel onOpen={project=>open(project,'collection')} onCampus={()=>navigate('campus')}/>;
- if(screen==='campus')return <CampusPanel onOpen={project=>open(project,'campus')} onCollection={()=>navigate('collection')}/>;
+ if(screen==='home')return <main className="studio"><header className="studio-header"><div><p className="eyebrow">BLOCK ATELIER</p><h1>建築設計工作室</h1></div></header><section className="project-heading"><div><h2>從一棟建築開始</h2><p>開啟建築庫，挑選要編輯或繼續施工的建築。</p><button onClick={()=>navigate('collection')}>開啟建築庫</button></div></section><section className="project-heading"><div><h2>全基地總覽</h2><p>全基地包含大型模型，載入時需要較多記憶體與時間。一般編輯請從建築庫選取單棟建築。</p><button onClick={()=>navigate('campus')}>載入完整基地</button></div></section></main>;
+ if(screen==='campus')return <Suspense fallback={<main className="studio"><p role="status">正在載入全基地工具…</p></main>}><CampusPanel onOpen={project=>open(project,'campus')} onCollection={()=>navigate('collection')}/></Suspense>;
  return <StudioApp initialProject={initial} onCampus={()=>navigate(origin)} returnLabel={origin==='collection'?'返回建築庫':'返回全基地'}/>;
 }
 export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"}:{initialProject?:Project|undefined;onCampus:()=>void;returnLabel?:string}) {

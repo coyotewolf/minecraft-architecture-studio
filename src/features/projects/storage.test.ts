@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { createEmptyProject } from '../../core/project.ts';
 import { createDemoProject } from '../../fixtures/two-floor-house.ts';
-import { createWorkspace, decodeWorkspace, encodeWorkspace, deserializeWorkspace, MAX_SNAPSHOT_BLOCKS, MAX_WORKSPACE_BYTES, parseWorkspace, serializeWorkspace } from './storage.ts';
+import { createWorkspace, decodeWorkspace, encodeWorkspace, deserializeWorkspace, MAX_SNAPSHOT_BLOCKS, MAX_WORKSPACE_BYTES, parseWorkspace, serializeWorkspace, workspaceSummary } from './storage.ts';
 
 const instant = '2026-10-19T12:00:00.000Z';
 function fixture() { return { ...createWorkspace(createDemoProject()), updatedAt: instant }; }
@@ -83,12 +83,21 @@ describe('workspace backup validation', () => {
 it('encodes an entire building in one compressed record and preserves distinct snapshots', async()=>{
  const base=fixture(), changed=parseWorkspace({...base,project:{...base.project,title:'Whole building revision',designRevision:'new-revision'}});
  const encoded=await encodeWorkspace(changed);
+ expect(workspaceSummary(encoded)).toEqual({id:changed.project.id,title:changed.project.title,updatedAt:changed.updatedAt});
+ const legacy={storageVersion:encoded.storageVersion,project:encoded.project,payload:encoded.payload};
+ expect(workspaceSummary(legacy)).toEqual({id:changed.project.id,title:changed.project.id,updatedAt:''});
+ expect(await decodeWorkspace(legacy)).toEqual(changed);
  expect(encoded.payload.size).toBeLessThan(serializeWorkspace(changed).length);
  expect(await decodeWorkspace(encoded)).toEqual(changed);
  const packed=JSON.parse(serializeWorkspace(base));expect(packed.projects).toHaveLength(1);
  expect(deserializeWorkspace(JSON.stringify(base))).toEqual(base);
  await expect(decodeWorkspace({...encoded,project:{id:'wrong'}})).rejects.toThrow('identity');
  await expect(decodeWorkspace({...encoded,payload:new Blob(['broken'])})).rejects.toThrow();
+});
+it('lists metadata without reading compressed payloads or legacy model blocks',()=>{
+ const blocked=()=>{throw new Error('Model must not be read while listing');};
+ expect(workspaceSummary({storageVersion:2,project:{id:'large'},title:'Large building',updatedAt:instant,get payload(){return blocked();}})).toEqual({id:'large',title:'Large building',updatedAt:instant});
+ expect(workspaceSummary({project:{id:'legacy',title:'Old building',get blocks(){return blocked();}},updatedAt:instant})).toEqual({id:'legacy',title:'Old building',updatedAt:instant});
 });
 it('rejects corrupt snapshot references before restoring a backup',()=>{
  const p=JSON.parse(serializeWorkspace(fixture()));p.workspace.original=100;

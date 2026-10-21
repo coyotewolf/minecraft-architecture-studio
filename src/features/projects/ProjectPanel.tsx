@@ -3,7 +3,7 @@ import type { Project } from '../../core/contracts.ts';
 import { exportProject, importProject, MAX_IMPORT_BYTES } from '../../core/model.ts';
 import { inventory } from '../build/model.ts';
 import { constructionToCsv, csvToModel, modelToCsv } from './exports.ts';
-import { createWorkspace, deleteWorkspace, deserializeWorkspace, listWorkspaces, loadWorkspace, MAX_WORKSPACE_BYTES, parseWorkspace, serializeWorkspace, type WorkspaceRecord } from './storage.ts';
+import { createWorkspace, deleteWorkspace, deserializeWorkspace, listWorkspaceSummaries, loadWorkspace, MAX_WORKSPACE_BYTES, parseWorkspace, serializeWorkspace, type WorkspaceSummary, type WorkspaceRecord } from './storage.ts';
 
 export interface ProjectPanelProps { workspace: WorkspaceRecord; status: string; onChange: (workspace: WorkspaceRecord, action?: 'open'|'metadata'|'restore') => void; onSave: () => void }
 function download(text: string, name: string, type: string) {
@@ -12,7 +12,7 @@ function download(text: string, name: string, type: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1_000);
 }
 export function ProjectPanel(props: ProjectPanelProps): ReactElement {
-  const [saved, setSaved] = useState<WorkspaceRecord[]>([]);
+  const [saved, setSaved] = useState<WorkspaceSummary[]>([]);
   const [listed, setListed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -21,7 +21,7 @@ export function ProjectPanel(props: ProjectPanelProps): ReactElement {
   function run(action: () => void) { setError(''); setNotice(''); try { action(); } catch (reason) { setError(reason instanceof Error ? reason.message : String(reason)); } }
   async function refresh() {
     setBusy(true); setError('');
-    try { setSaved(await listWorkspaces()); setListed(true); } catch (reason) { setError(String(reason)); }
+    try { setSaved(await listWorkspaceSummaries()); setListed(true); } catch (reason) { setError(String(reason)); }
     finally { setBusy(false); }
   }
   function change(next: WorkspaceRecord, label: string, action:'open'|'metadata'|'restore'='metadata') {
@@ -39,7 +39,7 @@ export function ProjectPanel(props: ProjectPanelProps): ReactElement {
   async function remove(id: string) {
     if (!window.confirm('確定刪除此瀏覽器中儲存的專案？此動作無法復原，請先下載備份。')) return;
     setBusy(true); setError('');
-    try { await deleteWorkspace(id); setSaved(await listWorkspaces()); setListed(true); setNotice('已刪除儲存記錄；目前開啟的工作區仍保留在畫面上。'); }
+    try { await deleteWorkspace(id); setSaved(await listWorkspaceSummaries()); setListed(true); setNotice('已刪除儲存記錄；目前開啟的工作區仍保留在畫面上。'); }
     catch (reason) { setError(String(reason)); } finally { setBusy(false); }
   }
   function duplicate() {
@@ -82,9 +82,9 @@ export function ProjectPanel(props: ProjectPanelProps): ReactElement {
     <button type="button" disabled={busy} onClick={() => run(props.onSave)}>立即儲存</button>
     <button type="button" disabled={busy} onClick={() => run(duplicate)}>建立副本</button>
     <button type="button" disabled={busy} onClick={() => void refresh()}>重新整理已儲存專案</button>
-    {!listed ? <p>按「重新整理已儲存專案」讀取此瀏覽器的實際記錄。</p> : saved.length === 0 ? <p>此瀏覽器尚無儲存專案。</p> : <ul>{saved.map(record => <li key={record.project.id}>
-      {record.project.title || '未命名專案'} · {record.updatedAt}<button type="button" disabled={busy} onClick={() => void open(record.project.id)}>開啟</button>
-      <button type="button" disabled={busy || record.project.id === w.project.id} title={record.project.id === w.project.id ? '請先開啟其他專案，避免自動儲存重建目前記錄' : undefined} onClick={() => void remove(record.project.id)}>刪除</button>
+    {!listed ? <p>按「重新整理已儲存專案」讀取此瀏覽器的實際記錄。</p> : saved.length === 0 ? <p>此瀏覽器尚無儲存專案。</p> : <ul>{saved.map(record => <li key={record.id}>
+      {record.title || '未命名專案'} · {record.updatedAt}<button type="button" disabled={busy} onClick={() => void open(record.id)}>開啟</button>
+      <button type="button" disabled={busy || record.id === w.project.id} title={record.id === w.project.id ? '請先開啟其他專案，避免自動儲存重建目前記錄' : undefined} onClick={() => void remove(record.id)}>刪除</button>
     </li>)}</ul>}
     <h3>版本快照（{w.milestones.length} / 10）</h3>
     <button type="button" disabled={busy || w.milestones.length >= 10} onClick={() => run(() => change({ ...w, milestones: [...w.milestones,
