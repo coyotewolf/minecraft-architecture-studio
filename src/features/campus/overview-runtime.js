@@ -39,22 +39,31 @@ export function buildCampusGeometry(blocks, origin = [0,0,0]) {
     geometry.setAttribute('normal',new THREE.Float32BufferAttribute(batch.normals,3));
     geometry.setAttribute('color',new THREE.Float32BufferAttribute(batch.colors,3));
     geometry.computeBoundingSphere();
-    const material=new THREE.MeshStandardMaterial({color:batch.surface==='gold'?0xffbb08:batch.color,vertexColors:true,roughness:batch.surface==='gold'?.48:batch.opacity<1?.2:.84,metalness:batch.surface==='gold'?.08:batch.opacity<1?.08:.03,transparent:batch.opacity<1,opacity:batch.surface==='glass'?Math.max(.72,batch.opacity):batch.opacity,depthWrite:batch.opacity===1,wireframe:!batch.supported});
-    if(batch.surface==='gold'){material.emissive.setHex(0xffb900);material.emissiveIntensity=.16;}
-    if(batch.surface==='light'){material.emissive.setHex(0xffba49);material.emissiveIntensity=2.4;}
+    const material=new THREE.MeshStandardMaterial({color:batch.surface==='gold'?0xffaa04:batch.color,vertexColors:true,roughness:batch.surface==='gold'?.48:batch.opacity<1?.2:.84,metalness:batch.surface==='gold'?.08:batch.opacity<1?.08:.03,transparent:batch.opacity<1,opacity:batch.surface==='glass'?Math.max(.72,batch.opacity):batch.opacity,depthWrite:batch.opacity===1,wireframe:!batch.supported});
+    if(batch.surface==='gold'){material.emissive.setHex(0xffa000);material.emissiveIntensity=.08;}
+    if(batch.surface==='light'){material.emissive.setHex(0xff8a20);material.emissiveIntensity=2.4;}
     if(batch.surface!=='plain'){
       material.onBeforeCompile=shader=>{
         shader.uniforms.voxelOrigin={value:new THREE.Vector3(...origin)};
         shader.vertexShader='varying vec3 vVoxelPosition; varying vec3 vVoxelNormal; uniform vec3 voxelOrigin;\n'+shader.vertexShader;
         shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvVoxelPosition=position+voxelOrigin; vVoxelNormal=normal;');
         shader.fragmentShader='varying vec3 vVoxelPosition; varying vec3 vVoxelNormal;\n'+shader.fragmentShader;
-        const strength=batch.surface==='gold'?'0.32':batch.surface==='glass'?'0.22':'0.07';
+        const strength=batch.surface==='gold'?'0.32':batch.surface==='glass'?'0.48':'0.07';
         shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
           vec3 vn=abs(vVoxelNormal); vec2 uv=vn.y>.5?vVoxelPosition.xz:vn.x>.5?vVoxelPosition.zy:vVoxelPosition.xy;
           vec2 cell=fract(uv); float edge=min(min(cell.x,1.-cell.x),min(cell.y,1.-cell.y));
           float inset=smoothstep(.012,.045,edge);
           diffuseColor.rgb*=mix(1.-${strength},1.,inset);
           diffuseColor.rgb*=.96+.04*sin(floor(uv.x)*17.3+floor(uv.y)*23.7);
+        `);
+        // Original per-block glazing detail, anchored to the canonical grid (not extra mullion geometry).
+        if(batch.surface==='glass')shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+          vec3 glassNormal=abs(vVoxelNormal);vec2 glassUv=glassNormal.y>.5?vVoxelPosition.xz:glassNormal.x>.5?vVoxelPosition.zy:vVoxelPosition.xy;
+          vec2 glassCell=fract(glassUv);float paneNoise=fract(sin(dot(floor(glassUv),vec2(37.2,91.7)))*43758.5453);
+          float verticalEdge=1.-smoothstep(.018,.055,min(glassCell.x,1.-glassCell.x));
+          float reflection=1.-smoothstep(.018,.07,abs(glassCell.x-glassCell.y*.38-.28));
+          diffuseColor.rgb*=.94+.14*paneNoise;
+          diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.18,.42,.58),verticalEdge*.35+reflection*.04);
         `);
         if(batch.surface==='foliage')shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
           vec3 leafNormal=abs(vVoxelNormal);vec2 leafUv=leafNormal.y>.5?vVoxelPosition.xz:leafNormal.x>.5?vVoxelPosition.zy:vVoxelPosition.xy;
@@ -117,14 +126,15 @@ export function createCampusViewer(host,blocks,onSelect,onCamera,options={}) {
   const center=bounds.getCenter(new THREE.Vector3());
   const origin=center.toArray(),group=buildCampusGeometry(blocks,origin),byUid=new Map(blocks.map(b=>[b.uid,b]));
   const scene=new THREE.Scene();scene.background=new THREE.Color(options.background??0xa8d7ee);scene.add(group);
-  scene.add(new THREE.HemisphereLight(0xe8f7ff,options.ocean===false?0x3b4048:0x3b5540,options.ocean===false?1.1:1.55));
+  scene.add(new THREE.HemisphereLight(0xe8f7ff,options.ocean===false?0x596876:0x3b5540,options.ocean===false?1.35:1.55));
+  if(options.ocean===false){const fill=new THREE.DirectionalLight(0xd7edff,.65);fill.position.set(120,100,170);scene.add(fill);}
   const sun=new THREE.DirectionalLight(0xfff1d2,options.ocean===false?2.6:3.2);sun.position.set(-140,220,options.ocean===false?-160:120);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);const size=bounds.getSize(new THREE.Vector3()),shadowExtent=options.ocean===false?Math.max(40,Math.max(size.x,size.y,size.z)*.8):260;sun.shadow.camera.left=-shadowExtent;sun.shadow.camera.right=shadowExtent;sun.shadow.camera.top=shadowExtent;sun.shadow.camera.bottom=-shadowExtent;sun.shadow.camera.near=1;sun.shadow.camera.far=650;sun.shadow.normalBias=options.ocean===false?.22:.35;sun.shadow.bias=-.00015;scene.add(sun);
   if(options.ocean===false){const fill=new THREE.DirectionalLight(0xfff3df,1.8);fill.position.set(110,160,180);scene.add(fill);}
   // Explicit presentation ocean: no decorative architecture or landscape is substituted for block data.
   const ocean=new THREE.Mesh(new THREE.PlaneGeometry(1800,1800),new THREE.MeshStandardMaterial({color:0x087caa,roughness:.38,metalness:.25}));
   ocean.rotation.x=-Math.PI/2;ocean.position.y=-4.5-origin[1];ocean.receiveShadow=true;ocean.visible=options.ocean!==false;scene.add(ocean);
   ocean.material.onBeforeCompile=shader=>{shader.vertexShader='varying vec3 vOcean;\n'+shader.vertexShader;shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvOcean=position;');shader.fragmentShader='varying vec3 vOcean;\n'+shader.fragmentShader;shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat wave=sin(vOcean.x*1.9+sin(vOcean.y*.9))*sin(vOcean.y*2.3+cos(vOcean.x*.6)); diffuseColor.rgb*=.91+.09*wave;');};
-  const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1,1.75));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=options.ocean===false?.86:1.12;
+  const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1,1.75));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=options.ocean===false?1.0:1.12;
   const canvas=renderer.domElement;canvas.className='campus-canvas';canvas.tabIndex=0;canvas.setAttribute('aria-label',options.label??'完整園區 3D 總覽');canvas.setAttribute('role','application');canvas.style.touchAction='none';canvas.style.width='100%';canvas.style.height='100%';canvas.style.display='block';host.append(canvas);
   let camera=new THREE.PerspectiveCamera(30,1,.1,10000);const controls=new OrbitControls(camera,canvas);controls.enableDamping=false;controls.minDistance=1;controls.maxPolarAngle=Math.PI*.98;controls.listenToKeyEvents(canvas);
   const outline=new THREE.BoxHelper(new THREE.Mesh(new THREE.BoxGeometry(1.02,1.02,1.02)),0xffd36d);outline.visible=false;scene.add(outline);
