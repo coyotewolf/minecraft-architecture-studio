@@ -15,7 +15,7 @@ const cubes: Readonly<Record<string, number>> = {
   'minecraft:deepslate_tiles':0x414a50,'minecraft:polished_blackstone':0x3c3a42,'minecraft:iron_block':0xc7c9c6,'minecraft:bone_block':0xdad3b9,
   'minecraft:amethyst_block':0x9973ba,'minecraft:grass_block':0x71934a,'minecraft:bookshelf':0x9f7950,'minecraft:hay_block':0xc4a641,
   'minecraft:furnace':0x7c8184,'minecraft:blast_furnace':0x666d70,'minecraft:crafting_table':0xa27b4e,'minecraft:smithing_table':0x544b43,'minecraft:cartography_table':0xa28c60,'minecraft:barrel':0x987348,
-  'minecraft:stone': 0x92989d, 'minecraft:stone_bricks': 0x879298,
+  'minecraft:smooth_stone': 0xa4a7a5, 'minecraft:stone': 0x92989d, 'minecraft:stone_bricks': 0x879298,
   'minecraft:oak_planks': 0xb99a64, 'minecraft:white_concrete': 0xdedcd1,
   'minecraft:glass': 0x9fd7e5, 'minecraft:cyan_stained_glass':0x399da6,'minecraft:light_blue_stained_glass':0x80c7de,
   'minecraft:smooth_quartz':0xe5e1d4,'minecraft:quartz_block':0xe5e1d4,'minecraft:polished_deepslate':0x465057,'minecraft:dirt':0x70543b,'minecraft:oak_leaves':0x507a43,'minecraft:sea_lantern':0xb7e5d7,'minecraft:yellow_terracotta':0xc9a55d,'minecraft:gray_concrete':0x515b60,'minecraft:black_concrete':0x252b31,'minecraft:spruce_planks':0x785b3c,'minecraft:gold_block':0xffbb08,'minecraft:glowstone':0xffc64b,
@@ -23,7 +23,7 @@ const cubes: Readonly<Record<string, number>> = {
 /** Deliberately bounded geometry support; unknown shapes are wireframe markers, never plausible cubes. */
 export function shapeForBlock(block: BlockRecord): BlockShape {
   const {id,state:s} = block;
-  const common = {color: /quartz/.test(id)?0xe5e1d4:/deepslate/.test(id)?0x465057:/stone|brick/.test(id)?0x879298:0xb99a64, opacity: 1, supported: true};
+  const common = {color: /quartz/.test(id)?0xe5e1d4:/smooth_stone/.test(id)?0xa4a7a5:/deepslate/.test(id)?0x465057:/stone|brick/.test(id)?0x879298:0xb99a64, opacity: 1, supported: true};
   if (id.endsWith('_stairs')) {
     const y0 = s.half === 'top' ? 0.5 : 0, y1 = y0 + 0.5;
     const step0 = s.half === 'top' ? 0 : 0.5, step1 = step0 + 0.5;

@@ -8,13 +8,13 @@ out = Path(sys.argv[2] if len(sys.argv) > 2 else 'evidence/golden-leaf-100-compa
 reference = Path('public/local-references')
 background = (20, 25, 27)
 font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', 18)
-sheet = Image.new('RGB', (2400, 930), background)
+baseline = Path(sys.argv[3]) if len(sys.argv) > 3 else None
+sheet = Image.new('RGB', (1800, 1840) if baseline else (2400, 930), background)
 draw = ImageDraw.Draw(sheet)
-draw.text((22, 16), 'Source / actual 100-block model | Equal displayed height, no stretching | Estimated 14-degree source view', font=font, fill='white')
+draw.text((22, 16), 'Reference / canonical model | Equal displayed height, no stretching | Estimated 14-degree view', font=font, fill='white')
 panels=[]
-for label, path in [
- ('Original front',reference/'golden-leaf-front.png'),('100-block model front',folder/'golden-leaf-front.png'),
- ('Original rear',reference/'golden-leaf-rear.png'),('100-block model rear',folder/'golden-leaf-rear.png')]:
+sources = ([(label, directory/('golden-leaf-'+view+'.png')) for view in ['front','rear'] for label,directory in [('Reference '+view,reference),('V8 '+view,baseline),('V9 '+view,folder)]] if baseline else [('Original front',reference/'golden-leaf-front.png'),('100-block model front',folder/'golden-leaf-front.png'),('Original rear',reference/'golden-leaf-rear.png'),('100-block model rear',folder/'golden-leaf-rear.png')])
+for label, path in sources:
  img=Image.open(path).convert('RGBA')
  if img.getextrema()[3][0] < 255: bounds=img.getchannel('A').point(lambda a:255 if a>100 else 0).getbbox()
  else:
@@ -27,8 +27,9 @@ display_height=min(825,*(565*img.height/img.width for _,img in panels))
 for i,(label,img) in enumerate(panels):
  scale=display_height/img.height
  img=img.resize((round(img.width*scale),round(img.height*scale)),Image.Resampling.LANCZOS)
- draw.text((i*600+22,56),label,font=font,fill=(220,225,224))
- sheet.paste(img,(i*600+(600-img.width)//2,100+(825-img.height)),img)
+ column,row=(i%3,i//3) if baseline else (i,0)
+ draw.text((column*600+22,56+row*900),label,font=font,fill=(220,225,224))
+ sheet.paste(img,(column*600+(600-img.width)//2,100+row*900+(825-img.height)),img)
 out.parent.mkdir(parents=True,exist_ok=True)
 sheet.save(out)
 print(out)
