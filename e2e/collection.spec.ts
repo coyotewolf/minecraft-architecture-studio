@@ -44,3 +44,87 @@ test('current revision link adds a missing design once and preserves the old col
  await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V14');
  await page.getByRole('button',{name:/保留的早期建築/}).click();await expect(page.getByRole('region',{name:'金葉塔更新'})).toBeVisible();await page.getByRole('button',{name:'查看新版 V14',exact:true}).click();await ready(page);await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V14');expect((await backup(page)).entries).toEqual(upgraded.entries);await expect(page.getByRole('region',{name:'金葉塔更新'})).toHaveCount(0);
 });
+
+async function seedCollectionIndex(page:Page,data:BuildingCollection){
+ await page.evaluate(async collection=>{
+  const req=indexedDB.open('minecraft-building-collection',3);
+  await new Promise<void>((resolve,reject)=>{req.onupgradeneeded=()=>{for(const name of ['collection','parts','buildings'])if(!req.result.objectStoreNames.contains(name))req.result.createObjectStore(name);};req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error);});
+  const db=req.result,tx=db.transaction(['collection','parts','buildings'],'readwrite');
+  tx.objectStore('parts').clear();tx.objectStore('buildings').clear();tx.objectStore('collection').put(collection,'current');
+  await new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});db.close();
+ },data);
+}
+test('a full library still opens its old buildings when the revision cannot be added',async({page})=>{
+ test.setTimeout(180000);await page.goto('/?view=collection');await ready(page);const initial=await backup(page),first=initial.entries[0]!;
+ const old={...initial,entries:Array.from({length:100},(_,i)=>({...first,id:'full-'+i,name:'保留建築 '+i,notes:'不可遺失的筆記 '+i,project:{...first.project,id:'full-project-'+i,designRevision:'golden-leaf-100-v8',blocks:[first.project.blocks[0]!],logicalStructures:[]}}))};
+ await seedCollectionIndex(page,old);
+ await page.goto('/?view=collection&revision=golden-leaf-100-v14');await ready(page);
+ await expect(page.getByRole('status')).toContainText('新版尚未加入');
+ await expect(page.getByRole('textbox',{name:'建築筆記',exact:true})).toHaveValue('不可遺失的筆記 0');
+ await expect(page.locator('.collection-library > button')).toHaveCount(100);
+ expect((await backup(page)).entries).toEqual(old.entries);
+ await page.reload();await ready(page);await expect(page.getByRole('status')).toContainText('新版尚未加入');
+});
+test('a failed automatic revision save keeps the existing model and notes usable',async({page})=>{
+ test.setTimeout(180000);await page.goto('/?view=collection');await ready(page);const original=await backup(page),first=original.entries[0]!;
+ const old={...original,entries:[{...first,id:'quota-old',notes:'保留原設計與筆記',project:{...first.project,id:'quota-old-project',designRevision:'golden-leaf-100-v8'}}]};
+ await seedCollectionIndex(page,old);
+ await page.addInitScript(()=>{
+  const originalPut=IDBObjectStore.prototype.put;
+  IDBObjectStore.prototype.put=function(...args:Parameters<IDBObjectStore['put']>){
+   if(this.name==='buildings')throw new DOMException('Test storage full','QuotaExceededError');
+   return originalPut.apply(this,args);
+  };
+ });
+ await page.goto('/?view=collection&revision=golden-leaf-100-v14');await ready(page);
+ await expect(page.getByRole('status')).toContainText('新版尚未加入');
+ await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V8');
+ await expect(page.getByRole('textbox',{name:'建築筆記',exact:true})).toHaveValue('保留原設計與筆記');
+ expect((await backup(page)).entries).toEqual(old.entries);
+ const persisted=await page.evaluate(async()=>{
+  const r=indexedDB.open('minecraft-building-collection',3);await new Promise<void>(resolve=>{r.onsuccess=()=>resolve();});
+  const db=r.result,tx=db.transaction('collection','readonly'),get=tx.objectStore('collection').get('current');
+  await new Promise<void>(resolve=>{tx.oncomplete=()=>resolve();});db.close();return get.result;
+ });
+ expect(persisted).toEqual(old);
+});
+test('a revision crossing one million total cells loads and persists without losing earlier versions',async({page})=>{
+ test.setTimeout(600000);await page.goto('/?view=collection');await ready(page);const initial=await backup(page),first=initial.entries[0]!;
+ // Nineteen independently stored old buildings total 950,019 cells; V14 takes this above one million.
+ const seed={...first.project,designRevision:'golden-leaf-100-v8',logicalStructures:[],blocks:[]};
+ await page.evaluate(async input=>{
+  const blocks=Array.from({length:50001},(_,i)=>({uid:'kept-'+i,id:'minecraft:stone',pos:{x:i%300,y:Math.floor(i/300),z:0},state:{},source:{origin:'user_created'},edits:{createdByTransactionId:'seed',lastModifiedByTransactionId:'seed',userModified:true}}));
+  const entries=[],records=[];
+  for(let i=0;i<19;i++){
+   const id='preserved-project-'+i,p={...input,id,blocks};
+   entries.push({id:'preserved-'+i,name:'保留版本 '+i,notes:'歷史筆記 '+i,reference:'golden-leaf',project:id});
+   records.push({id,blob:await new Response(new Blob([JSON.stringify(p)]).stream().pipeThrough(new CompressionStream('gzip'))).blob()});
+  }
+  const r=indexedDB.open('minecraft-building-collection',3);await new Promise<void>(resolve=>{r.onsuccess=()=>resolve();});
+  const db=r.result,tx=db.transaction(['collection','buildings','parts'],'readwrite');
+  tx.objectStore('buildings').clear();tx.objectStore('parts').clear();
+  for(const record of records)tx.objectStore('buildings').put(record.blob,record.id);
+  tx.objectStore('collection').put({storageVersion:3,collection:{schemaVersion:2,name:'歷代建築',entries}},'current');
+  await new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});db.close();
+ },seed);
+ await page.goto('/?view=collection&revision=golden-leaf-100-v14');await ready(page);
+ await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V14');
+ await expect(page.locator('.collection-library > button')).toHaveCount(20);
+ await expect(page.getByRole('status')).toHaveText('已載入本機收藏');
+ const counts=await page.evaluate(async()=>{
+  const r=indexedDB.open('minecraft-building-collection',3);await new Promise<void>(resolve=>{r.onsuccess=()=>resolve();});
+  const db=r.result,tx=db.transaction(['collection','buildings'],'readonly'),metadata=tx.objectStore('collection').get('current'),blobs=tx.objectStore('buildings').getAll();
+  await new Promise<void>(resolve=>{tx.oncomplete=()=>resolve();});db.close();
+  const projects=[];
+  for(const blob of blobs.result as Blob[]){const p=JSON.parse(await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).text());projects.push({id:p.id,count:p.blocks.length,first:p.blocks[0].uid,last:p.blocks.at(-1).uid});}
+  return {entries:metadata.result.collection.entries,projects};
+ });
+ expect(counts.projects.reduce((n,p)=>n+p.count,0)).toBe(950019+first.project.blocks.length);
+ for(let i=0;i<19;i++){
+  expect(counts.entries[i]).toMatchObject({id:'preserved-'+i,notes:'歷史筆記 '+i,project:'preserved-project-'+i});
+  expect(counts.projects.find(p=>p.id==='preserved-project-'+i)).toMatchObject({count:50001,first:'kept-0',last:'kept-50000'});
+ }
+ await page.reload();await ready(page);
+ await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V14');
+ await expect(page.locator('.collection-library > button')).toHaveCount(20);
+});

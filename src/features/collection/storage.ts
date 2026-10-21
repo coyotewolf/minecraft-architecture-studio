@@ -1,11 +1,12 @@
 import type { Project } from '../../core/contracts.ts';
-import { deepFreeze, object, parseProject } from '../../core/model.ts';
+import { deepFreeze, MAX_BLOCKS, object, parseProject } from '../../core/model.ts';
 import { loadWorkspace } from '../projects/storage.ts';
 
 export interface CollectionEntry { readonly id:string; readonly name:string; readonly notes:string; readonly reference:'golden-leaf'|null; readonly project:Project }
 export interface BuildingCollection { readonly schemaVersion:2; readonly name:string; readonly entries:readonly CollectionEntry[] }
 const trustedCollections=new WeakSet<object>(),trustedProjects=new WeakSet<object>();
 const legacyProjects=new WeakMap<object,readonly Project[]>();
+export const MAX_COLLECTION_BLOCKS=5_000_000;
 export const MAX_COLLECTION_BYTES=512*1024*1024;
 function label(value:unknown,max:number):string {if(typeof value!=='string'||value.length>max||!value.trim())throw new Error('名稱不可空白或過長');return value;}
 function workspaceIdentifier(value:string){if(!/^[A-Za-z0-9_:.,-]+$/.test(value)||['__proto__','constructor','prototype'].includes(value))throw new Error('建築含不安全的識別碼：'+value);}
@@ -28,7 +29,7 @@ export function parseCollection(input:unknown):BuildingCollection {
  if(![1,2].includes(raw.schemaVersion as number)||!Array.isArray(raw.entries)||raw.entries.length>100)throw new Error('不支援的收藏格式或超過 100 棟');
  // Bound the entire raw payload before any registry normalization or record allocation.
  let total=0;
- for(const value of raw.entries){const e=object(value,['id','name','notes','reference',raw.schemaVersion===1?'parts':'project']);const candidates=raw.schemaVersion===1?e.parts:[e.project];if(!Array.isArray(candidates)||!candidates.length||candidates.length>100)throw new Error('舊建築資料不完整');for(const candidate of candidates){if(!candidate||typeof candidate!=='object'||!('blocks' in candidate)||!Array.isArray(candidate.blocks))throw new Error('建築方塊資料不完整');if((total+=candidate.blocks.length)>1000000)throw new Error('收藏超過 100 萬格');}}
+ for(const value of raw.entries){const e=object(value,['id','name','notes','reference',raw.schemaVersion===1?'parts':'project']);const candidates=raw.schemaVersion===1?e.parts:[e.project];if(!Array.isArray(candidates)||!candidates.length||candidates.length>100)throw new Error('舊建築資料不完整');let buildingTotal=0;for(const candidate of candidates){if(!candidate||typeof candidate!=='object'||!('blocks' in candidate)||!Array.isArray(candidate.blocks))throw new Error('建築方塊資料不完整');buildingTotal+=candidate.blocks.length;if(buildingTotal>MAX_BLOCKS)throw new Error('單棟建築超過 100 萬格');if((total+=candidate.blocks.length)>MAX_COLLECTION_BLOCKS)throw new Error('收藏超過 500 萬格；請先匯出單棟建築備份');}}
  const ids=new Set<string>(),projects=new Set<string>();
  const entries=raw.entries.map(value=>{
   const e=object(value,['id','name','notes','reference',raw.schemaVersion===1?'parts':'project']),id=label(e.id,200),name=label(e.name,200);

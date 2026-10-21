@@ -20,7 +20,28 @@ describe('one building one canonical project',()=>{
  it('validates IDs, canonical state and unknown versions',()=>{const c=fixture();expect(()=>parseCollection({...c,entries:[...c.entries,{...c.entries[0],id:'another'}]})).toThrow(/識別碼/);for(const field of ['state','pos']){const raw=JSON.parse(serializeCollection(c));raw.entries[0].project.blocks[0][field]=field==='state'?{fake:'true'}:{x:.5,y:0,z:0};expect(()=>parseCollection(raw)).toThrow();}expect(()=>parseCollection({...c,schemaVersion:3})).toThrow();});
  it('stores metadata without blocks and reconstructs legacy and current indexes',()=>{const c=fixture(),r=collectionStorageRecords(c);expect(JSON.stringify(r.metadata)).not.toContain('blocks');expect(collectionFromStorage(r.metadata,r.projects)).toEqual(c);expect(()=>collectionFromStorage(r.metadata,[])).toThrow(/缺少/);const old=legacy(),parts=old.entries[0]!.parts;expect(collectionFromStorage({storageVersion:2,collection:{...old,entries:[{...old.entries[0],parts:parts.map(p=>p.id)}]}},parts.map(parseProject))!.entries[0]!.project.blocks).toHaveLength(2);});
  it('compresses a large complete building into one record with exact restoration',async()=>{const p=parseCollection({...fixture(),entries:[{...fixture().entries[0],project:{...fixture().entries[0]!.project,blocks:Array.from({length:60000},(_,i)=>({...block,uid:'block-'+i,pos:{x:i%300,y:Math.floor(i/300),z:0}}))}}]}).entries[0]!.project;const blob=await encodeBuilding(p);expect(blob.size).toBeLessThan(JSON.stringify(p).length/5);expect(await decodeBuilding(blob)).toEqual(p);},30000);
- it('rejects raw oversized collections before attempting to normalize any block',()=>{const c=fixture(),bad={...c.entries[0]!.project,blocks:Array(1000001).fill(null)};expect(()=>parseCollection({...c,entries:[{...c.entries[0],project:bad}]})).toThrow('收藏超過 100 萬格');});
+ it('rejects raw oversized collections before attempting to normalize any block',()=>{const c=fixture(),bad={...c.entries[0]!.project,blocks:Array(1000001).fill(null)};expect(()=>parseCollection({...c,entries:[{...c.entries[0],project:bad}]})).toThrow('單棟建築超過 100 萬格');});
+ it('preserves many valid buildings when the collection exceeds one million cells',()=>{
+  const original=fixture();
+  const one=parseCollection({...original,entries:[{...original.entries[0],project:{...original.entries[0]!.project,blocks:Array.from({length:50001},(_,i)=>({...block,uid:'many-'+i,pos:{x:i%300,y:Math.floor(i/300),z:0}}))}}]});
+  const entries=Array.from({length:21},(_,i)=>copyEntry({...one.entries[0]!,notes:'保留版本 '+i},'large-'+i));
+  const c=parseCollection({...one,entries});
+  expect(c.entries.reduce((n,e)=>n+e.project.blocks.length,0)).toBe(1050021);
+  expect(c.entries.map(e=>e.notes)).toEqual(entries.map(e=>e.notes));
+  for(let i=0;i<entries.length;i++)expect(c.entries[i]!.project.blocks).toBe(entries[i]!.project.blocks);
+  const records=collectionStorageRecords(c);
+  expect(collectionFromStorage(records.metadata,records.projects)).toEqual(c);
+ });
+ it('bounds the collection at five million cells before normalizing any records',()=>{
+  const c=fixture(),entry=c.entries[0]!,blocks=Array(1000000).fill(null);
+  const entries=Array.from({length:6},(_,i)=>({...entry,id:'oversize-'+i,project:{...entry.project,id:'oversize-'+i,blocks}}));
+  expect(()=>parseCollection({...c,entries})).toThrow('收藏超過 500 萬格');
+ });
+ it('bounds the combined legacy parts of a single building before normalization',()=>{
+  const c=legacy(),p=c.entries[0]!.parts[0]!;
+  c.entries[0]!.parts=[{...p,blocks:Array(500001).fill(null)},{...p,id:'large-second',blocks:Array(500000).fill(null)}];
+  expect(()=>parseCollection(c)).toThrow('單棟建築超過 100 萬格');
+ });
  it('rejects corrupted gzip and bounded decompression expansion',async()=>{await expect(decodeBuilding(new Blob(['corrupt gzip']))).rejects.toThrow();const packed=await new Response(new Blob([' '.repeat(20000)]).stream().pipeThrough(new CompressionStream('gzip'))).blob();expect(packed.size).toBeLessThan(1000);await expect(decodeBuilding(packed,1000)).rejects.toThrow('解壓縮大小限制');});
  it('validates canonical records before compression',async()=>{const p=fixture().entries[0]!.project;await expect(encodeBuilding({...p,blocks:[{...p.blocks[0]!,state:{invalid:'true'}}]})).rejects.toThrow();});
  it.each(['buildings','collection'])('aborts synchronous %s write failures',async failingStore=>{const failure=new Error('put failure');let aborted=false;const tx={oncomplete:undefined as undefined|(()=>void),onerror:undefined,onabort:undefined,objectStore:(name:string)=>({clear:()=>{},put:()=>{if(name===failingStore)throw failure;}}),abort:vi.fn(()=>{aborted=true;})};const db={transaction:()=>{queueMicrotask(()=>{if(!aborted)tx.oncomplete?.();});return tx;},close:vi.fn()},request:{result:typeof db;onsuccess?:()=>void}={result:db};vi.stubGlobal('indexedDB',{open:()=>{queueMicrotask(()=>request.onsuccess?.());return request;}});try{await expect(saveCollection(fixture())).rejects.toBe(failure);expect(tx.abort).toHaveBeenCalledOnce();}finally{vi.unstubAllGlobals();}});

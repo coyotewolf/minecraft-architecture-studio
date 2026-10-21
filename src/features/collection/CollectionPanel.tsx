@@ -22,7 +22,37 @@ export function CollectionPanel({onOpen,onCampus}:CollectionPanelProps){
  const [saved,setSaved]=useState<WorkspaceRecord[]>([]),[savedId,setSavedId]=useState(''),[reference,setReference]=useState<'front'|'rear'>('front'),[picked,setPicked]=useState<string|null>(null);
  const [previewEpoch,setPreviewEpoch]=useState(0);
  const host=useRef<HTMLDivElement>(null),viewer=useRef<CampusViewer|null>(null);
- useEffect(()=>{let alive=true;void (async()=>{try{const stored=await loadCollection();if(!alive)return;let c=stored??initialCollection();let requestedId='';if(new URLSearchParams(location.search).get('revision')===GOLDEN_LEAF_DESIGN.revision){requestedId=c.entries.find(e=>e.reference==='golden-leaf'&&e.project.designRevision===GOLDEN_LEAF_DESIGN.revision)?.id??'';if(!requestedId){const added=copyEntry(initialCollection().entries[0]!);c=parseCollection({...c,entries:[...c.entries,added]});await saveCollection(c);requestedId=added.id;}}let restoreIssue='';try{c=await resolveCollection(c);}catch(e){restoreIssue='無法載入已儲存建築：'+String(e)+'。預覽已暫停；請保留備份並修正資料衝突，原施工資料未被覆寫。';}if(!stored)await saveCollection(c);const workspaces=await listWorkspaces();if(alive){setCollection(c);setActive(requestedId||rememberedEntry(c));if(requestedId){const url=new URL(location.href);url.searchParams.delete('revision');history.replaceState(history.state,'',url);}setSaved(workspaces);setFailed(Boolean(restoreIssue));setStatus(restoreIssue||'已載入本機收藏');}}catch(e){if(alive){setFailed(true);setStatus(String(e));}}})();return()=>{alive=false;};},[]);
+ useEffect(()=>{
+  let alive=true;
+  void (async()=>{
+   try{
+    const stored=await loadCollection();if(!alive)return;
+    let c=stored??initialCollection(),requestedId='';const notices:string[]=[];
+    if(new URLSearchParams(location.search).get('revision')===GOLDEN_LEAF_DESIGN.revision){
+     requestedId=c.entries.find(e=>e.reference==='golden-leaf'&&e.project.designRevision===GOLDEN_LEAF_DESIGN.revision)?.id??'';
+     if(!requestedId){
+      try{
+       const added=copyEntry(initialCollection().entries[0]!);
+       const next=parseCollection({...c,entries:[...c.entries,added]});
+       await saveCollection(next);
+       c=next;requestedId=added.id;
+      }catch(e){notices.push('新版尚未加入：'+String(e)+'。已開啟原有收藏，建築與筆記均保留。');}
+     }
+    }
+    let restoreIssue='';
+    try{c=await resolveCollection(c);}catch(e){restoreIssue='無法載入已儲存建築：'+String(e)+'。預覽已暫停；請保留備份並修正資料衝突，原施工資料未被覆寫。';}
+    if(!stored)try{await saveCollection(c);}catch(e){notices.push('尚未儲存至瀏覽器：'+String(e)+'。可先下載完整建築 JSON 備份。');}
+    let workspaces:WorkspaceRecord[]=[];
+    try{workspaces=await listWorkspaces();}catch(e){notices.push('施工專案清單暫時無法讀取：'+String(e));}
+    if(alive){
+     setCollection(c);setActive(requestedId||rememberedEntry(c));
+     if(requestedId){const url=new URL(location.href);url.searchParams.delete('revision');history.replaceState(history.state,'',url);}
+     setSaved(workspaces);setFailed(Boolean(restoreIssue));setStatus([restoreIssue,...notices].filter(Boolean).join(' ')||'已載入本機收藏');
+    }
+   }catch(e){if(alive){setFailed(true);setStatus(String(e));}}
+  })();
+  return()=>{alive=false;};
+ },[]);
  useEffect(()=>{if(!active||!collection?.entries.some(e=>e.id===active))return;try{localStorage.setItem(selectionKey,active);}catch{/* Model storage is independent of this optional view preference. */}},[active,collection]);
  const entry=collection?.entries.find(e=>e.id===active);
  const blocks=useMemo(()=>entry?.project.blocks??[],[entry?.project]);
