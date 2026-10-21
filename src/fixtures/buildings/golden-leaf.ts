@@ -3,8 +3,8 @@ import {HighDetailBuilder} from '../campus/high-detail.ts';
 import type {MinecraftId, Project} from '../../core/contracts.ts';
 import {parseProject} from '../../core/model.ts';
 
-/** V7 refines the canonical 100-block design without overwriting earlier collections. */
-export const GOLDEN_LEAF_DESIGN={id:'golden-leaf-tower',revision:'golden-leaf-100-v7',front:'negative-z',nominalTowerDiameter:48,nominalTowerHeight:88,towerBaseY:11,highestY:99,floorPitch:3,floorCount:26,floorLevels:Array.from({length:26},(_,i)=>11+i*3),referenceInspiredAspect:1090/620,chosenAspect:88/48,proportionNote:'全棟含基座與尖頂 Y0–99，共100格；塔身最大直徑48、基座直徑70。26道樓板以3格層距排列，半磚保留至少2格淨高；最上兩道隨雙葉收窄；前圖26道層帶、背圖約13道，兩圖可見層帶不完全對應；本設計保留26個通行樓層，後窗可見層帶不是逐道復刻。隱藏結構、尺寸均為 AI Estimated Area。'} as const;
+/** V8 refines the canonical 100-block design without overwriting earlier collections. */
+export const GOLDEN_LEAF_DESIGN={id:'golden-leaf-tower',revision:'golden-leaf-100-v8',front:'negative-z',nominalTowerDiameter:48,nominalTowerHeight:88,towerBaseY:11,highestY:99,floorPitch:3,floorCount:26,floorLevels:Array.from({length:26},(_,i)=>11+i*3),referenceInspiredAspect:1090/620,chosenAspect:88/48,proportionNote:'全棟含基座與尖頂 Y0–99，共100格；塔身最大直徑48、膠囊形基座83×59、中央直段24格接左右半圓；裙樓73×49，左右附樓與屋頂花園採朝內凹的月牙足跡。26道樓板以3格層距排列，半磚保留至少2格淨高；最上兩道隨雙葉收窄；前圖26道層帶、背圖約13道，兩圖可見層帶不完全對應；本設計保留26個通行樓層，後窗可見層帶不是逐道復刻。隱藏結構、尺寸均為 AI Estimated Area。'} as const;
 const WHITE:MinecraftId='minecraft:smooth_quartz',GOLD:MinecraftId='minecraft:gold_block',GLASS:MinecraftId='minecraft:blue_stained_glass',SLAB:MinecraftId='minecraft:smooth_stone_slab',LAMP:MinecraftId='minecraft:glowstone';
 const leafState={persistent:'true',distance:'1'};
 const floorSet=new Set<number>(GOLDEN_LEAF_DESIGN.floorLevels);
@@ -26,9 +26,11 @@ function radius(y:number,theta=0){
 }
 function aperture(y:number,rear=false){return rear?(y<35||y>89?0:.50*Math.pow(Math.sin(Math.PI*(y-35)/54),.8)):.48+.27*Math.sin(Math.PI*Math.min(1,(y-11)/88*1.08));}
 function disk(b:HighDetailBuilder,x0:number,z0:number,y:number,r:number,id:MinecraftId,category:string){for(let x=Math.ceil(x0-r);x<=Math.floor(x0+r);x++)for(let z=Math.ceil(z0-r);z<=Math.floor(z0+r);z++)if(Math.hypot(x-x0,z-z0)<=r)b.set(x,y,z,id,category);}
-function ring(b:HighDetailBuilder,x0:number,z0:number,y:number,r:number,id:MinecraftId,category:string){for(let x=Math.ceil(x0-r);x<=Math.floor(x0+r);x++)for(let z=Math.ceil(z0-r);z<=Math.floor(z0+r);z++){const d=Math.hypot(x-x0,z-z0);if(d<=r&&d>r-1.1)b.set(x,y,z,id,category);}}
-function shrub(b:HighDetailBuilder,x:number,y:number,z:number){for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){b.set(x+dx,y,z+dz,'minecraft:dirt','Garden soil');b.set(x+dx,y+1,z+dz,'minecraft:oak_leaves','Clipped shrub',leafState);}b.set(x,y+2,z,'minecraft:oak_leaves','Clipped shrub',leafState);}
-function lamp(b:HighDetailBuilder,x:number,y:number,z:number){b.set(x,y,z,WHITE,'Lamp pedestal');b.set(x,y+1,z,LAMP,'Warm garden lamp');}
+const capsuleDistance=(x:number,z:number)=>Math.hypot(Math.max(Math.abs(x)-12,0),z);
+const crescent=(x:number,z:number,side:number)=>Math.hypot(x-side*28,z)<=11&&Math.hypot(x-side*22,z)>10.5;
+const nearCrescent=(x:number,z:number)=>[-1,1].some(side=>crescent(x,z,side));
+const boundary=(x:number,z:number,inside:(x:number,z:number)=>boolean)=>[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dz])=>!inside(x+dx!,z+dz!));
+function capsule(b:HighDetailBuilder,y:number,r:number,id:MinecraftId,category:string){for(let x=-12-r;x<=12+r;x++)for(let z=-r;z<=r;z++)if(capsuleDistance(x,z)<=r)b.set(x,y,z,id,category);}
 function stairs(b:HighDetailBuilder){
  const levels=[3,7,...GOLDEN_LEAF_DESIGN.floorLevels];
  for(let floor=0;floor<levels.length-1;floor++){const base=levels[floor]!,rise=levels[floor+1]!-base,reverse=floor%2===1,x=reverse?-1:-3;
@@ -37,13 +39,11 @@ function stairs(b:HighDetailBuilder){
  }
 }
 function buildGoldenLeaf(){
- const b=new HighDetailBuilder({id:GOLDEN_LEAF_DESIGN.revision,title:'金色葉塔・百格重建',origin:[0,0,0],references:['golden-leaf-front','golden-leaf-rear'],features:['百格內完整金葉塔、灰色外架與內退深藍窗','26道半磚樓板、前X與後窄葉窗、雙金葉覆疊','雙圓亭、主入口、暖螢石與多層花園'],notes:GOLDEN_LEAF_DESIGN.proportionNote});
- // A broad two-tier white garden base; the lobby has five usable air blocks above its floor.
- disk(b,0,0,0,35,'minecraft:stone_bricks','Foundation');disk(b,0,0,1,35,WHITE,'Base terrace');
- disk(b,0,0,3,24,WHITE,'Lobby floor');
- for(let y=2;y<=10;y++){ring(b,0,0,y,24,y<=3||y>=9?WHITE:GLASS,'Podium facade');
-  if(y>=4&&y<=8)for(let a=0;a<16;a++){const t=a*Math.PI/8;b.set(Math.round(24*Math.sin(t)),y,Math.round(24*Math.cos(t)),WHITE,'Podium column');}}
- disk(b,0,0,11,25,WHITE,'Podium roof');
+ const b=new HighDetailBuilder({id:GOLDEN_LEAF_DESIGN.revision,title:'金色葉塔・百格重建',origin:[0,0,0],references:['golden-leaf-front','golden-leaf-rear'],features:['百格內完整金葉塔、灰色外架與內退深藍窗','26道半磚樓板、前X與後窄葉窗、雙金葉覆疊','雙月牙附樓、膠囊基座與主入口、暖螢石與多層花園'],notes:GOLDEN_LEAF_DESIGN.proportionNote});
+ // An actual stadium footprint: straight front/rear runs and circular end caps.
+ capsule(b,0,29,'minecraft:stone_bricks','Foundation');capsule(b,1,29,WHITE,'Base terrace');capsule(b,3,24,WHITE,'Lobby floor');
+ for(let x=-36;x<=36;x++)for(let z=-24;z<=24;z++)if(capsuleDistance(x,z)<=24&&boundary(x,z,(xx,zz)=>capsuleDistance(xx,zz)<=24))for(let y=2;y<=10;y++)b.set(x,y,z,y<=3||y>=9||x%6===0?WHITE:GLASS,'Podium facade');
+ capsule(b,11,24,WHITE,'Podium roof');
  for(let y=11;y<=99;y++){
   const r=bodyRadius(y),frontAngle=Math.asin(aperture(y)),rearAngle=Math.asin(aperture(y,true)),floor=floorSet.has(y),cap=shortSection(y);
   for(let x=-Math.ceil(r+2);x<=Math.ceil(r+2);x++)for(let z=-Math.ceil(r+2);z<=Math.ceil(r+2);z++){
@@ -78,70 +78,58 @@ function buildGoldenLeaf(){
  b.set(0,99,0,GOLD,'Tall leaf tip');
  for(let y=88;y<=90;y++)disk(b,6,0,y,Math.max(.4,(91-y)*.5),GOLD,'Short leaf tip');
  for(let y=80;y<=90;y++){const cap=shortSection(y),theta=Math.asin(aperture(y)),r=radius(y,theta);{const x=y===90?5:r>=2?Math.round(r*Math.sin(theta)):Math.round(cap.cx-cap.r*.6),z=r>=2?-Math.round(r*Math.cos(theta)):-Math.round(cap.r*.8);b.set(x,y,z,'minecraft:quartz_stairs','Short leaf return',{facing:'east',half:'bottom',shape:'straight'});}if(y>=86&&y<90){const x=Math.ceil(cap.cx-cap.r);if(x>0)b.set(x,y,0,'minecraft:quartz_stairs','Short leaf return',{facing:'west',half:'bottom',shape:'straight'});}}
- // Two raised round pavilions, with thick cornices, warm lamps and planted roofs.
- for(const cx of [-26,26]){
-  disk(b,cx,-10,3,8,WHITE,'Annex floor');
-  for(let y=4;y<=12;y++){ring(b,cx,-10,y,8,GLASS,'Annex glazing');for(let a=0;a<8;a++){const t=a*Math.PI/4;b.set(cx+Math.round(8*Math.sin(t)),y,-10+Math.round(8*Math.cos(t)),WHITE,'Annex column');}}
-  disk(b,cx,-10,13,9,WHITE,'Annex cornice');disk(b,cx,-10,14,9,WHITE,'Annex roof');
-  for(let a=0;a<8;a++){const t=(a+.5)*Math.PI/4,x=cx+Math.round(8*Math.sin(t)),z=-10+Math.round(8*Math.cos(t));b.set(x,12,z,LAMP,'Annex eave light');}
-  for(const [dx,dz]of[[-5,0],[5,0],[0,-5],[0,5]]as const){shrub(b,cx+dx,15,-10+dz);lamp(b,cx+dx+1,15,-10+dz+2);}
-  b.set(cx,15,-10,'minecraft:dirt','Tree soil');b.tree(cx,16,-10);
-  for(let x=Math.min(cx,Math.sign(cx)*16);x<=Math.max(cx,Math.sign(cx)*16);x++)for(let z=-12;z<=-8;z++){b.set(x,3,z,WHITE,'Annex connector');for(let y=4;y<=7;y++)b.clear(x,y,z);}
-  // A compact two-flight internal stair connects the pavilion roof.
-  for(let i=0;i<11;i++){const reverse=i>=6,x=cx+(reverse?2:4),z=reverse?-6-(i-6):-11+i,y=4+i;for(let h=1;h<=3;h++)b.clear(x,y+h,z);b.set(x,y,z,'minecraft:quartz_stairs','Circulation',{facing:reverse?'north':'south'});}
-  for(let x=cx+2;x<=cx+4;x++){for(let h=10;h<=12;h++)b.clear(x,h,-5);b.set(x,9,-5,WHITE,'Stair landing');}
+ // Both pavilion volumes, roof decks and planting use the same inward-facing crescent mask.
+ for(const side of [-1,1]){
+  const inside=(x:number,z:number)=>crescent(x,z,side);
+  for(let x=side*28-11;x<=side*28+11;x++)for(let z=-11;z<=11;z++)if(inside(x,z)){
+   b.set(x,3,z,WHITE,'Annex floor');for(let y=4;y<=12;y++)b.clear(x,y,z);
+   const edge=boundary(x,z,inside);
+   if(edge)for(let y=4;y<=12;y++)b.set(x,y,z,y===12&&(x+z)%4===0?LAMP:(x%4===0||z%5===0?WHITE:GLASS),y===12&&(x+z)%4===0?'Annex eave light':'Annex glazing');
+   b.set(x,13,z,WHITE,'Annex cornice');b.set(x,14,z,WHITE,'Annex roof');
+   const walk=Math.abs(x)>=35&&Math.abs(x)<=36&&z>=-6&&z<=6;
+   const innerEdge=[[1,0],[-1,0],[0,1],[0,-1]].some(([dx,dz])=>Math.hypot(x+dx!-side*22,z+dz!)<=10.5),innerPlant=Math.hypot(x-side*22,z)<=12.5;
+   if(!walk){if(edge){if(innerEdge){b.set(x,15,z,WHITE,'Annex inner parapet');b.set(x,16,z,'minecraft:smooth_quartz_slab','Annex inner parapet cap',{type:'bottom'});}else b.set(x,15,z,'minecraft:smooth_quartz_slab','Annex garden curb',{type:'bottom'});}
+    else{b.set(x,15,z,'minecraft:dirt','Annex garden soil');b.set(x,16,z,'minecraft:oak_leaves','Annex garden shrub',leafState);if(!innerPlant&&(x+z)%4===0)b.set(x,17,z,'minecraft:oak_leaves','Annex garden shrub',leafState);if(!innerPlant&&(x+z)%8===0)b.set(x,18,z,'minecraft:oak_leaves','Annex garden shrub',leafState);if(!innerPlant&&(x-z)%11===0){b.set(x,16,z,'minecraft:pink_tulip','Garden flower');b.clear(x,17,z);b.clear(x,18,z);}}
+   }
+  }
+  // A two-block-wide lobby passage reaches the first stair from inside the capsule.
+  for(let xx=16;xx<=38;xx++)for(let z=-7;z<=-6;z++){const x=side*xx;b.set(x,3,z,WHITE,'Annex connector');for(let y=4;y<=7;y++)b.clear(x,y,z);}
+  for(let i=0;i<11;i++){const reverse=i>=6,x=side*(reverse?35:37),z=reverse?-(i-6):-5+i,y=4+i;for(let h=1;h<=3;h++)b.clear(x,y+h,z);b.set(x,y,z,'minecraft:quartz_stairs','Circulation',{facing:reverse?'north':'south'});}
+  for(let xx=35;xx<=37;xx++){const x=side*xx;for(let y=10;y<=12;y++)b.clear(x,y,1);b.set(x,9,1,WHITE,'Stair landing');}
  }
- // Dense garden beds use block-size shrubs and warm square lamps, not sparse miniature flowers.
- for(let a=0;a<360;a+=20){const t=a*Math.PI/180,x=Math.round(31*Math.sin(t)),z=Math.round(31*Math.cos(t));if(Math.abs(x)<5||Math.hypot(x-26,z+10)<11||Math.hypot(x+26,z+10)<11)continue;shrub(b,x,2,z);lamp(b,x+2,2,z);}
- for(const [x,z]of[[-12,-26],[12,-26],[-19,18],[19,18],[-9,27],[9,27]]as const){shrub(b,x,2,z);b.set(x+2,2,z-1,'minecraft:dirt','Flower soil');b.set(x+2,3,z-1,'minecraft:pink_tulip','Garden flower');}
- for(let a=0;a<360;a+=45){const t=a*Math.PI/180,x=Math.round(21*Math.sin(t)),z=Math.round(21*Math.cos(t));if(Math.hypot(x-26,z+10)<10||Math.hypot(x+26,z+10)<10)continue;shrub(b,x,12,z);lamp(b,x+2,12,z);}
- // Continuous segmented planted beds and low white curbs unify the garden tiers.
- for(let x=-34;x<=34;x++)for(let z=-34;z<=34;z++){
-  const d=Math.hypot(x,z),frontPath=Math.abs(x)<=5&&z<0,rearPath=x>=4&&x<=11&&z>18;
-  if(d<27||d>34||frontPath||rearPath||Math.hypot(x-26,z+10)<10||Math.hypot(x+26,z+10)<10)continue;
-  const divider=Math.abs(Math.sin(Math.atan2(x,z)*9))<.16;
-  if(d<28||d>33||divider){b.set(x,2,z,'minecraft:smooth_quartz_slab','Garden curb',{type:'bottom'});b.clear(x,3,z);}
-  else{b.set(x,2,z,'minecraft:dirt','Continuous garden soil');b.set(x,3,z,'minecraft:oak_leaves','Grouped garden hedge',leafState);if((x+2*z)%7===0)b.set(x,4,z,'minecraft:oak_leaves','Garden shrub crown',leafState);if((2*x-z)%13===0){b.set(x,3,z,'minecraft:pink_tulip','Garden flower');b.clear(x,4,z);}}
+ // Ground and podium beds are generated from capsule distance; no old circular garden remnants remain.
+ for(let x=-41;x<=41;x++)for(let z=-29;z<=29;z++){
+  const d=capsuleDistance(x,z),path=(Math.abs(x)<=5&&z<0)||(x>=4&&x<=11&&z>0);
+  if(d>=26&&d<=28.5&&!path&&!nearCrescent(x,z)){
+   if(d<26.6||d>28||x%9===0||z%9===0)b.set(x,2,z,'minecraft:smooth_quartz_slab','Garden curb',{type:'bottom'});
+   else{b.set(x,2,z,'minecraft:dirt','Ground garden soil');b.set(x,3,z,'minecraft:oak_leaves','Grouped garden hedge',leafState);if((x+z)%3===0)b.set(x,4,z,'minecraft:oak_leaves','Garden shrub crown',leafState);if((x-z)%11===0){b.set(x,3,z,'minecraft:pink_tulip','Garden flower');b.clear(x,4,z);}}
+  }
+  if(d>=21&&d<=23&&!nearCrescent(x,z)&&Math.hypot(x,z)>=21.5){
+   if(x%8===0||z%8===0)b.set(x,12,z,'minecraft:smooth_quartz_slab','Podium planter divider',{type:'bottom'});
+   else{b.set(x,12,z,'minecraft:dirt','Podium grouped soil');b.set(x,13,z,'minecraft:oak_leaves','Podium grouped hedge',leafState);if((x+z)%4===0)b.set(x,14,z,'minecraft:oak_leaves','Podium shrub crown',leafState);if((x-z)%13===0){b.set(x,13,z,'minecraft:pink_tulip','Garden flower');b.clear(x,14,z);}}
+  }
  }
- for(const cx of [-26,26])for(let dx=-8;dx<=8;dx++)for(let dz=-8;dz<=8;dz++){
-  const d=Math.hypot(dx,dz);if(d<5||d>8)continue;
-  if(d>7.2||Math.abs(dx)<1||Math.abs(dz)<1){b.set(cx+dx,15,-10+dz,'minecraft:smooth_quartz_slab','Annex garden curb',{type:'bottom'});b.clear(cx+dx,16,-10+dz);}
-  else{b.set(cx+dx,15,-10+dz,'minecraft:dirt','Annex continuous soil');b.set(cx+dx,16,-10+dz,'minecraft:oak_leaves','Annex continuous hedge',leafState);}
- }
- for(let x=-23;x<=23;x++)for(let z=-23;z<=23;z++){
-  const d=Math.hypot(x,z);if(d<18||d>23||Math.abs(x)<3||Math.hypot(x-26,z+10)<10||Math.hypot(x+26,z+10)<10)continue;
-  if(Math.abs(Math.sin(Math.atan2(x,z)*8))<.17){b.set(x,12,z,'minecraft:smooth_quartz_slab','Podium planter divider',{type:'bottom'});b.clear(x,13,z);}
-  else {b.set(x,12,z,'minecraft:dirt','Podium grouped soil');b.set(x,13,z,'minecraft:oak_leaves','Podium grouped hedge',leafState);if((x-z)%11===0)b.set(x,13,z,'minecraft:pink_tulip','Garden flower');}
- }
- // Staggered higher leaf clusters break the planted rings into the reference's grouped hedges.
- for(const [x,z]of[[-14,-28],[14,-28],[-23,21],[-14,28],[16,26],[25,19]]as const){
-  for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)if(Math.hypot(x+dx,z+dz)<33)b.set(x+dx,4,z+dz,'minecraft:oak_leaves','Raised ground shrub',leafState);
-  b.set(x,5,z,'minecraft:oak_leaves','Raised ground shrub',leafState);
- }
- for(const [x,z]of[[-13,-16],[13,-16],[-19,6],[19,6],[-13,16],[13,16]]as const){for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++)b.set(x+dx,14,z+dz,'minecraft:oak_leaves','Raised podium shrub',leafState);b.set(x,15,z,'minecraft:oak_leaves','Raised podium shrub',leafState);}
- for(const cx of [-26,26])for(const [dx,dz]of[[-5,-2],[5,2],[0,-6],[0,6]]as const)for(let xx=-1;xx<=1;xx++)for(let zz=-1;zz<=1;zz++)if(Math.hypot(dx+xx,dz+zz)>=5&&Math.hypot(dx+xx,dz+zz)<7.3)b.set(cx+dx+xx,17,-10+dz+zz,'minecraft:oak_leaves','Raised annex shrub',leafState);
- for(const [x,z]of[[-8,-29],[8,-29],[-8,29],[20,24]]as const){b.set(x,2,z,'minecraft:dirt','Flower soil');b.set(x,3,z,'minecraft:pink_tulip','Garden flower');}
  stairs(b);
  // Three broad entrance rises meet the lobby floor, with a tall blue-glass surround and gold light piers.
- for(let i=0;i<3;i++)for(let x=-4;x<=4;x++){const z=-34+i;b.box(x,0,z,x,i,z,WHITE,'Entrance support');b.set(x,i+1,z,'minecraft:quartz_stairs','Circulation',{facing:'south'});for(let h=1;h<=3;h++)b.clear(x,i+1+h,z);}
- for(let x=-3;x<=3;x++)for(let z=-31;z<=-4;z++){b.set(x,3,z,WHITE,'Entrance landing');for(let y=4;y<=7;y++)b.clear(x,y,z);}
+ for(let i=0;i<3;i++)for(let x=-4;x<=4;x++){const z=-28+i;b.box(x,0,z,x,i,z,WHITE,'Entrance support');b.set(x,i+1,z,'minecraft:quartz_stairs','Circulation',{facing:'south'});for(let h=1;h<=3;h++)b.clear(x,i+1+h,z);}
+ for(let x=-3;x<=3;x++)for(let z=-25;z<=-4;z++){b.set(x,3,z,WHITE,'Entrance landing');for(let y=4;y<=7;y++)b.clear(x,y,z);}
  for(const x of [-4,4])for(let y=4;y<=8;y++)b.set(x,y,-24,LAMP,'Entrance light pier');
  for(let x=-3;x<=3;x++)for(let y=4;y<=8;y++)if(x!==-1&&x!==0||y>=6)b.set(x,y,-24,GLASS,'Entrance blue surround');
  for(const x of [-5,5])for(let y=4;y<=9;y++)b.set(x,y,-24,WHITE,'Entrance white frame');
  // Rear access is offset to the right as in the rear reference.
- for(let i=0;i<3;i++)for(let x=5;x<=10;x++){const z=34-i;b.box(x,0,z,x,i,z,WHITE,'Rear entrance support');b.set(x,i+1,z,'minecraft:quartz_stairs','Circulation',{facing:'north'});for(let h=1;h<=3;h++)b.clear(x,i+1+h,z);}
- for(let x=5;x<=10;x++)for(let z=4;z<=31;z++){b.set(x,3,z,WHITE,'Rear entrance landing');for(let y=4;y<=7;y++)b.clear(x,y,z);}
+ for(let i=0;i<3;i++)for(let x=5;x<=10;x++){const z=28-i;b.box(x,0,z,x,i,z,WHITE,'Rear entrance support');b.set(x,i+1,z,'minecraft:quartz_stairs','Circulation',{facing:'north'});for(let h=1;h<=3;h++)b.clear(x,i+1+h,z);}
+ for(let x=5;x<=10;x++)for(let z=4;z<=25;z++){b.set(x,3,z,WHITE,'Rear entrance landing');for(let y=4;y<=7;y++)b.clear(x,y,z);}
  for(const x of [5,10])for(let y=4;y<=8;y++)b.set(x,y,23,LAMP,'Rear entrance light pier');
  for(let x=6;x<=9;x++)for(let y=4;y<=8;y++)if(x!==7&&x!==8||y>=6)b.set(x,y,23,GLASS,'Rear entrance blue surround');
  for(const [x,z]of[[-1,-24],[0,-24],[7,23],[8,23]]as const)for(const dz of [-1,1]){b.set(x,3,z+dz,WHITE,'Door threshold');b.set(x,4,z+dz,'minecraft:stone_pressure_plate','Door control',{powered:'false'});}
  b.door(-1,4,-24,'north');b.door(0,4,-24,'north');b.door(7,4,23,'south');b.door(8,4,23,'south');
  for(const y of GOLDEN_LEAF_DESIGN.floorLevels){const r=bodyRadius(y);if(r>=7)b.set(0,y+1,-Math.floor(r-4.6),LAMP,'Front interior window light');}
- // Lights are placed after every hedge, path and tree, so planting cannot erase them.
- const finalLamp=(x:number,y:number,z:number,category:string)=>{b.set(x,y,z,WHITE,'Lamp pedestal');b.set(x,y+1,z,LAMP,category);};
- for(const [x,z]of[[-17,-27],[-8,-30],[8,-30],[17,-27]]as const)finalLamp(x,3,z,'Front ground garden lamp');
- for(const [x,z]of[[-19,25],[-9,30],[15,28],[23,22]]as const)finalLamp(x,3,z,'Rear ground garden lamp');
- for(const [x,z]of[[-7,-21],[7,-21],[-17,13],[17,13],[-7,21],[7,21]]as const)finalLamp(x,13,z,'Podium roof garden lamp');
- for(const cx of [-26,26])for(const [dx,dz]of[[-6,0],[6,0],[0,-6],[0,6]]as const)finalLamp(cx+dx,16,-10+dz,'Annex roof garden lamp');
+ // Supported lamp pedestals are placed after planting, clearing only their own canopy cells.
+ const finalLamp=(x:number,y:number,z:number,category:string)=>{for(let yy=category.includes('ground')?2:category.startsWith('Annex')?15:12;yy<=y;yy++)b.set(x,yy,z,WHITE,'Lamp pedestal');b.set(x,y+1,z,LAMP,category);for(let yy=y+2;yy<=18;yy++)b.clear(x,yy,z);};
+ for(const x of [-22,-11,11,22])finalLamp(x,3,-26,'Front ground garden lamp');
+ for(const x of [-22,-11,15,22])finalLamp(x,3,26,'Rear ground garden lamp');
+ for(const x of [-16,-7,7,16])for(const z of [-22,22])finalLamp(x,13,z,'Podium roof garden lamp');
+ for(const side of [-1,1])for(const [x,z]of [[34,-7],[34,7],[31,-9],[31,9]]as const)finalLamp(side*x,15,z,'Annex roof garden lamp');
  // Full-cube quartz ribs keep a continuous pale face distinct from the gray floor bands. Half slabs bridge only actual grid turns.
  const ribRows=new Map<number,{x:number;y:number;z:number}[]>(),mainCells=new Set<string>();
  for(const side of [-1,1]){
@@ -166,7 +154,7 @@ function buildGoldenLeaf(){
  }
  return b;
 }
-function finalProject(project:Project):Project{return parseProject({...project,id:'golden-leaf-100-complete-v7',designRevision:GOLDEN_LEAF_DESIGN.revision,blocks:project.blocks.map(block=>({...block,constructionPhaseId:'golden-leaf:'+block.category!.toLowerCase().replace(/[^a-z0-9]+/g,'-'),...(block.category==='Doors'?{id:'minecraft:iron_door' as const,state:{...block.state,hinge:block.pos.x===0||block.pos.x===8?'right':'left'}}:{})}))});}
+function finalProject(project:Project):Project{return parseProject({...project,id:'golden-leaf-100-complete-v8',designRevision:GOLDEN_LEAF_DESIGN.revision,blocks:project.blocks.map(block=>({...block,constructionPhaseId:'golden-leaf:'+block.category!.toLowerCase().replace(/[^a-z0-9]+/g,'-'),...(block.category==='Doors'?{id:'minecraft:iron_door' as const,state:{...block.state,hinge:block.pos.x===0||block.pos.x===8?'right':'left'}}:{})}))});}
 export function createGoldenLeafProject():Project{return finalProject(buildGoldenLeaf().finishProject());}
 /** Legacy export callers still receive complete canonical chunks, never the editing workspace. */
 export function createGoldenLeafParts():District[]{return buildGoldenLeaf().finishParts().map(part=>({...part,project:{...finalProject(part.project),id:part.project.id}}));}
