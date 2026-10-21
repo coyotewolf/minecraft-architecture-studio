@@ -1,0 +1,33 @@
+{
+  "revision": "golden-leaf-100-v11",
+  "date": "2026-10-21",
+  "typecheck": "passed",
+  "lint": "passed",
+  "productionBuild": "passed",
+  "servedBundle": "index-DAnqiPMa.js",
+  "unitTests": {
+    "total": 1384,
+    "files": 36,
+    "allHavePassingRun": true,
+    "singleCleanFullRun": false,
+    "firstRun": "1383 passed; existing high-detail test exceeded 5000 ms",
+    "secondRun": "maxWorkers=2: 1380 passed; four AI local HTTP tests failed with fetch bad port",
+    "isolatedRerun": "AI server.test.ts: 7/7 passed; no assertions or timeouts changed"
+  },
+  "buildingTests": 15,
+  "e2e": {
+    "passed": 3,
+    "failed": 0,
+    "durationMs": 81394.409,
+    "flows": [
+      "complete building edit, undo/redo, reload, additive backup, selection persistence",
+      "mobile touch, reference controls, no horizontal overflow",
+      "current revision URL adds missing V11 once and preserves earlier collection"
+    ]
+  },
+  "renderEvidence": "golden-leaf-v11-final",
+  "comparison": "golden-leaf-v11-comparison.png",
+  "visualStatus": "major front frame topology corrected; curvature steps and finer details remain",
+  "minecraftGameAcceptance": "not performed",
+  "paidGenerations": 0
+}

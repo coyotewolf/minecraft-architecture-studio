@@ -3,15 +3,15 @@ import {HighDetailBuilder} from '../campus/high-detail.ts';
 import type {MinecraftId, Project} from '../../core/contracts.ts';
 import {parseProject} from '../../core/model.ts';
 
-/** V10 refines the canonical 100-block design without overwriting earlier collections. */
-export const GOLDEN_LEAF_DESIGN={id:'golden-leaf-tower',revision:'golden-leaf-100-v10',front:'negative-z',nominalTowerDiameter:48,nominalTowerHeight:88,towerBaseY:11,highestY:99,floorPitch:3,floorCount:26,floorLevels:Array.from({length:26},(_,i)=>11+i*3),referenceInspiredAspect:1090/620,chosenAspect:88/48,proportionNote:'全棟含基座與尖頂 Y0–99，共100格；塔身最大直徑48、膠囊形基座71×47、中央直段24格接左右半圓；裙樓65×41，左右附樓與屋頂花園採朝內凹的月牙足跡。26道樓板以3格層距排列，半磚保留至少2格淨高；最上兩道隨雙葉收窄；前圖26道層帶、背圖約13道，兩圖可見層帶不完全對應；本設計保留26個通行樓層，後窗以13道外露半磚層帶呼應參考，其餘內樓板退至玻璃後。隱藏結構、尺寸均為 AI Estimated Area。'} as const;
+/** V11 refines the canonical 100-block design without overwriting earlier collections. */
+export const GOLDEN_LEAF_DESIGN={id:'golden-leaf-tower',revision:'golden-leaf-100-v11',front:'negative-z',nominalTowerDiameter:48,nominalTowerHeight:88,towerBaseY:11,highestY:99,floorPitch:3,floorCount:26,floorLevels:Array.from({length:26},(_,i)=>11+i*3),referenceInspiredAspect:1090/620,chosenAspect:88/48,proportionNote:'全棟含基座與尖頂 Y0–99，共100格；塔身最大直徑48、膠囊形基座71×47、中央直段24格接左右半圓；裙樓65×41，左右附樓與屋頂花園採朝內凹的月牙足跡。26道樓板以3格層距排列，半磚保留至少2格淨高；最上兩道隨雙葉收窄；前圖26道層帶、背圖約13道，兩圖可見層帶不完全對應；本設計保留26個通行樓層，後窗以13道外露半磚層帶呼應參考，其餘內樓板退至玻璃後。隱藏結構、尺寸均為 AI Estimated Area。'} as const;
 const WHITE:MinecraftId='minecraft:smooth_quartz',GOLD:MinecraftId='minecraft:gold_block',GLASS:MinecraftId='minecraft:blue_stained_glass',SLAB:MinecraftId='minecraft:smooth_stone_slab',LAMP:MinecraftId='minecraft:glowstone';
 const leafState={persistent:'true',distance:'1'};
 const floorSet=new Set<number>(GOLDEN_LEAF_DESIGN.floorLevels);
 const rearLedgeLevels=new Set(Array.from({length:13},(_,i)=>38+i*4));
 // Traced width ratios from the reference: a broad lower bowl and a progressively curving shoulder.
 const profile=[[11,16.8],[14.5,18.72],[26,22.56],[38.3,24],[50.6,22.56],[66.4,18.72],[83.2,11.4],[87,8.5],[91,4.7],[95,1.5],[98,.4],[99,.2]] as const;
-const ribProfile=[[11,-5.5],[18,-3.2],[25,0],[33,3.6],[39,5.9],[44,6.8],[50.6,7.4],[66.4,6.64],[75,5.5],[78,3.9],[87,2],[94,.4]] as const;
+const ribProfile=[[11,-5.5],[18,-3.2],[25,0],[35,3.6],[42,5.9],[49,7],[55,7.4],[66.4,6.64],[75,5.5],[78,3.9],[87,2],[94,.4]] as const;
 const smooth=(t:number)=>t*t*(3-2*t);
 function sampleProfile(y:number,profile:readonly (readonly [number,number])[]){
  const slope=(i:number)=>{const segment=(j:number)=>(profile[j+1]![1]-profile[j]![1])/(profile[j+1]![0]-profile[j]![0]);if(i===0)return segment(0);if(i===profile.length-1)return segment(i-1);const a=segment(i-1),b=segment(i);return a*b<=0?0:2*a*b/(a+b);};
@@ -188,10 +188,33 @@ function buildGoldenLeaf(){
  for(const side of [-1,1]){
   const rows:{x:number;y:number;z:number}[]=[];ribRows.set(side,rows);
   for(let y=11;y<=94;y++){
-   const x=Math.round(side*sampleProfile(y,ribProfile)),theta=Math.asin(Math.max(-1,Math.min(1,x/bodyRadius(y)))),rr=radius(y,theta);
+   const desired=Math.round(side*sampleProfile(y,ribProfile));
+   // The positive-X trunk follows the tall crown once the short leaf closes its own window.
+   const x=side>0&&y>=78?Math.min(desired,Math.max(0,frontFacade(y).right-1)):desired,theta=Math.asin(Math.max(-1,Math.min(1,x/bodyRadius(y)))),rr=side>0&&y>=78?bodyRadius(y):radius(y,theta);
    if(rr<4||Math.abs(x)>rr-1||x<frontFacade(y).left||x>frontFacade(y).right)continue;
-   const z=frontFacade(y).z(x)-2;rows.push({x,y,z});mainCells.add([x,y,z].join(','));b.set(x,y,z,'minecraft:smooth_stone','Front curved rib');
+   const z=(side>0&&y>=78?Math.min(frontFacade(y).z(x),-Math.round(bodyRadius(y)-2)):frontFacade(y).z(x))-2;rows.push({x,y,z});mainCells.add([x,y,z].join(','));b.set(x,y,z,'minecraft:smooth_stone','Front curved rib');
   }
+ }
+ // The two shoulder trunks split into inner crossing ribs and outer curved legs.
+ // Straight outer legs terminate against the intact leaf return where the blue opening closes.
+ const outerRibProfile=[[11,10],[29,10],[36,9],[49,7]] as const;
+ const supportCells=new Map(b.finishProject().blocks.map(block=>[[block.pos.x,block.pos.y,block.pos.z].join(','),block]));
+ for(const side of [-1,1]){
+  const rows:{x:number;y:number;z:number}[]=[];ribRows.set(side*2,rows);
+  for(let y=49;y>=11;y--){
+   const facade=frontFacade(y),x=side*Math.ceil(sampleProfile(y,outerRibProfile));
+   let ends=x<=facade.left+1||x>=facade.right-1,z=facade.z(x)-2;
+   if(ends){
+    // Join the front face of an existing solid leaf cell without replacing its material.
+    let contact=z;
+    while(contact<=0&&!['minecraft:gold_block','minecraft:smooth_quartz'].includes(supportCells.get([x,y,contact].join(','))?.id??''))contact++;
+    if(contact>0)ends=false;else z=contact-1;
+   }
+   const key=[x,y,z].join(',');rows.push({x,y,z});
+   if(!mainCells.has(key)){mainCells.add(key);b.set(x,y,z,'minecraft:smooth_stone','Front outer branch');}
+   if(ends)break;
+  }
+  rows.reverse();
  }
  for(const rows of ribRows.values())for(let i=0;i<rows.length-1;i++){
   const from=rows[i]!,to=rows[i+1]!;if(to.y!==from.y+1)continue;
@@ -215,7 +238,7 @@ function buildGoldenLeaf(){
  }
  return b;
 }
-function finalProject(project:Project):Project{return parseProject({...project,id:'golden-leaf-100-complete-v10',designRevision:GOLDEN_LEAF_DESIGN.revision,blocks:project.blocks.map(block=>({...block,constructionPhaseId:'golden-leaf:'+block.category!.toLowerCase().replace(/[^a-z0-9]+/g,'-'),...(block.category==='Doors'?{id:'minecraft:iron_door' as const,state:{...block.state,hinge:block.pos.x===0||block.pos.x===8?'right':'left'}}:{})}))});}
+function finalProject(project:Project):Project{return parseProject({...project,id:'golden-leaf-100-complete-v11',designRevision:GOLDEN_LEAF_DESIGN.revision,blocks:project.blocks.map(block=>({...block,constructionPhaseId:'golden-leaf:'+block.category!.toLowerCase().replace(/[^a-z0-9]+/g,'-'),...(block.category==='Doors'?{id:'minecraft:iron_door' as const,state:{...block.state,hinge:block.pos.x===0||block.pos.x===8?'right':'left'}}:{})}))});}
 export function createGoldenLeafProject():Project{return finalProject(buildGoldenLeaf().finishProject());}
 /** Legacy export callers still receive complete canonical chunks, never the editing workspace. */
 export function createGoldenLeafParts():District[]{return buildGoldenLeaf().finishParts().map(part=>({...part,project:{...finalProject(part.project),id:part.project.id}}));}

@@ -17,8 +17,8 @@ test('collection preserves metadata, edited complete building and additive backu
  await page.getByRole('button',{name:'開啟完整建築施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(current.blocks.length),{timeout:180000});console.info('Returning from complete editor');await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);console.info('Returned to collection');
  const importPath=testInfo.outputPath('collection-backup.json');await writeFile(importPath,JSON.stringify(edited));await page.getByLabel('匯入收藏備份',{exact:true}).setInputFiles(importPath);await expect(page.getByRole('status')).toContainText('已加入備份',{timeout:60000});const imported=await backup(page);expect(imported.entries).toHaveLength(2);expect(imported.entries[0]).toEqual(edited.entries[0]);expect(imported.entries[1]!.project.id).not.toEqual(edited.entries[0]!.project.id);expect(imported.entries[1]!.project.blocks).toEqual(edited.entries[0]!.project.blocks);await page.reload();await ready(page);expect((await backup(page)).entries).toEqual(imported.entries);
  // Reload and returning from the editor must keep the selected building, not jump to the oldest entry.
- await page.getByRole('button',{name:'載入新版金葉塔',exact:true}).click();await expect(page.getByRole('status')).toContainText('已加入 V10',{timeout:60000});await ready(page);
- const freshName='金葉之塔（100 格・立面精修版 V10）';await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue(freshName);
+ await page.getByRole('button',{name:'載入新版金葉塔',exact:true}).click();await expect(page.getByRole('status')).toContainText('已加入 V11',{timeout:60000});await ready(page);
+ const freshName='金葉之塔（100 格・骨架重建版 V11）';await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue(freshName);
  await page.reload();await ready(page);await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue(freshName);
  await page.getByRole('button',{name:'開啟完整建築施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(part.blocks.length),{timeout:180000});
  await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue(freshName);
@@ -26,4 +26,20 @@ test('collection preserves metadata, edited complete building and additive backu
 });
 test('mobile collection has no overflow and supports touch view and reference controls',async({browser})=>{
  test.setTimeout(120000);const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:1});try{const page=await context.newPage();await page.goto('/?view=collection');await ready(page);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);for(const name of ['正面','背面','俯視'])await page.getByRole('button',{name,exact:true}).tap();await page.getByRole('button',{name:'背面參考',exact:true}).tap();await expect(page.locator('.collection-reference img')).toHaveAttribute('src','/local-references/golden-leaf-rear.png');await page.getByRole('button',{name:'等角',exact:true}).tap();await page.locator('.collection-preview canvas').scrollIntoViewIfNeeded();const canvas=page.locator('.collection-preview canvas'),rect=(await canvas.boundingBox())!,before=await canvas.getAttribute('data-camera');const session=await context.newCDPSession(page),x=rect.x+rect.width/2,y=rect.y+rect.height/2;await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y,id:1}]});await session.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+35,y:y+15,id:1}]});await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await expect.poll(()=>canvas.getAttribute('data-camera')).not.toBe(before);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:'evidence/collection-mobile.png',fullPage:true});}finally{await context.close();}
+});
+
+test('current revision link adds a missing design once and preserves the old collection',async({page})=>{
+ test.setTimeout(180000);await page.goto('/?view=collection');await ready(page);
+ const original=await backup(page);
+ // An earlier revision marker on the valid fixture isolates version routing from geometry generation.
+ const older={...original,entries:[{...original.entries[0]!,name:'保留的早期建築',project:{...original.entries[0]!.project,id:'routing-old-project',designRevision:'golden-leaf-100-v8'}}]};
+ await page.evaluate(async()=>{await new Promise<void>((resolve,reject)=>{const r=indexedDB.deleteDatabase('minecraft-building-collection');r.onsuccess=()=>resolve();r.onerror=()=>reject(r.error);});localStorage.removeItem('minecraft-building-collection-active');});
+ // Seed the supported legacy inline storage envelope, then exercise real read/migration/write.
+ await page.evaluate(async data=>{const req=indexedDB.open('minecraft-building-collection',3);await new Promise<void>((resolve,reject)=>{req.onupgradeneeded=()=>{for(const name of ['collection','parts','buildings'])if(!req.result.objectStoreNames.contains(name))req.result.createObjectStore(name);};req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error);});const db=req.result,tx=db.transaction('collection','readwrite');tx.objectStore('collection').put(data,'current');await new Promise<void>((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});db.close();},older);
+ await page.goto('/?view=collection&revision=golden-leaf-100-v11');await ready(page);
+ await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V11');
+ const upgraded=await backup(page);expect(upgraded.entries).toHaveLength(2);expect(upgraded.entries[0]).toEqual(older.entries[0]);
+ await page.goto('/?view=collection&revision=golden-leaf-100-v11');await ready(page);
+ expect((await backup(page)).entries).toEqual(upgraded.entries);
+ await expect(page.getByTestId('collection-design-version')).toHaveText('模型 V11');
 });
