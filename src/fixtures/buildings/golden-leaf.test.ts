@@ -8,7 +8,7 @@ const category=(name:string)=>blocks.filter(b=>b.category===name);
 describe('100-block golden leaf reconstruction',()=>{
  it('caps the entire building including base, trees and tips at 100 blocks and uses a new identity',()=>{
   const ys=blocks.map(b=>b.pos.y);expect(Math.min(...ys)).toBe(0);expect(Math.max(...ys)).toBe(99);expect(Math.max(...ys)-Math.min(...ys)+1).toBeLessThanOrEqual(100);
-  expect(project.id).toBe('golden-leaf-100-complete-v6');expect(project.designRevision).toBe('golden-leaf-100-v6');
+  expect(project.id).toBe('golden-leaf-100-complete-v7');expect(project.designRevision).toBe('golden-leaf-100-v7');
   expect(blocks.some(b=>b.category==='Tall leaf tip'&&b.pos.y===99)).toBe(true);expect(blocks.some(b=>b.category==='Short leaf tip'&&b.pos.y===90)).toBe(true);
  });
  it('is one valid canonical model with intact doors, unique cells and honest evidence',()=>{
@@ -21,30 +21,52 @@ describe('100-block golden leaf reconstruction',()=>{
   for(const y of [28,40,56,68]){const row=blocks.filter(b=>b.pos.y===y);const span=(a:'x'|'z')=>Math.max(...row.map(b=>b.pos[a]))-Math.min(...row.map(b=>b.pos[a]))+1;expect(Math.abs(span('x')-span('z'))).toBeLessThanOrEqual(6);expect(span('z')).toBeGreaterThan(30);}
   expect(GOLDEN_LEAF_DESIGN.nominalTowerDiameter).toBe(48);expect(GOLDEN_LEAF_DESIGN.chosenAspect).toBeLessThan(1.9);
  });
+ it('places the widest shell in the lower third and narrows the upper shoulder',()=>{
+  const width=(y:number)=>{const xs=blocks.filter(b=>b.pos.y===y&&b.id==='minecraft:gold_block').map(b=>b.pos.x);return Math.max(...xs)-Math.min(...xs)+1;};
+  expect(width(38)).toBeGreaterThan(width(26));expect(width(38)).toBeGreaterThan(width(51));expect(width(66)/width(38)).toBeGreaterThan(.73);expect(width(66)/width(38)).toBeLessThan(.84);
+  expect(GOLDEN_LEAF_DESIGN.floorLevels).toEqual(Array.from({length:26},(_,i)=>11+i*3));
+ });
  it('separates gray exterior ribs, deep blue glazing, white returns and real half-height ledges',()=>{
-  const ribs=category('Front exterior upright').filter(b=>b.pos.y===40),glass=category('Front recessed glazing');expect(ribs.length).toBe(2);
-  for(const rib of ribs){expect(rib.id).toBe('minecraft:light_gray_concrete');const back=glass.find(b=>b.pos.x===rib.pos.x&&b.pos.y===rib.pos.y);expect(back).toBeDefined();expect(back!.pos.z-rib.pos.z).toBeGreaterThanOrEqual(2);expect(cells.has([rib.pos.x,rib.pos.y,rib.pos.z+1].join(','))).toBe(false);}
+  const ribs=category('Front curved rib').filter(b=>b.pos.y===40),glass=category('Front recessed glazing');expect(ribs.length).toBe(2);
+  for(const rib of ribs){expect(rib.id).toBe('minecraft:smooth_quartz');const back=glass.find(b=>b.pos.x===rib.pos.x&&b.pos.y===rib.pos.y);expect(back).toBeDefined();expect(back!.pos.z-rib.pos.z).toBeGreaterThanOrEqual(2);expect(cells.has([rib.pos.x,rib.pos.y,rib.pos.z+1].join(','))).toBe(false);}
   expect(glass.every(b=>b.id==='minecraft:blue_stained_glass')).toBe(true);expect(category('Front white leaf reveal').every(b=>b.id==='minecraft:smooth_quartz')).toBe(true);
   const slab=category('Front slab ledge')[0]!;expect(slab.id).toBe('minecraft:smooth_stone_slab');expect(slab.state.type).toBe('top');expect(shapeForBlock(slab).boxes[0]!.min[1]).toBe(.5);
-  expect(category('Front lower X brace').some(b=>b.pos.y===56)).toBe(true);
-  expect(new Set(category('Front lower X brace').filter(b=>b.pos.y===40).map(b=>b.pos.x)).size).toBe(4);
-  expect(category('Front lower X brace').filter(b=>b.pos.y===26)).toHaveLength(1);
-  for(let y=22;y<=30;y++)expect(category('Front lower X brace').filter(b=>b.pos.y===y).length).toBeLessThanOrEqual(2);
-  for(let y=12;y<=56;y++)expect(category('Front lower X brace').some(b=>b.pos.y===y),'X brace row '+y).toBe(true);
-  for(const brace of category('Front lower X brace').filter(b=>GOLDEN_LEAF_DESIGN.floorLevels.includes(b.pos.y))){const ledges=category('Front slab ledge').filter(b=>b.pos.x===brace.pos.x&&b.pos.y===brace.pos.y);if(ledges.length)expect(Math.min(...ledges.map(b=>b.pos.z))-brace.pos.z,'X stays forward of ledge '+brace.uid).toBeGreaterThanOrEqual(1);}
+  expect(category('Front exterior upright')).toHaveLength(0);expect(category('Front lower X brace')).toHaveLength(0);
+  const ribX=(y:number)=>category('Front curved rib').filter(b=>b.pos.y===y).map(b=>b.pos.x).sort((a,b)=>a-b);
+  expect(ribX(25)).toEqual([0]);expect(ribX(44)).toEqual([-7,7]);expect(ribX(11)).toEqual([-5,6]);
+  for(let y=12;y<=80;y++){expect(ribX(y).length,'continuous curve row '+y).toBeGreaterThan(0);expect(ribX(y).length).toBeLessThanOrEqual(2);}
+  expect(category('Front curved rib').every(b=>b.id==='minecraft:smooth_quartz')).toBe(true);
+  expect(category('Front rib half-step').length).toBeGreaterThan(20);expect(category('Front rib half-step').every(b=>b.id==='minecraft:smooth_quartz_slab'&&b.state.type==='top')).toBe(true);
+  expect(category('Front apex white return')).toHaveLength(9);
+  for(const rib of category('Front curved rib').filter(b=>GOLDEN_LEAF_DESIGN.floorLevels.includes(b.pos.y))){const ledges=category('Front slab ledge').filter(b=>b.pos.x===rib.pos.x&&b.pos.y===rib.pos.y);if(ledges.length)expect(Math.min(...ledges.map(b=>b.pos.z))-rib.pos.z,'rib stays forward of ledge '+rib.uid).toBeGreaterThanOrEqual(1);}
   for(let y=80;y<=90;y++)expect(category('Short leaf return').some(b=>b.pos.y===y&&b.id==='minecraft:quartz_stairs'),'short leaf reveal '+y).toBe(true);
   const mullions=category('Front window mullion');expect(mullions.length).toBeGreaterThan(200);expect(mullions.every(b=>b.id==='minecraft:iron_bars')).toBe(true);expect(shapeForBlock(mullions[0]!).boxes[0]!.max[0]-shapeForBlock(mullions[0]!).boxes[0]!.min[0]).toBe(.125);
   expect(category('Podium planter divider').length).toBeGreaterThan(20);expect(category('Garden shrub crown').length).toBeGreaterThan(20);
-  expect(category('Front lower X brace').every(b=>b.pos.z<0&&b.pos.y<=56)).toBe(true);
+  expect(category('Front curved rib').every(b=>b.pos.z<0&&b.pos.y<=94)).toBe(true);
+ });
+ it('joins the full-width curved rib cores through real face-connected half-step geometry',()=>{
+  const ribs=[...category('Front curved rib'),...category('Front rib half-step')],byCell=new Map(ribs.map(b=>[[b.pos.x,b.pos.y,b.pos.z].join(','),b]));
+  const joined=(a:typeof ribs[number],b:typeof ribs[number])=>shapeForBlock(a).boxes.some(aa=>shapeForBlock(b).boxes.some(bb=>{
+   const ap=[a.pos.x,a.pos.y,a.pos.z],bp=[b.pos.x,b.pos.y,b.pos.z];
+   return [0,1,2].some(axis=>{
+    const touches=Math.abs(ap[axis]!+aa.max[axis]!-bp[axis]!-bb.min[axis]!)<1e-6||Math.abs(bp[axis]!+bb.max[axis]!-ap[axis]!-aa.min[axis]!)<1e-6;
+    return touches&&[0,1,2].filter(i=>i!==axis).every(i=>Math.min(ap[i]!+aa.max[i]!,bp[i]!+bb.max[i]!)-Math.max(ap[i]!+aa.min[i]!,bp[i]!+bb.min[i]!)>1e-6);
+   });
+  }));
+  const queue=[ribs[0]!],seen=new Set([ribs[0]!.uid]);
+  for(let i=0;i<queue.length;i++){const a=queue[i]!;for(const [dx,dy,dz]of [[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]]){const b=byCell.get([a.pos.x+dx!,a.pos.y+dy!,a.pos.z+dz!].join(','));if(b&&!seen.has(b.uid)&&joined(a,b)){seen.add(b.uid);queue.push(b);}}}
+  expect(seen.size).toBe(ribs.length);
  });
  it('preserves a narrow rear leaf window, central spine and a physically raised gold overlap',()=>{
-  const front=category('Front recessed glazing'),rear=category('Rear recessed glazing');expect(front.length).toBeGreaterThan(rear.length*1.4);expect(rear.length).toBeGreaterThan(0);expect(rear.every(b=>b.pos.y>=39&&b.pos.z>0)).toBe(true);
+  const front=category('Front recessed glazing'),rear=category('Rear recessed glazing');expect(front.length).toBeGreaterThan(rear.length*1.4);expect(rear.length).toBeGreaterThan(0);expect(rear.every(b=>b.pos.y>=35&&b.pos.z>0)).toBe(true);
+  const widestRearBlueRow=Array.from({length:30},(_,i)=>45+i).filter(y=>!GOLDEN_LEAF_DESIGN.floorLevels.includes(y)).map(y=>{const blue=rear.filter(b=>b.pos.y===y),shell=blocks.filter(b=>b.pos.y===y&&b.id==='minecraft:gold_block'),span=(bs:typeof blocks)=>Math.max(...bs.map(b=>b.pos.x))-Math.min(...bs.map(b=>b.pos.x))+1;return {y,blue:span(blue),shell:span(shell)};}).sort((a,b)=>b.blue-a.blue)[0]!;
+  expect(widestRearBlueRow.blue/widestRearBlueRow.shell).toBeGreaterThanOrEqual(.36);expect(widestRearBlueRow.blue/widestRearBlueRow.shell).toBeLessThanOrEqual(.41);
   expect(category('Rear central spine').every(b=>b.pos.x===0&&b.pos.z>0)).toBe(true);expect(category('Rear overlapping petal').length).toBeGreaterThan(0);
   expect(category('Rear apex white return')).toHaveLength(9);expect(category('Rear apex white return').every(b=>b.pos.x<=0&&b.pos.y>=90&&b.pos.y<=98&&b.id==='minecraft:quartz_stairs')).toBe(true);
   const seam=category('Rear diagonal petal overlap');expect(seam.some(b=>b.id==='minecraft:smooth_quartz')).toBe(true);expect(new Set(seam.map(b=>b.pos.x)).size).toBeGreaterThan(8);
  });
- it('fits 23 usable floors with clear stairs and a complete warm-lit base',()=>{
-  expect(GOLDEN_LEAF_DESIGN.floorLevels).toHaveLength(23);
+ it('fits 26 usable floors with clear stairs and a complete warm-lit base',()=>{
+  expect(GOLDEN_LEAF_DESIGN.floorLevels).toHaveLength(26);
   for(const y of GOLDEN_LEAF_DESIGN.floorLevels){expect(cells.get([0,y,0].join(','))?.category).toBe('Floor');expect(category('Front slab ledge').some(b=>b.pos.y===y)).toBe(true);for(const h of [1,2])expect(cells.has([0,y+h,0].join(','))).toBe(false);}
   for(const b of category('Circulation'))for(const h of [1,2])expect(cells.has([b.pos.x,b.pos.y+h,b.pos.z].join(',')),b.uid+' headroom '+h).toBe(false);
   for(const x of [-26,26])expect(cells.get([x,14,-10].join(','))?.category).toBe('Annex roof');

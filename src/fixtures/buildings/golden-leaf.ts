@@ -3,26 +3,28 @@ import {HighDetailBuilder} from '../campus/high-detail.ts';
 import type {MinecraftId, Project} from '../../core/contracts.ts';
 import {parseProject} from '../../core/model.ts';
 
-/** V6 refines the canonical 100-block design without overwriting earlier collections. */
-export const GOLDEN_LEAF_DESIGN={id:'golden-leaf-tower',revision:'golden-leaf-100-v6',front:'negative-z',nominalTowerDiameter:48,nominalTowerHeight:88,towerBaseY:11,highestY:99,floorPitch:3.5,floorCount:23,floorLevels:Array.from({length:23},(_,i)=>11+Math.floor(i*3.5)),referenceInspiredAspect:1090/620,chosenAspect:88/48,proportionNote:'全棟含基座與尖頂 Y0–99，共100格；塔身最大直徑48、基座直徑70。23道樓板以3/4格交替，半磚保留至少2格淨高。原圖約26道樓板，為百格限制取捨；隱藏結構、尺寸均為 AI Estimated Area。'} as const;
-const WHITE:MinecraftId='minecraft:smooth_quartz',GOLD:MinecraftId='minecraft:gold_block',GLASS:MinecraftId='minecraft:blue_stained_glass',GRAY:MinecraftId='minecraft:light_gray_concrete',SLAB:MinecraftId='minecraft:smooth_stone_slab',LAMP:MinecraftId='minecraft:glowstone';
+/** V7 refines the canonical 100-block design without overwriting earlier collections. */
+export const GOLDEN_LEAF_DESIGN={id:'golden-leaf-tower',revision:'golden-leaf-100-v7',front:'negative-z',nominalTowerDiameter:48,nominalTowerHeight:88,towerBaseY:11,highestY:99,floorPitch:3,floorCount:26,floorLevels:Array.from({length:26},(_,i)=>11+i*3),referenceInspiredAspect:1090/620,chosenAspect:88/48,proportionNote:'全棟含基座與尖頂 Y0–99，共100格；塔身最大直徑48、基座直徑70。26道樓板以3格層距排列，半磚保留至少2格淨高；最上兩道隨雙葉收窄；前圖26道層帶、背圖約13道，兩圖可見層帶不完全對應；本設計保留26個通行樓層，後窗可見層帶不是逐道復刻。隱藏結構、尺寸均為 AI Estimated Area。'} as const;
+const WHITE:MinecraftId='minecraft:smooth_quartz',GOLD:MinecraftId='minecraft:gold_block',GLASS:MinecraftId='minecraft:blue_stained_glass',SLAB:MinecraftId='minecraft:smooth_stone_slab',LAMP:MinecraftId='minecraft:glowstone';
 const leafState={persistent:'true',distance:'1'};
 const floorSet=new Set<number>(GOLDEN_LEAF_DESIGN.floorLevels);
-const profile=[[11,14],[23,21],[36,23.8],[48,23.6],[63,20],[76,14],[87,8],[95,2.7],[99,.2]] as const;
+// Traced width ratios from the reference: a broad lower bowl and a progressively curving shoulder.
+const profile=[[11,16.8],[14.5,18.72],[26,22.56],[38.3,24],[50.6,22.56],[66.4,18.72],[83.2,10.8],[87,8.1],[91,4.7],[95,1.5],[98,.4],[99,.2]] as const;
+const ribProfile=[[11,-5.5],[18,-3.2],[25,0],[34,3.7],[44,6.8],[50.6,6.6],[66.4,5.64],[78,3.9],[87,2],[94,.4]] as const;
 const smooth=(t:number)=>t*t*(3-2*t);
-function bodyRadius(y:number){
- if(y>99)return 0;
+function sampleProfile(y:number,profile:readonly (readonly [number,number])[]){
  const slope=(i:number)=>{const segment=(j:number)=>(profile[j+1]![1]-profile[j]![1])/(profile[j+1]![0]-profile[j]![0]);if(i===0)return segment(0);if(i===profile.length-1)return segment(i-1);const a=segment(i-1),b=segment(i);return a*b<=0?0:2*a*b/(a+b);};
  for(let i=1;i<profile.length;i++){const [a,ra]=profile[i-1]!,[z,rz]=profile[i]!;if(y<=z){const t=Math.max(0,(y-a)/(z-a)),h=z-a;return (2*t**3-3*t*t+1)*ra+(t**3-2*t*t+t)*h*slope(i-1)+(-2*t**3+3*t*t)*rz+(t**3-t*t)*h*slope(i);}}
- return .2;
+ return profile[profile.length-1]![1];
 }
+function bodyRadius(y:number){return y>99?0:sampleProfile(y,profile);}
 function shortSection(y:number){const t=smooth(Math.max(0,Math.min(1,(y-68)/22)));return {cx:6*t,r:y>90?0:bodyRadius(y+9*t)};}
 function radius(y:number,theta=0){
  if(y<=68||Math.sin(theta)<1e-6)return bodyRadius(y);
  const s=shortSection(y),discriminant=s.r*s.r-s.cx*s.cx*Math.cos(theta)**2;
  return discriminant<0||s.r===0?0:s.cx*Math.sin(theta)+Math.sqrt(discriminant);
 }
-function aperture(y:number,rear=false){return rear?(y<39||y>89?0:.48*Math.pow(Math.sin(Math.PI*(y-39)/50),.8)):.44+.34*Math.sin(Math.PI*Math.min(1,(y-11)/88*1.08));}
+function aperture(y:number,rear=false){return rear?(y<35||y>89?0:.50*Math.pow(Math.sin(Math.PI*(y-35)/54),.8)):.48+.27*Math.sin(Math.PI*Math.min(1,(y-11)/88*1.08));}
 function disk(b:HighDetailBuilder,x0:number,z0:number,y:number,r:number,id:MinecraftId,category:string){for(let x=Math.ceil(x0-r);x<=Math.floor(x0+r);x++)for(let z=Math.ceil(z0-r);z<=Math.floor(z0+r);z++)if(Math.hypot(x-x0,z-z0)<=r)b.set(x,y,z,id,category);}
 function ring(b:HighDetailBuilder,x0:number,z0:number,y:number,r:number,id:MinecraftId,category:string){for(let x=Math.ceil(x0-r);x<=Math.floor(x0+r);x++)for(let z=Math.ceil(z0-r);z<=Math.floor(z0+r);z++){const d=Math.hypot(x-x0,z-z0);if(d<=r&&d>r-1.1)b.set(x,y,z,id,category);}}
 function shrub(b:HighDetailBuilder,x:number,y:number,z:number){for(let dx=-1;dx<=1;dx++)for(let dz=-1;dz<=1;dz++){b.set(x+dx,y,z+dz,'minecraft:dirt','Garden soil');b.set(x+dx,y+1,z+dz,'minecraft:oak_leaves','Clipped shrub',leafState);}b.set(x,y+2,z,'minecraft:oak_leaves','Clipped shrub',leafState);}
@@ -35,7 +37,7 @@ function stairs(b:HighDetailBuilder){
  }
 }
 function buildGoldenLeaf(){
- const b=new HighDetailBuilder({id:GOLDEN_LEAF_DESIGN.revision,title:'金色葉塔・百格重建',origin:[0,0,0],references:['golden-leaf-front','golden-leaf-rear'],features:['百格內完整金葉塔、灰色外架與內退深藍窗','23道半磚樓板、前X與後窄葉窗、雙金葉覆疊','雙圓亭、主入口、暖螢石與多層花園'],notes:GOLDEN_LEAF_DESIGN.proportionNote});
+ const b=new HighDetailBuilder({id:GOLDEN_LEAF_DESIGN.revision,title:'金色葉塔・百格重建',origin:[0,0,0],references:['golden-leaf-front','golden-leaf-rear'],features:['百格內完整金葉塔、灰色外架與內退深藍窗','26道半磚樓板、前X與後窄葉窗、雙金葉覆疊','雙圓亭、主入口、暖螢石與多層花園'],notes:GOLDEN_LEAF_DESIGN.proportionNote});
  // A broad two-tier white garden base; the lobby has five usable air blocks above its floor.
  disk(b,0,0,0,35,'minecraft:stone_bricks','Foundation');disk(b,0,0,1,35,WHITE,'Base terrace');
  disk(b,0,0,3,24,WHITE,'Lobby floor');
@@ -47,7 +49,7 @@ function buildGoldenLeaf(){
   for(let x=-Math.ceil(r+2);x<=Math.ceil(r+2);x++)for(let z=-Math.ceil(r+2);z<=Math.ceil(r+2);z++){
    const theta=Math.atan2(x,-z),a=Math.abs(theta),rr=radius(y,theta),d=Math.hypot(x,z);if(rr<.2)continue;
    const front=a<frontAngle,rear=Math.PI-a<rearAngle,window=front||rear;
-   const seam=-12+(y-11)*12/28,lap=z>0&&x>seam?1.25*(z/rr)**2:0;
+   const seam=-12+(y-11)*12/24,lap=z>0&&x>seam?1.25*(z/rr)**2:0;
    if((!window||rr<3.2)&&d>=Math.max(0,rr-1.25)&&d<=rr+lap)b.set(x,y,z,GOLD,lap?'Rear overlapping petal':'Golden petal shell');
    if(window&&rr>=4&&d>=rr-3.6&&d<=rr-2.6)b.set(x,y,z,GLASS,front?'Front recessed glazing':'Rear recessed glazing');
    // Real 1/8-block iron mullions sit in front of the blue glazing, at three-block bays.
@@ -62,15 +64,13 @@ function buildGoldenLeaf(){
     for(let depth=0;depth<=2;depth++)for(let width=0;width<=(rear&&y>=87?0:1);width++)b.set(Math.round((rr-depth)*Math.sin(theta))+side*width,y,-Math.round((rr-depth)*Math.cos(theta)),WHITE,rear?'Rear white leaf reveal':'Front white leaf reveal');
    }
   }
-  if(y<=88)for(const side of [-1,1]){const theta=Math.asin(aperture(y)*side*.43),rr=radius(y,theta);if(rr<6)continue;for(let w=0;w<1;w++)b.set(Math.round((rr+.7)*Math.sin(theta))+side*w,y,-Math.round((rr+.7)*Math.cos(theta)),GRAY,'Front exterior upright');}
-  if(y>=40&&y<=89)b.set(0,y,Math.round(bodyRadius(y))+.0,WHITE,'Rear central spine');
+
+  if(y>=36&&y<=89)b.set(0,y,Math.round(bodyRadius(y))+.0,WHITE,'Rear central spine');
   if(floor){for(const rear of [false,true]){const angle=rear?rearAngle:frontAngle;if(angle<=.03)continue;
    for(const side of [-1,1]){const theta=rear?side*(Math.PI-angle*.7):side*angle*.86,rr=radius(y,theta);if(rr<7)continue;const lampRadius=rr+(rear?.8:-.2);b.set(Math.round(lampRadius*Math.sin(theta)),y,-Math.round(lampRadius*Math.cos(theta)),LAMP,'Facade ledge light');}}
    if(r>=10){b.set(4,y+1,0,'minecraft:bookshelf','Interior');b.set(0,y+1,4,'minecraft:lantern','Interior light');}}
  }
- // Narrow front X ends join the two external uprights; it never appears on the back.
- for(let y=12;y<=56;y++)for(const side of [-1,1]){const outer=Math.round(side*(y-26)*(y>26?.28:.4));for(let width=0;width<(Math.abs(y-26)<=4?1:2);width++){const x=outer-(Math.sign(outer)||side)*width,r=bodyRadius(y)+1.4,z=-Math.round(Math.sqrt(r*r-x*x));b.set(x,y,z,GRAY,'Front lower X brace');}}
- for(let y=11;y<=39;y++){const x=Math.round(-12+(y-11)*12/28),r=bodyRadius(y),z=Math.round(Math.sqrt(Math.max(0,r*r-x*x)))+1;b.set(x,y,z,WHITE,'Rear diagonal petal overlap');b.set(x+1,y,z,GOLD,'Rear diagonal petal overlap');}
+ for(let y=11;y<=35;y++){const x=Math.round(-12+(y-11)*12/24),r=bodyRadius(y),z=Math.round(Math.sqrt(Math.max(0,r*r-x*x)))+1;b.set(x,y,z,WHITE,'Rear diagonal petal overlap');b.set(x+1,y,z,GOLD,'Rear diagonal petal overlap');}
  // The white return bends into the tall gold petal instead of continuing as an empty vertical pole.
  for(let y=90;y<=98;y++){const r=bodyRadius(y),x=-Math.round(r*.2),z=Math.round(Math.sqrt(Math.max(0,r*r-x*x)));b.set(x,y,z,'minecraft:quartz_stairs','Rear apex white return',{facing:'west',half:'bottom',shape:'straight'});if(y===90)b.set(0,y,z,WHITE,'Rear apex return junction');}
  // Stair-shaped white edges soften the two upper leaf shoulders with legal block geometry.
@@ -142,9 +142,31 @@ function buildGoldenLeaf(){
  for(const [x,z]of[[-19,25],[-9,30],[15,28],[23,22]]as const)finalLamp(x,3,z,'Rear ground garden lamp');
  for(const [x,z]of[[-7,-21],[7,-21],[-17,13],[17,13],[-7,21],[7,21]]as const)finalLamp(x,13,z,'Podium roof garden lamp');
  for(const cx of [-26,26])for(const [dx,dz]of[[-6,0],[6,0],[0,-6],[0,6]]as const)finalLamp(cx+dx,16,-10+dz,'Annex roof garden lamp');
+ // Full-cube quartz ribs keep a continuous pale face distinct from the gray floor bands. Half slabs bridge only actual grid turns.
+ const ribRows=new Map<number,{x:number;y:number;z:number}[]>(),mainCells=new Set<string>();
+ for(const side of [-1,1]){
+  const rows:{x:number;y:number;z:number}[]=[];ribRows.set(side,rows);
+  for(let y=11;y<=94;y++){
+   const x=Math.round(side*sampleProfile(y,ribProfile)),theta=Math.asin(Math.max(-1,Math.min(1,x/bodyRadius(y)))),rr=radius(y,theta);
+   if(rr<4||Math.abs(x)>rr-1)continue;
+   const z=-Math.round(Math.sqrt((rr+1.4)**2-x*x));rows.push({x,y,z});mainCells.add([x,y,z].join(','));b.set(x,y,z,WHITE,'Front curved rib');
+  }
+ }
+ for(const rows of ribRows.values())for(let i=0;i<rows.length-1;i++){
+  const from=rows[i]!,to=rows[i+1]!;if(to.y!==from.y+1)continue;
+  let x=from.x,z=from.z;
+  const bridge=()=>{if(!mainCells.has([x,from.y,z].join(',')))b.set(x,from.y,z,'minecraft:smooth_quartz_slab','Front rib half-step',{type:'top'});};
+  while(x!==to.x){x+=Math.sign(to.x-x);bridge();}
+  while(z!==to.z){z+=Math.sign(to.z-z);bridge();}
+ }
+ // A narrow front return reaches one row below the golden apex, leaving the tip itself gold.
+ for(let y=90;y<=98;y++){
+  const r=bodyRadius(y),x=-Math.round(r*.48),z=-Math.max(1,Math.round(Math.sqrt(Math.max(0,r*r-x*x))));
+  b.set(x,y,z,'minecraft:quartz_stairs','Front apex white return',{facing:'west',half:'bottom',shape:'straight'});
+ }
  return b;
 }
-function finalProject(project:Project):Project{return parseProject({...project,id:'golden-leaf-100-complete-v6',designRevision:GOLDEN_LEAF_DESIGN.revision,blocks:project.blocks.map(block=>({...block,constructionPhaseId:'golden-leaf:'+block.category!.toLowerCase().replace(/[^a-z0-9]+/g,'-'),...(block.category==='Doors'?{id:'minecraft:iron_door' as const,state:{...block.state,hinge:block.pos.x===0||block.pos.x===8?'right':'left'}}:{})}))});}
+function finalProject(project:Project):Project{return parseProject({...project,id:'golden-leaf-100-complete-v7',designRevision:GOLDEN_LEAF_DESIGN.revision,blocks:project.blocks.map(block=>({...block,constructionPhaseId:'golden-leaf:'+block.category!.toLowerCase().replace(/[^a-z0-9]+/g,'-'),...(block.category==='Doors'?{id:'minecraft:iron_door' as const,state:{...block.state,hinge:block.pos.x===0||block.pos.x===8?'right':'left'}}:{})}))});}
 export function createGoldenLeafProject():Project{return finalProject(buildGoldenLeaf().finishProject());}
 /** Legacy export callers still receive complete canonical chunks, never the editing workspace. */
 export function createGoldenLeafParts():District[]{return buildGoldenLeaf().finishParts().map(part=>({...part,project:{...finalProject(part.project),id:part.project.id}}));}
