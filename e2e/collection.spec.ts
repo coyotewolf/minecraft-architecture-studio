@@ -163,3 +163,33 @@ test('first-save failure still offers the complete unsaved building download',as
  const project=JSON.parse(await readFile(file!,'utf8'));
  expect(project.designRevision).toBe('golden-leaf-100-v14');expect(project.blocks).toHaveLength(50985);
 });
+
+test('preview selection opens focused editing with reversible changes and persists on return',async({page})=>{
+ test.setTimeout(240000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/?view=collection');await ready(page);
+ const canvas=page.locator('.collection-preview canvas');await canvas.scrollIntoViewIfNeeded();const rect=(await canvas.boundingBox())!;
+ await canvas.click({position:{x:rect.width/2,y:rect.height/2}});
+ await expect(page.getByRole('button',{name:'編輯選取方塊',exact:true})).toBeVisible();
+ const picked=await page.locator('.collection-picked').textContent();
+ await page.getByRole('button',{name:'編輯選取方塊',exact:true}).click();
+ await expect(page.locator('.editing-heading')).toBeVisible({timeout:120000});
+ await expect(page.locator('.selection-actions')).toContainText('已選取',{timeout:60000});
+ const coords=picked!.match(/X ([-\d]+) · Y ([-\d]+) · Z ([-\d]+)/)![0];await expect(page.locator('.selection-actions')).toContainText(coords);
+ const before=Number(await page.getByTestId('cell-count').textContent());
+ await expect(page.locator('.primary-editor')).toHaveAttribute('open','');
+ await page.getByRole('button',{name:'預覽移除選取方塊',exact:true}).click();
+ await expect(page.getByTestId('cell-count')).toHaveText(String(before));
+ await page.getByRole('button',{name:'確認快捷編輯',exact:true}).click();
+ await expect(page.getByTestId('cell-count')).toHaveText(String(before-1));
+ await page.getByRole('button',{name:'復原上一步',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(before));
+ await page.getByRole('button',{name:'重做上一步',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(before-1));
+ await page.getByRole('button',{name:'立即儲存',exact:true}).click();await expect(page.locator('.editing-save')).toContainText('已儲存',{timeout:30000});
+ await page.screenshot({path:'evidence/preview-edit-desktop.png',fullPage:true});
+ await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);
+ await page.reload();await ready(page);
+ expect((await backup(page)).entries[0]!.project.blocks.length).toBe(before-1);
+ await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'編輯這棟建築',exact:true}).click();
+ await expect(page.locator('.editing-heading')).toBeVisible({timeout:120000});await expect(page.locator('.editing-save')).toContainText('已儲存',{timeout:30000});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.screenshot({path:'evidence/preview-edit-mobile.png',fullPage:true});expect(errors).toEqual([]);
+});

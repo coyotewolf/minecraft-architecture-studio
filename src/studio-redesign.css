@@ -253,3 +253,22 @@
   .design-studio .material-preparation label { min-height: 44px; min-width: 92px; padding: 9px 7px; gap: 9px; border-radius: 6px; cursor: pointer; }
   .design-studio .material-preparation label:has(input[type=checkbox]) { background: #1e2c32; border: 1px solid var(--line); }
 }
+
+/* Collection edit entry keeps the model and reversible actions foremost. */
+.design-studio .editing-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 0; }
+.design-studio .editing-heading h2 { margin: 0; font-size: 1.1rem; }
+.design-studio .editing-heading p, .design-studio .editing-save > span { color: var(--muted); font-size: .75rem; }
+.design-studio .editing-save { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.design-studio.overview-collapsed > .project-heading, .design-studio.overview-collapsed > .studio-summary, .design-studio.overview-collapsed .reference-card { display: none; }
+.design-studio.editing-focus .primary-editor { order: -2; }
+.design-studio.editing-focus .control-rail > .editor-section:not(.primary-editor) { order: -1; }
+.design-studio .selection-actions { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow-wrap: anywhere; }
+.design-studio .selection-actions strong { font-size: .8rem; }
+.design-studio .selection-actions span, .design-studio .selection-actions p { font-size: .72rem; color: var(--muted); }
+.design-studio .selection-action-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.design-studio .selection-preview { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
+.design-studio .selection-preview button { margin-right: 6px; }
+@media (max-width: 900px) {
+  .design-studio .editing-save { width: 100%; }
+  .design-studio .selection-action-buttons button { flex: 1 1 140px; }
+}

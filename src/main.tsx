@@ -35,22 +35,26 @@ import type { ReferenceImage } from './features/references/storage.ts';
 
 interface PendingEdit { transaction: EditTransaction | null; valid: boolean; message: string; records: readonly BlockRecord[]; cells: number; audit?:string }
 const CampusPanel=lazy(()=>import('./features/campus/CampusPanel.tsx').then(module=>({default:module.CampusPanel})));
+export interface StudioEditContext { initialSelection?:string|null; editingFocus?:boolean }
 export function App(){
  const [screen,setScreen]=useState<'home'|'campus'|'collection'|'studio'>(()=>{const params=new URLSearchParams(location.search);return params.has('sample')?'studio':params.get('view')==='collection'?'collection':params.get('view')==='campus'?'campus':'home';});
  const [origin,setOrigin]=useState<'campus'|'collection'>('campus');
  const [initial,setInitial]=useState<Project|undefined>(undefined);
+ const [editContext,setEditContext]=useState<StudioEditContext>({});
  function navigate(next:'campus'|'collection'){const url=new URL(location.href);url.searchParams.delete('sample');url.searchParams.set('view',next);history.replaceState(null,'',url);setInitial(undefined);setScreen(next);}
- function open(project:Project,from:'campus'|'collection'){setInitial(project);setOrigin(from);setScreen('studio');}
- if(screen==='collection')return <CollectionPanel onOpen={project=>open(project,'collection')} onCampus={()=>navigate('campus')}/>;
+ function open(project:Project,from:'campus'|'collection',context:StudioEditContext={}){setInitial(project);setEditContext(context);setOrigin(from);setScreen('studio');}
+ if(screen==='collection')return <CollectionPanel onOpen={project=>open(project,'collection')} onEdit={(project,selectedUid)=>open(project,'collection',{initialSelection:selectedUid,editingFocus:true})} onCampus={()=>navigate('campus')}/>;
  if(screen==='home')return <main className="studio"><header className="studio-header"><div><p className="eyebrow">BLOCK ATELIER</p><h1>建築設計工作室</h1></div></header><section className="project-heading"><div><h2>從一棟建築開始</h2><p>開啟建築庫，挑選要編輯或繼續施工的建築。</p><button onClick={()=>navigate('collection')}>開啟建築庫</button></div></section><section className="project-heading"><div><h2>全基地總覽</h2><p>全基地包含大型模型，載入時需要較多記憶體與時間。一般編輯請從建築庫選取單棟建築。</p><button onClick={()=>navigate('campus')}>載入完整基地</button></div></section></main>;
  if(screen==='campus')return <Suspense fallback={<main className="studio"><p role="status">正在載入全基地工具…</p></main>}><CampusPanel onOpen={project=>open(project,'campus')} onCollection={()=>navigate('collection')}/></Suspense>;
- return <StudioApp initialProject={initial} onCampus={()=>navigate(origin)} returnLabel={origin==='collection'?'返回建築庫':'返回全基地'}/>;
+ return <StudioApp initialProject={initial} {...editContext} onCampus={()=>navigate(origin)} returnLabel={origin==='collection'?'返回建築庫':'返回全基地'}/>;
 }
-export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"}:{initialProject?:Project|undefined;onCampus:()=>void;returnLabel?:string}) {
+export function StudioApp({initialProject,initialSelection=null,editingFocus=false,onCampus,returnLabel="返回全基地"}:StudioEditContext & {initialProject?:Project|undefined;onCampus:()=>void;returnLabel?:string}) {
   const [engine, setEngine] = useState(() => new VoxelEngine(initialProject??(new URLSearchParams(location.search).get('sample')==='house'?createDemoProject():createAtriumProject())));
   const [project, setProject] = useState(() => engine.snapshot());
   const [workspace,setWorkspace]=useState(()=>createWorkspace(project));
   const [buildMode,setBuildMode]=useState(false);
+  const [showOverview,setShowOverview]=useState(!editingFocus);
+  const selectionRestored=useRef(false);
   const [switching,setSwitching]=useState(false);
   const switchInFlight=useRef(false);
   const [exploded,setExploded]=useState(false);
@@ -93,6 +97,7 @@ export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"
   const block = project.blocks.find(b=>b.uid===selected)??null;
   function clearPreview(){setPending(null);viewer.current?.preview([],[],true);}
   function stage(transaction:EditTransaction,audit?:string,description='') {
+    if(!persistence.ready){setError('請等待本機專案讀取完成後再編輯。');return;}
     if(buildMode||exploded){setError('請切回編輯模式並關閉分解檢視後修改。');return;}
     const controls=document.querySelector<HTMLDetailsElement>('.editor-section');if(controls)controls.open=true;
     const preview=engine.preview(transaction);
@@ -123,6 +128,16 @@ export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"
   useEffect(()=>{viewer.current?.setProjection(projection);},[project.blocks,projection]);
   useEffect(()=>{viewer.current?.select(selected);},[project.blocks,selected,projection]);
   useEffect(()=>{viewer.current?.workPlane(workY);},[workY,engine]);
+  useEffect(()=>{
+    // Hydration replaces the engine and clears its selection. Apply this handoff
+    // once, only after the saved workspace has become the authoritative model.
+    if(!persistence.ready||selectionRestored.current)return;
+    selectionRestored.current=true;
+    if(!editingFocus)return;
+    setViewMode('all');setBuildMode(false);setExploded(false);
+    const picked=initialSelection?engine.getByUid(initialSelection):null;
+    if(picked){setSelected(picked.uid);setTarget(picked.pos);setWorkY(picked.pos.y);setLayer(picked.pos.y);viewer.current?.preset('front');}
+  },[persistence.ready,engine,initialSelection,editingFocus]);
   function confirm(){
     if(!pending?.valid||!pending.transaction)return;
     try {const next=engine.commit(pending.transaction);if(pending.audit){setProject(next);setWorkspace(w=>{const priorAi=w.originalAi===true;const entries=[...w.revisionLog,{id:crypto.randomUUID(),label:'接受 AI 提案',at:new Date().toISOString(),detail:pending.audit!,transaction:pending.transaction!}].slice(-500);let cells=entries.reduce((n,r)=>n+(r.transaction?.changes.length??0),0);while(cells>100000){const removed=entries.shift();cells-=removed?.transaction?.changes.length??0;}return {...w,original:priorAi?w.original:next,originalAi:true,revisionLog:entries};});}else publish(next,'套用編輯');clearPreview();setError('');}
@@ -168,7 +183,7 @@ export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"
   function closeDrawer(event:React.MouseEvent<HTMLButtonElement>){event.currentTarget.closest('details')?.removeAttribute('open');}
   function openReferences(){document.querySelector<HTMLDetailsElement>('[data-reference-drawer]')?.setAttribute('open','');}
   function closeOtherDrawers(event:React.SyntheticEvent<HTMLDetailsElement>){const active=event.currentTarget;if(active.open)document.querySelectorAll<HTMLDetailsElement>('.utility-drawer[open]').forEach(d=>{if(d!==active)d.open=false;});}
-  return <main className="studio design-studio" onKeyDown={event=>{
+  return <main className={`studio design-studio${editingFocus?' editing-focus':''}${showOverview?'':' overview-collapsed'}`} onKeyDown={event=>{
     if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='z'&&!(event.target instanceof HTMLInputElement)&&!(event.target instanceof HTMLTextAreaElement)){event.preventDefault();history(event.shiftKey);}
     if(event.key==='Escape'){clearPreview();document.querySelectorAll<HTMLDetailsElement>('.utility-drawer[open]').forEach(d=>d.open=false);}
   }}>
@@ -179,13 +194,14 @@ export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"
           <details className="utility-drawer" onToggle={closeOtherDrawers}><summary>AI 圖片分析與編輯</summary><div className="drawer-content"><button className="drawer-close" onClick={closeDrawer}>關閉面板</button><AiPanel key={project.id} project={project} onProposal={(raw,scope,audit)=>{try{if(activeProject.current.id!==project.id)throw new Error("專案已切換，請重新產生提案。");const result=validateProposal(engine.snapshot(),raw,scope);stage(result.transaction,audit,result.summary+" "+result.uncertainties.join("；"));}catch(e){clearPreview();setError(e instanceof Error?e.message:"AI 提案無效");}}}/></div></details>
 
     </div></header>
+    {editingFocus&&<section className="editing-heading" aria-label="編輯與儲存"><div><h2>編輯 {project.title}</h2><p>點選方塊 → 預覽移除或替換 → 確認套用</p></div><div className="editing-save"><span role="status">{persistence.status}</span><button disabled={!persistence.ready||switching} onClick={()=>void persistence.save()}>立即儲存</button><button aria-expanded={showOverview} onClick={()=>setShowOverview(value=>!value)}>{showOverview?'收起總覽與參考':'顯示總覽與參考'}</button></div></section>}
     <section className="project-heading"><div><p className="eyebrow">FROM INSPIRATION TO EVERY BLOCK</p><h2>REAL HOUSE <span>→</span> MINECRAFT BUILD</h2><p>看見構造，掌握每一層。從設計參考到你的下一個方塊。</p></div><div className="project-actions"><button disabled={switching} onClick={()=>load('atrium')}>載入玻璃拱廊</button><button disabled={switching} onClick={()=>load(true)}>載入示範木屋</button><button disabled={switching} onClick={()=>load(false)}>空白專案</button></div></section>
     <section className="studio-summary" aria-label="模型摘要"><dl className="stat"><dt>PROJECT / 目前模型</dt><dd>{project.title}</dd></dl><dl className="stat"><dt>寬 × 高 × 深</dt><dd>{bounds.join(' × ')}<small> blocks</small></dd></dl><dl className="stat"><dt>佔用方塊格數</dt><dd data-testid="cell-count">{project.blocks.length.toString()}</dd></dl><dl className="stat"><dt>實際備料物品</dt><dd>{materials.totalInventoryItems??'待確認'}<small> / {materials.items.length} 種</small></dd></dl><dl className="stat"><dt>設計依據</dt><dd className={estimatedCount?'estimated-badge':''}>{estimatedCount?'AI Estimated Area':'手動設計'}<small>{estimatedCount?` ${estimatedCount} 格推估`:''}</small></dd></dl></section>
     <div className="architecture-workspace">
       <aside className="control-rail" aria-label="建築控制">
         <section className="reference-card"><div className="panel-heading"><span className="eyebrow">DESIGN REFERENCE</span><button onClick={openReferences}>查看圖冊 ↗</button></div>{referenceImage&&brokenReferenceUrl!==referenceImage.url?<img src={referenceImage.url} alt={referenceImage.title} onError={()=>setBrokenReferenceUrl(referenceImage.url)}/>:<button className="reference-placeholder" onClick={openReferences}>{referenceImage?'圖片無法顯示 · 重新選擇參考':'＋ 加入你的設計照片'}</button>}<div className="reference-caption"><strong>{referenceImage?.title??'你的設計參考'}</strong><p>{referenceImage?.notes??'從圖冊選擇圖片，或加入本機照片。'}</p><span>概念／設計推估 · 非原圖精確量測</span></div></section>
-        <details className="controls-section" open><summary>材料與施工引導</summary><BuildControls {...buildProps}/></details>
-            <details className="editor-section"><summary>編輯工具與方塊</summary>
+        <details className="controls-section" open={!editingFocus||buildMode}><summary>材料與施工引導</summary><BuildControls {...buildProps}/></details>
+            <details className="editor-section primary-editor" open={editingFocus}><summary>編輯工具與方塊</summary>
       <EditorPanel tool={tool} onTool={v=>{setTool(v);clearPreview();}} blockId={blockId} onBlockId={id=>{setBlockId(id);setBlockState(normalizeBlockState(id,{}));clearPreview();}} state={blockState} onState={s=>{setBlockState(s);clearPreview();}} workY={workY} onWorkY={setWorkY} collision={collision} onCollision={v=>{setCollision(v);clearPreview();}} canUndo={engine.canUndo} canRedo={engine.canRedo} onUndo={()=>history()} onRedo={()=>history(true)} preview={pending} onConfirm={confirm} onCancel={clearPreview}/>
       <fieldset className="coordinate-editor"><legend>座標操作</legend>{(['x','y','z'] as const).map(axis=><label key={axis}>目標 {axis.toUpperCase()}<input type="number" step="1" min="-30000000" max="30000000" value={target[axis]} onChange={event=>setTarget({...target,[axis]:Number(event.target.value)})}/></label>)}<button disabled={tool==='select'||tool==='eyedropper'} onClick={()=>{if(tool==='place'||tool==='remove'||tool==='replace')stageAction(target,tool);}}>預覽座標操作</button></fieldset>
       <button disabled={!block||block.id!==blockId} onClick={()=>{if(block)try{stage(changeSelectedState(project,block.uid,blockState));}catch(e){setError(e instanceof Error?e.message:'狀態修改失敗');}}}>將狀態套用到選取方塊</button>
@@ -198,6 +214,7 @@ export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"
         <section className="viewport-panel" aria-label="模型檢視">      <CameraToolbar onPreset={p=>viewer.current?.preset(p)} onReset={()=>viewer.current?.reset()} onFocus={()=>{if(selected)viewer.current?.focus(selected);}} hasSelection={!!block}/>
       <div className="viewport-host" ref={host}><p className="viewer-status" role="status">{error?'無法完成操作：'+error:project.blocks.length?'建築模型 · 點選方塊查看或預覽變更':'空白專案 · 在工作平面放置第一個方塊'}</p><span className="viewer-reticle" aria-hidden="true">＋</span><p className="viewer-help" id="viewer-help">拖曳旋轉 · 右鍵拖曳平移 · 滾輪縮放<br/>觸控：單指旋轉、雙指縮放／平移<br/>鍵盤：方向鍵旋轉、Shift＋方向鍵平移、＋／− 縮放、Enter 操作中心方塊<br/>編輯需確認預覽；Ctrl＋Z 復原、Ctrl＋Shift＋Z 重做。</p></div>
 </section>
+        <section className="selection-actions" aria-label="選取方塊快捷編輯"><div><strong>{block?`已選取 ${block.id.replace('minecraft:','')}`:'點選模型中的方塊開始編輯'}</strong>{block&&<span> X {block.pos.x} · Y {block.pos.y} · Z {block.pos.z}</span>}</div><div className="selection-action-buttons"><button disabled={!block||buildMode||exploded} onClick={()=>{if(block){clearPreview();setBlockId(block.id);setBlockState(block.state);setTool('place');}}}>吸取選取材質</button><button disabled={!block||buildMode||exploded} onClick={()=>{if(block)stageAction(block.pos,'remove');}}>預覽移除選取方塊</button><button disabled={!block||buildMode||exploded} onClick={()=>{if(block)stageAction(block.pos,'replace');}}>預覽替換選取方塊</button><button disabled={!block} onClick={()=>{if(block)viewer.current?.focus(block.uid);}}>聚焦選取方塊</button><button disabled={!engine.canUndo} onClick={()=>history()}>復原上一步</button><button disabled={!engine.canRedo} onClick={()=>history(true)}>重做上一步</button></div><p>替換使用編輯工具的調色盤：{blockId.replace('minecraft:','')}{buildMode||exploded?' · 返回編輯模式並關閉分解檢視後可修改。':''}</p>{pending&&<div className="selection-preview" role="status"><p>{pending.cells} 格 · {pending.message}</p><button disabled={!pending.valid} onClick={confirm}>確認快捷編輯</button><button onClick={clearPreview}>取消快捷預覽</button></div>}</section>
         <details className="view-options"><summary>剖面、材質與推估區域</summary><div className="view-options-grid">
           <label><input type="checkbox" checked={hideRoof} onChange={e=>setHideRoof(e.target.checked)}/>隱藏屋頂</label><label><input type="checkbox" checked={ghostFuture} onChange={e=>setGhostFuture(e.target.checked)}/>Ghost Completed House</label><label><input type="checkbox" checked={estimatedOnly} onChange={e=>setEstimatedOnly(e.target.checked)}/>高亮 AI Estimated Area</label>
           <label>室內剖面<select aria-label="剖面軸" value={cutAxis} onChange={e=>{setCutAxis(e.target.value as ''|'x'|'z');setCutValue(0);}}><option value="">完整建築</option><option value="x">X 左右剖面</option><option value="z">Z 前後剖面</option></select></label>{cutAxis&&<label>保留 {cutAxis.toUpperCase()} ≤ {cutValue}<input aria-label="剖面位置" type="range" min={axisBounds.min} max={axisBounds.max} value={Math.max(axisBounds.min,Math.min(axisBounds.max,cutValue))} onChange={e=>setCutValue(Number(e.target.value))}/></label>}
@@ -207,9 +224,9 @@ export function StudioApp({initialProject,onCampus,returnLabel="返回全基地"
             <details className="blueprint-section"><summary>2D 逐層藍圖</summary><BlueprintPanel project={project} selected={selected} layer={layer} onLayer={setLayer} onCell={pos=>{const b=engine.getAt(pos);setSelected(b?.uid??null);setTarget(pos);if(tool==="eyedropper"&&b){setBlockId(b.id);setBlockState(b.state);setTool("place");}else if(tool==="place"||tool==="remove"||tool==="replace")stageAction(pos,tool);}}/></details>
 
       </section>
-      <aside className="inspection-rail" aria-label="材料與檢查器"><details className="materials-section" open><summary>材料清單</summary><MaterialsPanel {...buildProps}/></details><BlockInspector block={block} unsupportedCount={shapes.filter(s=>!s.supported).length}/></aside>
+      <aside className="inspection-rail" aria-label="材料與檢查器"><details className="materials-section" open={!editingFocus||buildMode}><summary>材料清單</summary><MaterialsPanel {...buildProps}/></details><BlockInspector block={block} unsupportedCount={shapes.filter(s=>!s.supported).length}/></aside>
     </div>
-    <ProgressDock {...buildProps}/>
+    {(!editingFocus||buildMode)&&<ProgressDock {...buildProps}/>}
     <footer className="studio-footer"><span className="save-indicator">● {persistence.status}</span><span>＋X 東 / ＋Y 上 / ＋Z 南 · Java 1.20.1</span><details><summary>設計與施工說明</summary><p>所有座標、材料與下載均來自同一份方塊模型。參考建築為概念圖的比例設計，全部推估座標標記 AI Estimated Area。原版方塊與狀態經資料驗證，實際施工仍需在遊戲中確認承托與通行。材質為自行製作的示意紋理。</p>{project.blocks.length>=10000&&<p>整棟建築可在同一專案施工；大型模型建議逐層檢視，互動速度依裝置而異。</p>}</details></footer>
   </main>;
 }
