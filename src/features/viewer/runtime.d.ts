@@ -14,6 +14,7 @@ export interface ViewerHandle {
   select(uid: string | null): void;
   selectMany(uids: readonly string[]): void;
   setEditingEnabled(enabled: boolean): void;
+  setDragMode(enabled: boolean): void;
   cancelDrag(): boolean;
   dispose(): void;
 }

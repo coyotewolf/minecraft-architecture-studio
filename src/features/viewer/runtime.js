@@ -185,7 +185,7 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {},
   selectionPositions.setUsage(THREE.DynamicDrawUsage);selectionGeometry.setAttribute('position',selectionPositions);
   const selection=new THREE.LineSegments(selectionGeometry,new THREE.LineBasicMaterial({color:0xdff5b2,depthTest:false,transparent:true,opacity:0.9}));
   selection.renderOrder=2;selection.frustumCulled=false;selection.visible=false;scene.add(selection);
-  let lookup=new Map(blocks.map(b=>[b.uid,b])); let selectedUids=new Set(); let editingEnabled=true;
+  let lookup=new Map(blocks.map(b=>[b.uid,b])); let selectedUids=new Set(); let editingEnabled=true; let directDrag=false;
   let disposed=false; let viewPreset='isometric'; let userNavigated=false; let fittedTarget=new THREE.Vector3(); let fittedSize=extent.clone();
   let pendingFrame=null;
   function render(){if(disposed||pendingFrame!==null)return;pendingFrame=window.requestAnimationFrame(()=>{pendingFrame=null;if(disposed)return;paint();});}
@@ -267,7 +267,7 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {},
   const onDown=e=>{
     canvas.focus({preventScroll:true});
     if(drag){e.preventDefault();e.stopImmediatePropagation();return;}
-    if(editingEnabled&&onDrag&&e.altKey&&e.button===0&&pointers.size===0){
+    if(editingEnabled&&onDrag&&(e.altKey||directDrag)&&!e.ctrlKey&&!e.metaKey&&e.button===0&&pointers.size===0){
       const ray=pointerRay(e),hit=ray.intersectObjects(model.children,false)[0];
       if(hit&&selectedUids.has(hitUid(hit))){
         const depth=Math.max(0.01,-hit.point.clone().applyMatrix4(camera.matrixWorldInverse).z);
@@ -333,6 +333,7 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {},
     select:uid=>{selectedUids=new Set(uid===null?[]:[uid]);updateSelection();render();},
     selectMany:uids=>{selectedUids=new Set(uids);updateSelection();render();},
     cancelDrag:()=>{if(!drag)return false;finishDrag('cancel');return true;},
+    setDragMode:enabled=>{directDrag=enabled;canvas.dataset.directDrag=String(enabled);if(!enabled)finishDrag('cancel');},
     setEditingEnabled:enabled=>{editingEnabled=enabled;if(!enabled)finishDrag('cancel');},
     dispose:()=>{finishDrag('cancel');disposed=true;if(pendingFrame!==null){window.cancelAnimationFrame(pendingFrame);pendingFrame=null;}observer.disconnect();controls.removeEventListener('change',render);controls.dispose();canvas.removeEventListener('pointerdown',onDown,true);canvas.removeEventListener('pointermove',onMove,true);canvas.removeEventListener('pointerup',onUp,true);canvas.removeEventListener('pointercancel',onCancel,true);canvas.removeEventListener('lostpointercapture',onCancel,true);canvas.removeEventListener('keydown',onKey);canvas.removeEventListener('wheel',onWheel);canvas.removeEventListener('webglcontextlost',onContextLost);canvas.removeEventListener('webglcontextrestored',onContextRestored);disposeGroup(scene);sun.shadow.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();},
   };

@@ -16,3 +16,5 @@ Selection movement/copy can also use XYZ numeric controls. Arbitrary selections 
 Delegation: actual GPT-6 Astra medium agents implemented viewer gestures and isolated selection commands/tests; lead integrated UI, shortcuts and browser validation.
 
 Validation: TypeScript, production client/server build and changed-file ESLint passed. 38 test files / 1,411 unit tests passed. Production Chrome verified actual additive clicks, Delete preview/Enter confirmation, undo/redo, Y drag/confirm/undo, XZ drag and Escape cancellation, camera stability during drag, text-input isolation, numeric group movement and saved export coordinates. Existing preview-edit flow including mobile width check passed. No Minecraft in-game acceptance or paid generation was performed.
+
+Direct mouse follow-up: the canvas toolbar now offers an explicit drag-mode toggle. With it enabled, left-drag an already-selected block to move the group on XZ; Shift-drag changes Y. Ctrl/Meta click remains additive. Disabled drag mode retains Alt gestures. Production browser test passed for both direct gestures, cancellation and camera stability; build and scoped lint passed.
