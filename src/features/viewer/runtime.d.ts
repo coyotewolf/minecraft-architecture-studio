@@ -1,7 +1,7 @@
 import type { BlockRecord, BlockPos } from '../../core/contracts.ts';
 import type { BlockShape, Vec3 } from './geometry.ts';
 import type { CameraPreset } from './ViewerPanels.tsx';
-export interface ViewerPick { uid: string | null; pos: BlockPos; normal: BlockPos; additive?: boolean }
+export interface ViewerPick { uid: string | null; pos: BlockPos; normal: BlockPos; additive?: boolean; context?: boolean }
 export interface ProjectionEntry { readonly uid: string; readonly visible: boolean; readonly opacity: number; readonly offsetY: number }
 export interface ViewerHandle {
   workPlane(y: number): void;
@@ -18,7 +18,7 @@ export interface ViewerHandle {
   cancelDrag(): boolean;
   dispose(): void;
 }
-export function createViewer(host: HTMLElement, blocks: readonly BlockRecord[], shapes: readonly BlockShape[], onSelect: (uid: string | null, pick: ViewerPick | null) => void, onError?: (message: string) => void, onDrag?: (delta: BlockPos, phase: 'preview' | 'commit' | 'cancel') => void): ViewerHandle;
+export function createViewer(host: HTMLElement, blocks: readonly BlockRecord[], shapes: readonly BlockShape[], onSelect: (uid: string | null, pick: ViewerPick | null) => void, onError?: (message: string) => void, onDrag?: (delta: BlockPos, phase: 'preview' | 'commit' | 'cancel') => void, onBoxSelection?: (uids: readonly string[], additive: boolean) => void): ViewerHandle;
 export interface RendererResource { addEventListener(type: 'dispose', listener: () => void): void }
 export interface InstanceMaterial extends RendererResource {
   readonly opacity: number;

@@ -70,7 +70,8 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
   const [progress,setProgress]=useState(0);
   const [selected, setPrimarySelected] = useState<string|null>(null);
   const [selectedUids,setSelectedUids]=useState<string[]>([]);
-  const [directDrag,setDirectDrag]=useState(false);
+  const [contextMenu,setContextMenu]=useState<{x:number;y:number}|null>(null);
+  const [dragFeedback,setDragFeedback]=useState('');
   const [additiveSelection,setAdditiveSelection]=useState(false);
   const [moveOffset,setMoveOffset]=useState<BlockPos>({x:0,y:0,z:0});
   function setSelected(uid:string|null){setPrimarySelected(uid);setSelectedUids(uid?[uid]:[]);}
@@ -96,6 +97,7 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
   const activeEngine=useRef(engine);activeEngine.current=engine;
   const host = useRef<HTMLDivElement>(null);
   const viewer = useRef<ViewerHandle|null>(null);
+  const onBoxSelection=useRef<(uids:readonly string[],additive:boolean)=>void>(()=>{});
   const onDrag=useRef<(delta:BlockPos,phase:'preview'|'commit'|'cancel')=>void>(()=>{});
   const onPick = useRef<(uid:string|null,pick:ViewerPick|null)=>void>(()=>{});
   const shapes = useMemo(()=>project.blocks.map(shapeForBlock),[project.blocks]);
@@ -112,7 +114,7 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
   }
   const selection=useMemo(()=>selectedBlocks(project,selectedUids),[project,selectedUids]);
   const block = project.blocks.find(b=>b.uid===selected)??null;
-  function clearPreview(){setPending(null);viewer.current?.preview([],[],true);}
+  function clearPreview(){setPending(null);setDragFeedback('');viewer.current?.preview([],[],true);}
   function stage(transaction:EditTransaction,audit?:string,description='') {
     if(!persistence.ready){setError('請等待本機專案讀取完成後再編輯。');return;}
     if(buildMode||exploded){setError('請切回編輯模式並關閉分解檢視後修改。');return;}
@@ -127,23 +129,49 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
     try {stage(editAt(engine.snapshot(),action,pos,blockId,blockState,collision));}
     catch(e){viewer.current?.preview([],[],false);setPending({transaction:null,valid:false,message:e instanceof Error?e.message:'無法建立預覽',records:[],cells:0});}
   }
-  function stageSelection(operation:'remove'|'move'|'copy',offset:BlockPos=moveOffset){
-    try{stage(selectionEdit(engine.snapshot(),selectedUids,operation,offset),undefined,operation==='remove'?`移除 ${selection.length} 格。`:`${operation==='copy'?'複製':'移動'} ${selection.length} 格，位移 X ${offset.x} / Y ${offset.y} / Z ${offset.z}。`);}
-    catch(e){viewer.current?.preview([],[],false);setPending({transaction:null,valid:false,message:e instanceof Error?e.message:'選取操作無法完成',records:[],cells:0});}
+  function commitDirect(transaction:EditTransaction,label:string){
+    if(!persistence.ready||buildMode||exploded)return;
+    try{publish(engine.commit(transaction),label);clearPreview();setMoveOffset({x:0,y:0,z:0});setError('');}
+    catch(e){clearPreview();setError(e instanceof Error?e.message:'操作未完成，原模型已保留。');}
   }
-  onDrag.current=(delta,phase)=>{if(phase==='cancel'){clearPreview();setMoveOffset({x:0,y:0,z:0});return;}setMoveOffset(delta);if(delta.x||delta.y||delta.z)stageSelection('move',delta);else clearPreview();};
+  function executeAt(pos:BlockPos,action:'place'|'remove'|'replace'){
+    try{commitDirect(editAt(engine.snapshot(),action,pos,blockId,blockState,collision),'方塊'+action);}
+    catch(e){clearPreview();setError(e instanceof Error?e.message:'無法修改方塊。');}
+  }
+  function executeSelection(operation:'remove'|'move'|'copy',offset:BlockPos=moveOffset){
+    try{commitDirect(selectionEdit(engine.snapshot(),selectedUids,operation,offset),operation==='remove'?'刪除選取':operation==='copy'?'複製選取':'移動選取');}
+    catch(e){clearPreview();setError(e instanceof Error?e.message:'選取操作未完成。');}
+    setContextMenu(null);
+  }
+  onBoxSelection.current=(uids,additive)=>{
+    const next=selectedBlocks(project,additive?[...selectedUids,...uids]:uids).map(b=>b.uid);
+    if(next.length>5000){setError('框選超過 5,000 格。請用逐層或剖面縮小範圍。');return;}
+    clearPreview();setError('');setSelectedUids(next);setPrimarySelected(next.at(-1)??null);setMoveOffset({x:0,y:0,z:0});
+  };
+  onDrag.current=(delta,phase)=>{
+    if(phase==='cancel'){clearPreview();setMoveOffset({x:0,y:0,z:0});return;}
+    if(!(delta.x||delta.y||delta.z)){clearPreview();return;}
+    if(phase==='commit'){executeSelection('move',delta);return;}
+    try{
+      const tx=selectionEdit(engine.snapshot(),selectedUids,'move',delta),check=engine.preview(tx);
+      const records=tx.changes.flatMap(c=>c.after?[c.after]:[]);
+      viewer.current?.preview(records,records.map(shapeForBlock),check.ok);
+      setDragFeedback(`X ${delta.x} · Y ${delta.y} · Z ${delta.z} · ${check.ok?'放開完成移動':'位置無效，放開不會修改'}`);
+    }catch(e){viewer.current?.preview([],[],false);setDragFeedback(e instanceof Error?e.message:'此位置無法放置');}
+  };
   onPick.current=(uid,pick)=>{
     if(!pick){setSelected(null);return;}
+    if(pick.context){chooseSelection(uid,false);return;}
     if(buildMode||exploded){setSelected(uid);return;}
     chooseSelection(uid,tool==='select'&&(!!pick.additive||additiveSelection));
     const pos=tool==='place'&&uid?{x:pick.pos.x+pick.normal.x,y:pick.pos.y+pick.normal.y,z:pick.pos.z+pick.normal.z}:pick.pos;
     setTarget(pos);
     if(tool==='eyedropper'&&uid){const b=engine.getByUid(uid);if(b){setBlockId(b.id);setBlockState(b.state);setTool('place');}return;}
-    if(tool==='place'||tool==='remove'||tool==='replace')stageAction(pos,tool);
+    if(tool==='place'||tool==='remove'||tool==='replace')executeAt(pos,tool);
   };
   useEffect(()=>{
     if(!host.current)return;
-    try {viewer.current=createViewer(host.current,engine.snapshot().blocks,engine.snapshot().blocks.map(shapeForBlock),(uid,pick)=>onPick.current(uid,pick),setError,(delta,phase)=>onDrag.current(delta,phase));}
+    try {viewer.current=createViewer(host.current,engine.snapshot().blocks,engine.snapshot().blocks.map(shapeForBlock),(uid,pick)=>onPick.current(uid,pick),setError,(delta,phase)=>onDrag.current(delta,phase),(uids,additive)=>onBoxSelection.current(uids,additive));}
     catch(e){setError(e instanceof Error?e.message:'3D 初始化失敗');}
     return ()=>{viewer.current?.dispose();viewer.current=null;};
   },[engine]);
@@ -151,7 +179,6 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
   useEffect(()=>{viewer.current?.setProjection(projection);},[project.blocks,projection]);
   useEffect(()=>{viewer.current?.selectMany(selection.map(b=>b.uid));},[selection,projection,engine]);
   useEffect(()=>{viewer.current?.setEditingEnabled(persistence.ready&&!buildMode&&!exploded&&tool==='select');},[persistence.ready,buildMode,exploded,tool,engine]);
-  useEffect(()=>{viewer.current?.setDragMode(directDrag&&tool==='select'&&!buildMode&&!exploded);},[directDrag,tool,buildMode,exploded,engine]);
   useEffect(()=>{viewer.current?.workPlane(workY);},[workY,engine]);
   useEffect(()=>{
     // Hydration replaces the engine and clears its selection. Apply this handoff
@@ -208,24 +235,25 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
   function closeDrawer(event:React.MouseEvent<HTMLButtonElement>){event.currentTarget.closest('details')?.removeAttribute('open');}
   function openReferences(){document.querySelector<HTMLDetailsElement>('[data-reference-drawer]')?.setAttribute('open','');}
   function closeOtherDrawers(event:React.SyntheticEvent<HTMLDetailsElement>){const active=event.currentTarget;if(active.open)document.querySelectorAll<HTMLDetailsElement>('.utility-drawer[open]').forEach(d=>{if(d!==active)d.open=false;});}
-  return <main className={`studio design-studio${editingFocus?' editing-focus':''}${showOverview?'':' overview-collapsed'}`} onKeyDownCapture={event=>{
+  return <main className={`studio design-studio${editingFocus?' editing-focus':''}${showOverview?'':' overview-collapsed'}`} onPointerDownCapture={event=>{if(!(event.target as HTMLElement).closest('.cad-context-menu'))setContextMenu(null);}} onKeyDownCapture={event=>{
     const element=event.target as HTMLElement;
     if(element.closest('input,textarea,select,[contenteditable="true"],[role="textbox"]')||event.nativeEvent.isComposing)return;
     const key=event.key.toLowerCase(),mod=event.ctrlKey||event.metaKey;
     const consume=()=>{event.preventDefault();event.stopPropagation();};
-    if(key==='escape'){consume();if(viewer.current?.cancelDrag())return;if(pending)clearPreview();else setSelected(null);setMoveOffset({x:0,y:0,z:0});document.querySelectorAll<HTMLDetailsElement>('.utility-drawer[open]').forEach(d=>d.open=false);return;}
+    if(key==='escape'){consume();if(contextMenu){setContextMenu(null);return;}if(viewer.current?.cancelDrag())return;if(pending)clearPreview();else setSelected(null);setMoveOffset({x:0,y:0,z:0});document.querySelectorAll<HTMLDetailsElement>('.utility-drawer[open]').forEach(d=>d.open=false);return;}
     if(mod&&key==='s'){consume();if(persistence.ready)void persistence.save();return;}
     if(buildMode||exploded||!persistence.ready)return;
     if(mod&&(key==='z'||key==='y')){consume();if(key==='y'||event.shiftKey){if(engine.canRedo)history(true);}else if(engine.canUndo)history();return;}
     if(mod&&key==='a'&&element.tagName==='CANVAS'){consume();const visible=new Set(projection.filter(p=>p.visible).map(p=>p.uid));const ids=project.blocks.filter(b=>visible.has(b.uid)).map(b=>b.uid);if(selectedBlocks(project,ids).length>5000)setError('目前顯示超過 5,000 格。請先用逐層或剖面縮小範圍，再全選。');else{clearPreview();setSelectedUids(ids);setPrimarySelected(ids[0]??null);}return;}
     if(mod)return;
-    if((key==='delete'||key==='backspace')&&selection.length){consume();stageSelection('remove');return;}
-    if(event.altKey&&['arrowleft','arrowright','arrowup','arrowdown','pageup','pagedown'].includes(key)&&selection.length){consume();const axis=key==='pageup'||key==='pagedown'?'y':key==='arrowleft'||key==='arrowright'?'x':'z';const sign=['arrowleft','arrowup','pagedown'].includes(key)?-1:1;const next={...moveOffset,[axis]:moveOffset[axis]+sign*(event.shiftKey?10:1)};setMoveOffset(next);stageSelection('move',next);return;}
+    if((key==='delete'||key==='backspace')&&selection.length){consume();executeSelection('remove');return;}
+    if(event.altKey&&['arrowleft','arrowright','arrowup','arrowdown','pageup','pagedown'].includes(key)&&selection.length){consume();const axis=key==='pageup'||key==='pagedown'?'y':key==='arrowleft'||key==='arrowright'?'x':'z';const sign=['arrowleft','arrowup','pagedown'].includes(key)?-1:1;const next={x:0,y:0,z:0,[axis]:sign*(event.shiftKey?10:1)};executeSelection('move',next);return;}
     if(event.altKey)return;
     if(key==='enter'&&pending&&element.tagName==='CANVAS'){consume();confirm();setMoveOffset({x:0,y:0,z:0});return;}
     if(element.tagName==='CANVAS'){
       const tools:Record<string,EditorTool>={v:'select',b:'place',r:'replace',i:'eyedropper'};
       if(tools[key]){consume();setTool(tools[key]);clearPreview();}
+      if(key==='s'){consume();const r=host.current?.getBoundingClientRect();if(r)setContextMenu({x:Math.min(r.x+r.width/2,window.innerWidth-210),y:Math.min(r.y+r.height/2,window.innerHeight-250)});}
       if(key==='f'&&block){consume();viewer.current?.focus(block.uid);}
     }
   }}>
@@ -236,7 +264,7 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
           <details className="utility-drawer" onToggle={closeOtherDrawers}><summary>AI 圖片分析與編輯</summary><div className="drawer-content"><button className="drawer-close" onClick={closeDrawer}>關閉面板</button><AiPanel key={project.id} project={project} onProposal={(raw,scope,audit)=>{try{if(activeProject.current.id!==project.id)throw new Error("專案已切換，請重新產生提案。");const result=validateProposal(engine.snapshot(),raw,scope);stage(result.transaction,audit,result.summary+" "+result.uncertainties.join("；"));}catch(e){clearPreview();setError(e instanceof Error?e.message:"AI 提案無效");}}}/></div></details>
 
     </div></header>
-    {editingFocus&&<section className="editing-heading" aria-label="編輯與儲存"><div><h2>編輯 {project.title}</h2><p>點選方塊 → 預覽移除或替換 → 確認套用</p></div><div className="editing-save"><span role="status">{persistence.status}</span><button disabled={!persistence.ready||switching} onClick={()=>void persistence.save()}>立即儲存</button><button aria-expanded={showOverview} onClick={()=>setShowOverview(value=>!value)}>{showOverview?'收起總覽與參考':'顯示總覽與參考'}</button></div></section>}
+    {editingFocus&&<section className="editing-heading" aria-label="編輯與儲存"><div><h2>編輯 {project.title}</h2><p>點選、框選、拖動。放開即完成，Ctrl＋Z 隨時復原。</p></div><div className="editing-save"><span role="status">{persistence.status}</span><button disabled={!persistence.ready||switching} onClick={()=>void persistence.save()}>立即儲存</button><button aria-expanded={showOverview} onClick={()=>setShowOverview(value=>!value)}>{showOverview?'收起總覽與參考':'顯示總覽與參考'}</button></div></section>}
     <section className="project-heading"><div><p className="eyebrow">FROM INSPIRATION TO EVERY BLOCK</p><h2>REAL HOUSE <span>→</span> MINECRAFT BUILD</h2><p>看見構造，掌握每一層。從設計參考到你的下一個方塊。</p></div><div className="project-actions"><button disabled={switching} onClick={()=>load('atrium')}>載入玻璃拱廊</button><button disabled={switching} onClick={()=>load(true)}>載入示範木屋</button><button disabled={switching} onClick={()=>load(false)}>空白專案</button></div></section>
     <section className="studio-summary" aria-label="模型摘要"><dl className="stat"><dt>PROJECT / 目前模型</dt><dd>{project.title}</dd></dl><dl className="stat"><dt>寬 × 高 × 深</dt><dd>{bounds.join(' × ')}<small> blocks</small></dd></dl><dl className="stat"><dt>佔用方塊格數</dt><dd data-testid="cell-count">{project.blocks.length.toString()}</dd></dl><dl className="stat"><dt>實際備料物品</dt><dd>{materials.totalInventoryItems??'待確認'}<small> / {materials.items.length} 種</small></dd></dl><dl className="stat"><dt>設計依據</dt><dd className={estimatedCount?'estimated-badge':''}>{estimatedCount?'AI Estimated Area':'手動設計'}<small>{estimatedCount?` ${estimatedCount} 格推估`:''}</small></dd></dl></section>
     <div className="architecture-workspace">
@@ -246,29 +274,35 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
             <details className="editor-section primary-editor" open={editingFocus}><summary>編輯工具與方塊</summary>
       <EditorPanel tool={tool} onTool={v=>{setTool(v);clearPreview();}} blockId={blockId} onBlockId={id=>{setBlockId(id);setBlockState(normalizeBlockState(id,{}));clearPreview();}} state={blockState} onState={s=>{setBlockState(s);clearPreview();}} workY={workY} onWorkY={setWorkY} collision={collision} onCollision={v=>{setCollision(v);clearPreview();}} canUndo={engine.canUndo} canRedo={engine.canRedo} onUndo={()=>history()} onRedo={()=>history(true)} preview={pending} onConfirm={confirm} onCancel={clearPreview}/>
       <fieldset className="coordinate-editor"><legend>座標操作</legend>{(['x','y','z'] as const).map(axis=><label key={axis}>目標 {axis.toUpperCase()}<input type="number" step="1" min="-30000000" max="30000000" value={target[axis]} onChange={event=>setTarget({...target,[axis]:Number(event.target.value)})}/></label>)}<button disabled={tool==='select'||tool==='eyedropper'} onClick={()=>{if(tool==='place'||tool==='remove'||tool==='replace')stageAction(target,tool);}}>預覽座標操作</button></fieldset>
-      <button disabled={!block||block.id!==blockId} onClick={()=>{if(block)try{stage(changeSelectedState(project,block.uid,blockState));}catch(e){setError(e instanceof Error?e.message:'狀態修改失敗');}}}>將狀態套用到選取方塊</button>
+      <button disabled={!block||block.id!==blockId} onClick={()=>{if(block)try{commitDirect(changeSelectedState(project,block.uid,blockState),'修改方塊狀態');}catch(e){setError(e instanceof Error?e.message:'狀態修改失敗');}}}>將狀態套用到選取方塊</button>
     </details>
     <details className="editor-section"><summary>批次編輯</summary><BatchPanel selectedCount={selection.length} onPreview={request=>{try{stage(batchEdit(project,request,blockId,blockState,collision));}catch(e){viewer.current?.preview([],[],false);setPending({transaction:null,valid:false,message:e instanceof Error?e.message:"批次失敗",records:[],cells:0});}}}/><p>批次共用上方編輯工具的預覽確認與復原按鈕。</p></details>
 
       </aside>
       <section className="model-stage" aria-label="建築設計畫布">
         <div className="stage-heading"><div><span className="eyebrow">LIVE BLOCK MODEL</span><h2>{project.title}</h2></div><nav aria-label="工作模式"><button aria-pressed={!buildMode} onClick={()=>{setBuildMode(false);clearPreview();}}>編輯模式</button><button aria-pressed={buildMode} onClick={()=>{setBuildMode(true);clearPreview();}}>施工模式</button></nav></div>
-        <section className="viewport-panel" aria-label="模型檢視"><div className="mouse-edit-toolbar"><button aria-pressed={directDrag&&tool==='select'&&!buildMode&&!exploded} disabled={buildMode||exploded} onClick={()=>{setDirectDrag(v=>!v);setTool('select');setAdditiveSelection(false);clearPreview();}}>拖移方塊 {directDrag&&tool==='select'&&!buildMode&&!exploded?'開啟':'關閉'}</button><span>{directDrag&&tool==='select'&&!buildMode&&!exploded?'先點選方塊，再左鍵拖動；Shift 上下移動。拖空白處仍可旋轉。':'旋轉檢視中 · 開啟拖移，或按住 Alt 拖動已選取方塊。'}</span></div>      <CameraToolbar onPreset={p=>viewer.current?.preset(p)} onReset={()=>viewer.current?.reset()} onFocus={()=>{if(selected)viewer.current?.focus(selected);}} hasSelection={!!block}/>
-      <div className="viewport-host" ref={host}><p className="viewer-status" role="status">{error?'無法完成操作：'+error:project.blocks.length?'建築模型 · 點選方塊查看或預覽變更':'空白專案 · 在工作平面放置第一個方塊'}</p><span className="viewer-reticle" aria-hidden="true">＋</span><p className="viewer-help" id="viewer-help">拖曳旋轉 · 右鍵拖曳平移 · 滾輪縮放<br/>Shift＋點選多選 · Alt＋拖曳移動選取<br/>Delete 預覽刪除 · Enter 確認 · Esc 取消<br/>觸控：單指旋轉、雙指縮放／平移<br/>鍵盤：方向鍵旋轉、Shift＋方向鍵平移、＋／− 縮放、Enter 操作中心方塊<br/>編輯需確認預覽；Ctrl＋Z 復原、Ctrl＋Shift＋Z 重做。</p></div>
+        <section className="viewport-panel" aria-label="模型檢視"><div className="cad-command-bar" role="toolbar" aria-label="CAD 編輯工具">{([{id:'select',label:'選取'},{id:'place',label:'放置'},{id:'replace',label:'替換'},{id:'eyedropper',label:'吸取'}] as const).map(t=><button key={t.id} aria-pressed={tool===t.id} onClick={()=>{setTool(t.id);clearPreview();}}>{t.label}</button>)}<span className="cad-tool-divider"/><button aria-label="復原上一步" disabled={!engine.canUndo} onClick={()=>history()}>復原</button><button aria-label="重做上一步" disabled={!engine.canRedo} onClick={()=>history(true)}>重做</button><span className="cad-grid-note">吸附 1 格</span></div>      <CameraToolbar onPreset={p=>viewer.current?.preset(p)} onReset={()=>viewer.current?.reset()} onFocus={()=>{if(selected)viewer.current?.focus(selected);}} hasSelection={!!block}/>
+      <div className="viewport-host" ref={host} onContextMenu={event=>{event.preventDefault();setContextMenu({x:Math.max(8,Math.min(event.clientX,window.innerWidth-218)),y:Math.max(8,Math.min(event.clientY,window.innerHeight-260))});}}><p className="viewer-status" role="status">{error?'未修改：'+error:dragFeedback|| (project.blocks.length?'左鍵選取 · Ctrl 多選 · 拖曳軸向箭頭移動':'空白專案 · 在工作平面放置第一個方塊')}</p><span className="viewer-reticle" aria-hidden="true">＋</span><p className="viewer-help" id="viewer-help">左鍵選取／空白框選 · Ctrl 點選多選<br/>中鍵旋轉 · Ctrl＋中鍵平移 · 滾輪縮放<br/>拖曳 XYZ 箭頭移動 · Delete 刪除 · Ctrl＋Z 復原<br/>右鍵／S：快捷選單 · Esc：取消拖曳<br/>觸控：單指旋轉、雙指縮放／平移</p></div>
 </section>
-        <section className="selection-actions" aria-label="選取方塊快捷編輯"><div><strong>{selection.length?`已選取 ${selection.length} 格${block?' · '+block.id.replace('minecraft:',''):''}`:'點選模型中的方塊開始編輯'}</strong>{block&&<span> X {block.pos.x} · Y {block.pos.y} · Z {block.pos.z}</span>}</div><div className="selection-action-buttons"><button aria-pressed={additiveSelection} onClick={()=>{setTool('select');setDirectDrag(false);setAdditiveSelection(v=>!v);clearPreview();}}>多選 {additiveSelection?'開啟':'關閉'}</button><button disabled={!selection.length} onClick={()=>{clearPreview();setSelected(null);}}>清除選取</button><button disabled={!block||buildMode||exploded} onClick={()=>{if(block){clearPreview();setBlockId(block.id);setBlockState(block.state);setTool('place');}}}>吸取選取材質</button><button disabled={!selection.length||buildMode||exploded} onClick={()=>stageSelection('remove')}>預覽移除選取方塊</button><button disabled={!block||selection.length!==1||buildMode||exploded} onClick={()=>{if(block)stageAction(block.pos,'replace');}}>{selection.length>1?'替換（請單選）':'預覽替換選取方塊'}</button><button disabled={!block} onClick={()=>{if(block)viewer.current?.focus(block.uid);}}>聚焦選取方塊</button><button disabled={!engine.canUndo} onClick={()=>history()}>復原上一步</button><button disabled={!engine.canRedo} onClick={()=>history(true)}>重做上一步</button></div><details className="selection-move"><summary>移動／複製選取（{selection.length} 格）</summary><div className="selection-offset">{(['x','y','z'] as const).map(axis=><label key={axis}>位移 {axis.toUpperCase()}<input type="number" step="1" value={moveOffset[axis]} onChange={e=>{clearPreview();setMoveOffset(v=>({...v,[axis]:Number(e.target.value)}));}}/></label>)}</div><button disabled={!selection.length||buildMode||exploded} onClick={()=>stageSelection('move')}>預覽移動選取</button><button disabled={!selection.length||buildMode||exploded} onClick={()=>stageSelection('copy')}>預覽複製選取</button><p>碰到未選取的方塊會取消整個操作；門與床會整組移動。</p></details><details className="keyboard-guide"><summary>鍵盤與拖曳操作</summary><p>畫布點一下取得鍵盤焦點。Shift／Ctrl／⌘＋點選：加入或取消選取；手機可開啟「多選」。</p><p>Delete／Backspace：預覽刪除 · Enter：確認預覽 · Escape：取消預覽，再按一次清除選取。</p><p>開啟「拖移方塊」後，左鍵拖曳已選取方塊沿 XZ 移動；Shift＋拖曳改變高度。Ctrl＋點選仍可增減選取。關閉時可按 Alt 暫時拖移；放開後仍需確認。</p><p>Alt＋方向鍵：X/Z 移動 1 格；Alt＋PageUp／PageDown：Y 移動 1 格；加 Shift 為 10 格。</p><p>Ctrl／⌘＋Z：復原 · Ctrl／⌘＋Shift＋Z 或 Ctrl＋Y：重做 · Ctrl／⌘＋S：儲存 · Ctrl／⌘＋A：全選目前顯示（上限 5,000 格）。</p><p>V 選取 · B 放置 · R 替換 · I 吸取 · F 聚焦。輸入欄位中不攔截文字快捷鍵。</p></details><p>替換使用編輯工具的調色盤：{blockId.replace('minecraft:','')}{buildMode||exploded?' · 返回編輯模式並關閉分解檢視後可修改。':''}</p>{pending&&<div className="selection-preview" role="status"><p>{pending.cells} 格 · {pending.message}</p><button disabled={!pending.valid} onClick={confirm}>確認快捷編輯</button><button onClick={clearPreview}>取消快捷預覽</button></div>}</section>
+        <section className="selection-actions cad-selection-properties" aria-label="選取方塊快捷編輯"><div><strong>{selection.length?`已選取 ${selection.length} 格${block?' · '+block.id.replace('minecraft:',''):''}`:'點選方塊，或在空白處拖出選取框'}</strong>{block&&<span> X {block.pos.x} · Y {block.pos.y} · Z {block.pos.z}</span>}</div>
+          <div className="selection-action-buttons"><button disabled={!selection.length||buildMode||exploded} onClick={()=>executeSelection('remove')}>刪除選取</button><button disabled={!block||selection.length!==1||buildMode||exploded} onClick={()=>{if(block)executeAt(block.pos,'replace');}}>替換材質</button><button disabled={!block} onClick={()=>{if(block)viewer.current?.focus(block.uid);}}>聚焦</button><button aria-pressed={additiveSelection} onClick={()=>{setTool('select');setAdditiveSelection(v=>!v);clearPreview();}}>多選 {additiveSelection?'開啟':'關閉'}</button><button disabled={!selection.length} onClick={()=>{clearPreview();setSelected(null);}}>清除選取</button></div>
+          <details className="selection-move"><summary>精確位移／複製</summary><div className="selection-offset">{(['x','y','z'] as const).map(axis=><label key={axis}>位移 {axis.toUpperCase()}<input type="number" step="1" value={moveOffset[axis]} onChange={e=>{clearPreview();setMoveOffset(v=>({...v,[axis]:Number(e.target.value)}));}}/></label>)}</div><button disabled={!selection.length||buildMode||exploded} onClick={()=>executeSelection('move')}>移動選取</button><button disabled={!selection.length||buildMode||exploded} onClick={()=>executeSelection('copy')}>複製選取</button></details>
+          <details className="keyboard-guide"><summary>操作說明</summary><p>左鍵選取，Ctrl／⌘＋點選增減選取。空白處由左往右框選完整包住的方塊；由右往左框選碰到的方塊。框選會選到目前顯示範圍內的前後各層，室內編輯建議先剖面或逐層。</p><p>選取後拖 XYZ 箭頭沿單軸移動；直接拖選取方塊沿 XZ 移動，Shift 拖曳改高度。吸附整數格，放開完成，碰撞會取消。門與床會整組處理。</p><p>中鍵拖曳旋轉 · Ctrl＋中鍵平移 · 滾輪縮放。右鍵或 S 開啟快捷選單。</p><p>Delete／Backspace 直接刪除 · Ctrl／⌘＋Z 復原 · Ctrl／⌘＋Shift＋Z 重做 · Ctrl／⌘＋S 儲存。Escape 取消拖曳或清除選取。</p><p>Alt＋方向鍵移動 X/Z；Alt＋PageUp／PageDown 移動 Y；加 Shift 為 10 格。V 選取、B 放置、R 替換、I 吸取、F 聚焦。</p><p>每次最多 5,000 格；Ctrl／⌘＋A 全選目前顯示。文字欄位保留原生快捷鍵。批次與 AI 提案仍可預覽後套用。</p></details>
+          {pending&&<div className="selection-preview" role="status"><p>{pending.cells} 格 · {pending.message}</p><button disabled={!pending.valid} onClick={confirm}>套用批次預覽</button><button onClick={clearPreview}>取消預覽</button></div>}
+        </section>
         <details className="view-options"><summary>剖面、材質與推估區域</summary><div className="view-options-grid">
           <label><input type="checkbox" checked={hideRoof} onChange={e=>setHideRoof(e.target.checked)}/>隱藏屋頂</label><label><input type="checkbox" checked={ghostFuture} onChange={e=>setGhostFuture(e.target.checked)}/>Ghost Completed House</label><label><input type="checkbox" checked={estimatedOnly} onChange={e=>setEstimatedOnly(e.target.checked)}/>高亮 AI Estimated Area</label>
           <label>室內剖面<select aria-label="剖面軸" value={cutAxis} onChange={e=>{setCutAxis(e.target.value as ''|'x'|'z');setCutValue(0);}}><option value="">完整建築</option><option value="x">X 左右剖面</option><option value="z">Z 前後剖面</option></select></label>{cutAxis&&<label>保留 {cutAxis.toUpperCase()} ≤ {cutValue}<input aria-label="剖面位置" type="range" min={axisBounds.min} max={axisBounds.max} value={Math.max(axisBounds.min,Math.min(axisBounds.max,cutValue))} onChange={e=>setCutValue(Number(e.target.value))}/></label>}
           <label>搜尋並高亮方塊<input aria-label="高亮方塊" value={materialFocus} onChange={e=>setMaterialFocus(e.target.value)} placeholder="例如 quartz、glass"/></label>
           <fieldset className="material-visibility"><legend>材質顯示</legend>{materialIds.map(id=><label key={id}><input type="checkbox" checked={!hiddenMaterials.includes(id)} onChange={e=>setHiddenMaterials(v=>e.target.checked?v.filter(x=>x!==id):[...v,id])}/>{id.replace('minecraft:','')}</label>)}</fieldset>
         </div></details>
-            <details className="blueprint-section"><summary>2D 逐層藍圖</summary><BlueprintPanel project={project} selected={selected} layer={layer} onLayer={setLayer} onCell={pos=>{const b=engine.getAt(pos);setSelected(b?.uid??null);setTarget(pos);if(tool==="eyedropper"&&b){setBlockId(b.id);setBlockState(b.state);setTool("place");}else if(tool==="place"||tool==="remove"||tool==="replace")stageAction(pos,tool);}}/></details>
+            <details className="blueprint-section"><summary>2D 逐層藍圖</summary><BlueprintPanel project={project} selected={selected} layer={layer} onLayer={setLayer} onCell={pos=>{const b=engine.getAt(pos);setSelected(b?.uid??null);setTarget(pos);if(tool==="eyedropper"&&b){setBlockId(b.id);setBlockState(b.state);setTool("place");}else if(tool==="place"||tool==="remove"||tool==="replace")executeAt(pos,tool);}}/></details>
 
       </section>
       <aside className="inspection-rail" aria-label="材料與檢查器"><details className="materials-section" open={!editingFocus||buildMode}><summary>材料清單</summary><MaterialsPanel {...buildProps}/></details><BlockInspector block={block} unsupportedCount={shapes.filter(s=>!s.supported).length}/></aside>
     </div>
     {(!editingFocus||buildMode)&&<ProgressDock {...buildProps}/>}
+    {contextMenu&&<div className="cad-context-menu" role="menu" aria-label="方塊快捷選單" style={{left:contextMenu.x,top:contextMenu.y}}><strong>{selection.length} 格已選取</strong><button role="menuitem" aria-label="刪除選取" disabled={!selection.length||buildMode||exploded} onClick={()=>executeSelection('remove')}>刪除選取 <kbd>Delete</kbd></button><button role="menuitem" disabled={!selection.length} onClick={()=>{setContextMenu(null);const el=document.querySelector<HTMLDetailsElement>('.selection-move');if(el){el.open=true;el.scrollIntoView({block:'nearest'});el.querySelector('input')?.focus();}}}>精確移動／複製</button><button role="menuitem" disabled={!block} onClick={()=>{if(block)viewer.current?.focus(block.uid);setContextMenu(null);}}>聚焦選取</button><button role="menuitem" disabled={!engine.canUndo} onClick={()=>{history();setContextMenu(null);}}>復原 <kbd>Ctrl Z</kbd></button><button role="menuitem" disabled={!engine.canRedo} onClick={()=>{history(true);setContextMenu(null);}}>重做</button><button role="menuitem" onClick={()=>setContextMenu(null)}>關閉</button></div>}
     <footer className="studio-footer"><span className="save-indicator">● {persistence.status}</span><span>＋X 東 / ＋Y 上 / ＋Z 南 · Java 1.20.1</span><details><summary>設計與施工說明</summary><p>所有座標、材料與下載均來自同一份方塊模型。參考建築為概念圖的比例設計，全部推估座標標記 AI Estimated Area。原版方塊與狀態經資料驗證，實際施工仍需在遊戲中確認承托與通行。材質為自行製作的示意紋理。</p>{project.blocks.length>=10000&&<p>整棟建築可在同一專案施工；大型模型建議逐層檢視，互動速度依裝置而異。</p>}</details></footer>
   </main>;
 }
