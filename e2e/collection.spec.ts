@@ -193,3 +193,29 @@ test('preview selection opens focused editing with reversible changes and persis
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.screenshot({path:'evidence/preview-edit-mobile.png',fullPage:true});expect(errors).toEqual([]);
 });
+
+test('keyboard multiselect and modifier drag are reversible and ignore text inputs',async({page})=>{
+ test.setTimeout(240000);await page.goto('/?view=collection');await ready(page);const original=await backup(page),entry=original.entries[0]!;
+ const sample=entry.project.blocks.find(b=>b.id==='minecraft:gold_block')!;
+ const fixture={...original,entries:[{...entry,id:'keyboard-fixture',project:{...entry.project,id:'keyboard-fixture',title:'鍵盤操作驗證',blocks:[{...sample,uid:'left',pos:{x:0,y:0,z:0}},{...sample,uid:'right',pos:{x:4,y:0,z:0}}],logicalStructures:[]}}]};
+ await seedCollectionIndex(page,fixture);await page.reload();await ready(page);await page.getByRole('button',{name:'編輯這棟建築',exact:true}).click();
+ const canvas=page.locator('.viewport-host canvas');await expect(canvas).toBeVisible({timeout:120000});await expect(page.locator('.editing-save')).toContainText('已儲存',{timeout:30000});
+ await page.getByRole('button',{name:'正面',exact:true}).click();await canvas.scrollIntoViewIfNeeded();
+ const box=(await canvas.boundingBox())!;const points:{x:number,y:number}[]=[];const seen=new Set<string>();
+ for(const yf of [.5,.55,.45,.6,.4]){for(const xf of [.2,.3,.4,.6,.7,.8]){const pos={x:box.width*xf,y:box.height*yf};await canvas.click({position:pos});const text=await page.locator('.selection-actions>div').first().textContent();const coord=text?.match(/X ([-\d]+)/)?.[1];if(coord&&!seen.has(coord)){seen.add(coord);points.push(pos);}if(points.length===2)break;}if(points.length===2)break;}
+ expect(points).toHaveLength(2);
+ await canvas.click({position:points[0]!});await canvas.click({position:points[1]!,modifiers:['Shift']});await expect(canvas).toHaveAttribute('data-selection-count','2');
+ await page.keyboard.press('Delete');await expect(page.locator('.selection-preview')).toContainText('移除 2 格');await expect(page.getByTestId('cell-count')).toHaveText('2');
+ await page.keyboard.press('Enter');await expect(page.getByTestId('cell-count')).toHaveText('0');await page.keyboard.press('Control+z');await expect(page.getByTestId('cell-count')).toHaveText('2');
+ await page.keyboard.press('Control+Shift+z');await expect(page.getByTestId('cell-count')).toHaveText('0');await page.keyboard.press('Control+z');await expect(page.getByTestId('cell-count')).toHaveText('2');
+ await canvas.click({position:points[0]!});await canvas.click({position:points[1]!,modifiers:['Control']});await expect(canvas).toHaveAttribute('data-selection-count','2');
+ await page.keyboard.press('Alt+PageUp');await expect(page.locator('.selection-preview')).toContainText('位移 X 0 / Y 1 / Z 0');await page.keyboard.press('Escape');await expect(page.locator('.selection-preview')).toHaveCount(0);await expect(canvas).toHaveAttribute('data-selection-count','2');
+ const rect=(await canvas.boundingBox())!,from=points[1]!,cameraBefore=await canvas.getAttribute('data-camera');
+ await page.keyboard.down('Alt');await page.keyboard.down('Shift');await page.mouse.move(rect.x+from.x,rect.y+from.y);await page.mouse.down();await expect(canvas).toHaveAttribute('data-drag-state','y');await page.mouse.move(rect.x+from.x,rect.y+from.y-200,{steps:8});await page.mouse.up();await page.keyboard.up('Shift');await page.keyboard.up('Alt');
+ await expect(canvas).toHaveAttribute('data-drag-state','idle');expect(await canvas.getAttribute('data-camera')).toBe(cameraBefore);await expect(page.locator('.selection-preview')).toContainText('移動 2 格');await expect(page.getByTestId('cell-count')).toHaveText('2');
+ await page.keyboard.press('Enter');await expect(page.locator('.selection-actions>div').first()).toContainText(/Y [1-9]/);await page.keyboard.press('Control+z');await expect(page.locator('.selection-actions>div').first()).toContainText('Y 0');await expect(page.locator('.selection-preview')).toHaveCount(0);
+ await page.keyboard.down('Alt');await page.mouse.move(rect.x+from.x,rect.y+from.y);await page.mouse.down();await expect(canvas).toHaveAttribute('data-drag-state','xz');await page.mouse.move(rect.x+from.x+200,rect.y+from.y,{steps:8});await expect.poll(async()=>JSON.parse((await canvas.getAttribute('data-drag-delta'))!).x).not.toBe(0);expect(await canvas.getAttribute('data-camera')).toBe(cameraBefore);await page.keyboard.press('Escape');await expect(canvas).toHaveAttribute('data-drag-state','idle');await page.mouse.up();await page.keyboard.up('Alt');
+ await page.locator('.selection-move summary').click();await page.locator('.selection-move').getByLabel('位移 X',{exact:true}).fill('10');await page.locator('.selection-move').getByLabel('位移 X',{exact:true}).press('Delete');await expect(page.locator('.selection-preview')).toHaveCount(0);await page.locator('.selection-move').getByLabel('位移 X',{exact:true}).fill('10');
+ await page.getByRole('button',{name:'預覽移動選取',exact:true}).click();await page.getByRole('button',{name:'確認快捷編輯',exact:true}).click();
+ await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);const changed=await backup(page);expect(changed.entries[0]!.project.blocks.map(b=>b.pos.x).sort((a,b)=>a-b)).toEqual([10,14]);
+});

@@ -272,3 +272,5 @@
   .design-studio .editing-save { width: 100%; }
   .design-studio .selection-action-buttons button { flex: 1 1 140px; }
 }
+
+.selection-move,.keyboard-guide{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}.selection-move summary,.keyboard-guide summary{cursor:pointer;min-height:36px}.selection-offset{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}.selection-offset label{font-size:.8rem}.selection-offset input{width:100%;min-width:0;min-height:44px}.selection-move>button{margin:4px}.selection-action-buttons button[aria-pressed=true]{background:#355f50;border-color:#93c6a9}
