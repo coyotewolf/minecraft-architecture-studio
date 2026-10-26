@@ -382,6 +382,7 @@ export function createViewer(host, blocks, shapes, onSelect, onError = () => {},
   canvas.dataset.dragState='idle';canvas.dataset.directDrag=String(directDrag);updateSelection();resize();fit();
   return {
     preset: p=>fit(p), reset:()=>fit(),
+    framePreview:()=>{if(!previewGroup)return;const box=new THREE.Box3().setFromObject(previewGroup);if(!box.isEmpty())fit('isometric',box.getCenter(new THREE.Vector3()),box.getSize(new THREE.Vector3()));},
     workPlane:y=>{workY=y;grid.position.y=y-origin.y-0.015;render();},
     updateModel:(nextBlocks,nextShapes)=>{
       renderer.shadowMap.enabled=nextBlocks.length<10000;

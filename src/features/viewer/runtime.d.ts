@@ -10,6 +10,7 @@ export interface ViewerHandle {
   preview(blocks: readonly BlockRecord[], shapes: readonly BlockShape[], valid: boolean): void;
   preset(p: CameraPreset): void;
   reset(): void;
+  framePreview(): void;
   focus(uid: string): void;
   select(uid: string | null): void;
   selectMany(uids: readonly string[]): void;

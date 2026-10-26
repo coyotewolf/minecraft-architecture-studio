@@ -10,6 +10,7 @@ import { createViewer, type ViewerHandle, type ViewerPick } from './features/vie
 import { CameraToolbar, BlockInspector } from './features/viewer/ViewerPanels.tsx';
 import { EditorPanel, type EditorTool } from './features/editor/EditorPanel.tsx';
 import { changeSelectedState, editAt, type CollisionPolicy } from './features/editor/commands.ts';
+import { GeneratorPanel } from './features/generator/GeneratorPanel.tsx';
 import { BatchPanel } from './features/editor/BatchPanel.tsx';
 import { selectionEdit, selectedBlocks } from './features/editor/selection.ts';
 import { batchEdit } from './features/editor/batch.ts';
@@ -44,8 +45,8 @@ export function App(){
  const [editContext,setEditContext]=useState<StudioEditContext>({});
  function navigate(next:'campus'|'collection'){const url=new URL(location.href);url.searchParams.delete('sample');url.searchParams.set('view',next);history.replaceState(null,'',url);setInitial(undefined);setScreen(next);}
  function open(project:Project,from:'campus'|'collection',context:StudioEditContext={}){setInitial(project);setEditContext(context);setOrigin(from);setScreen('studio');}
- if(screen==='collection')return <CollectionPanel onOpen={project=>open(project,'collection')} onEdit={(project,selectedUid)=>open(project,'collection',{initialSelection:selectedUid,editingFocus:true})} onCampus={()=>navigate('campus')}/>;
- if(screen==='home')return <main className="studio"><header className="studio-header"><div><p className="eyebrow">BLOCK ATELIER</p><h1>建築設計工作室</h1></div></header><section className="project-heading"><div><h2>從一棟建築開始</h2><p>開啟建築庫，挑選要編輯或繼續施工的建築。</p><button onClick={()=>navigate('collection')}>開啟建築庫</button></div></section><section className="project-heading"><div><h2>全基地總覽</h2><p>全基地包含大型模型，載入時需要較多記憶體與時間。一般編輯請從建築庫選取單棟建築。</p><button onClick={()=>navigate('campus')}>載入完整基地</button></div></section></main>;
+ if(screen==='collection')return <CollectionPanel onOpen={project=>open(project,'collection')} onEdit={(project,selectedUid)=>open(project,'collection',{initialSelection:selectedUid,editingFocus:true})} onCampus={()=>navigate('campus')} onCreate={()=>open(createEmptyProject(crypto.randomUUID(),'我的新建築'),'collection',{editingFocus:true})}/>;
+ if(screen==='home')return <main className="studio"><header className="studio-header"><div><p className="eyebrow">BLOCK ATELIER</p><h1>建築設計工作室</h1></div></header><section className="project-heading"><div><h2>從一棟建築開始</h2><p>開啟建築庫，挑選要編輯或繼續施工的建築。</p><button onClick={()=>navigate('collection')}>開啟建築庫</button><button onClick={()=>open(createEmptyProject(crypto.randomUUID(),'我的新建築'),'collection',{editingFocus:true})}>建立新建築</button></div></section><section className="project-heading"><div><h2>全基地總覽</h2><p>全基地包含大型模型，載入時需要較多記憶體與時間。一般編輯請從建築庫選取單棟建築。</p><button onClick={()=>navigate('campus')}>載入完整基地</button></div></section></main>;
  if(screen==='campus')return <Suspense fallback={<main className="studio"><p role="status">正在載入全基地工具…</p></main>}><CampusPanel onOpen={project=>open(project,'campus')} onCollection={()=>navigate('collection')}/></Suspense>;
  return <StudioApp initialProject={initial} {...editContext} onCampus={()=>navigate(origin)} returnLabel={origin==='collection'?'返回建築庫':'返回全基地'}/>;
 }
@@ -276,7 +277,7 @@ export function StudioApp({initialProject,initialSelection=null,editingFocus=fal
       <fieldset className="coordinate-editor"><legend>座標操作</legend>{(['x','y','z'] as const).map(axis=><label key={axis}>目標 {axis.toUpperCase()}<input type="number" step="1" min="-30000000" max="30000000" value={target[axis]} onChange={event=>setTarget({...target,[axis]:Number(event.target.value)})}/></label>)}<button disabled={tool==='select'||tool==='eyedropper'} onClick={()=>{if(tool==='place'||tool==='remove'||tool==='replace')stageAction(target,tool);}}>預覽座標操作</button></fieldset>
       <button disabled={!block||block.id!==blockId} onClick={()=>{if(block)try{commitDirect(changeSelectedState(project,block.uid,blockState),'修改方塊狀態');}catch(e){setError(e instanceof Error?e.message:'狀態修改失敗');}}}>將狀態套用到選取方塊</button>
     </details>
-    <details className="editor-section"><summary>批次編輯</summary><BatchPanel selectedCount={selection.length} onPreview={request=>{try{stage(batchEdit(project,request,blockId,blockState,collision));}catch(e){viewer.current?.preview([],[],false);setPending({transaction:null,valid:false,message:e instanceof Error?e.message:"批次失敗",records:[],cells:0});}}}/><p>批次共用上方編輯工具的預覽確認與復原按鈕。</p></details>
+    <details className="editor-section generator-section"><summary>本機建築生成</summary><fieldset disabled={!persistence.ready||buildMode||exploded}><GeneratorPanel project={project} onInvalidate={clearPreview} onPreview={transaction=>{stage(transaction,undefined,'本機參數式建築；未使用 AI。');viewer.current?.framePreview();host.current?.scrollIntoView({block:'center',behavior:'smooth'});}} /></fieldset><p>生成後使用預覽列的「套用批次預覽」，整棟可一次復原。</p></details><details className="editor-section"><summary>批次編輯</summary><BatchPanel selectedCount={selection.length} onPreview={request=>{try{stage(batchEdit(project,request,blockId,blockState,collision));}catch(e){viewer.current?.preview([],[],false);setPending({transaction:null,valid:false,message:e instanceof Error?e.message:"批次失敗",records:[],cells:0});}}}/><p>批次共用上方編輯工具的預覽確認與復原按鈕。</p></details>
 
       </aside>
       <section className="model-stage" aria-label="建築設計畫布">

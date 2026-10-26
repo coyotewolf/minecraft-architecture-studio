@@ -131,3 +131,12 @@ Large editor models use exposed-face material batches while preserving canonical
 Collection storage v4 separates a metadata-only library index from independently compressed canonical projects. React retains metadata and only the selected Project; selected model loads are serialized and stale completions are ignored. Incremental saves put supplied new/changed records and index atomically without clearing unrelated records. Legacy indexed and inline formats remain readable; legacy inline data is archived before its current index is replaced. Exported building and collection JSON contracts remain unchanged.
 
 Workspace menus read cursor metadata without decompressing snapshots; updated envelopes carry title/updatedAt, with identifier fallback for old compressed records. Root / does not instantiate a model. Full campus loading is explicit and its module caches are released on leaving. These choices supersede eager collection/workspace listing. Unknown legacy cell counts are not an aggregate performance guarantee; each selected building retains canonical validation and byte limits. See progress/COLLECTION_LAZY_LOADING.md for evidence and limitations.
+
+
+## ADR-010 — Local procedural generation and metadata discovery
+
+The public Creeper workshop workflow suggests explicit dimensions, a reviewable placement preview, and library discovery. Its client download is All Rights Reserved and calls a remote AI service; neither its implementation nor backend algorithms are incorporated. The new generator is original deterministic geometry, not an AI provider or photo reconstruction.
+
+Generator inputs produce bounded canonical block records through createPlacement and designDiff. The reserved interior as well as occupied shell must be collision-free. One complete proposal, one preview approval, one atomic undo; no partial generation is published. Changing parameters invalidates pending previews. Material counts come from generated records; supported palettes have single-item placements including bottom slabs. Existing AI credentials/consent and proposal validation are unchanged.
+
+The viewer can explicitly fit a generated preview without changing canonical coordinates. Collection discovery uses lightweight index metadata only; unknown legacy counts sort last. A currently selected building remains accessible when filtering excludes it. This preserves lazy collection loading and one-building-one-file exports.
