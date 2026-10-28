@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-22",
+  "unitTests": 1401,
+  "testFiles": 37,
+  "productionBrowserCases": 8,
+  "rootEntryStrengthenedRerun": "passed",
+  "typecheck": "passed",
+  "lint": "passed",
+  "build": "passed",
+  "servedBundle": "index-DdEM2rmz.js",
+  "libraryEntryCount": 20,
+  "canonicalCells": 1001004,
+  "bulkReads": 0,
+  "buildingReads": 2,
+  "steadyJsHeapBytes": 169975532,
+  "userCrashDump": "unavailable",
+  "actualUserData": "not cleared or manipulated by tests",
+  "legacyLimits": "unknown counts and one inline-record clone remain; see report",
+  "geometryChanged": false,
+  "paidGenerations": 0
+}

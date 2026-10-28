@@ -1,0 +1,207 @@
+{
+  "meaning": "Screen-space gold-color span at equal normalized whole-building height. Source camera is unknown; no pixel-identity or similarity-percentage claim. The user requested a slightly slimmer tower.",
+  "views": {
+    "front": {
+      "reference": {
+        "croppedSize": [
+          870,
+          1238
+        ],
+        "goldSpans": [
+          {
+            "fractionFromTop": 0.2,
+            "goldPixelSpan": 345,
+            "spanPerBuildingHeight": 0.2787
+          },
+          {
+            "fractionFromTop": 0.35,
+            "goldPixelSpan": 508,
+            "spanPerBuildingHeight": 0.4103
+          },
+          {
+            "fractionFromTop": 0.5,
+            "goldPixelSpan": 599,
+            "spanPerBuildingHeight": 0.4838
+          },
+          {
+            "fractionFromTop": 0.65,
+            "goldPixelSpan": 607,
+            "spanPerBuildingHeight": 0.4903
+          },
+          {
+            "fractionFromTop": 0.72,
+            "goldPixelSpan": 574,
+            "spanPerBuildingHeight": 0.4637
+          }
+        ]
+      },
+      "v8": {
+        "croppedSize": [
+          860,
+          1080
+        ],
+        "goldSpans": [
+          {
+            "fractionFromTop": 0.2,
+            "goldPixelSpan": 300,
+            "spanPerBuildingHeight": 0.2778
+          },
+          {
+            "fractionFromTop": 0.35,
+            "goldPixelSpan": 424,
+            "spanPerBuildingHeight": 0.3926
+          },
+          {
+            "fractionFromTop": 0.5,
+            "goldPixelSpan": 487,
+            "spanPerBuildingHeight": 0.4509
+          },
+          {
+            "fractionFromTop": 0.65,
+            "goldPixelSpan": 486,
+            "spanPerBuildingHeight": 0.45
+          },
+          {
+            "fractionFromTop": 0.72,
+            "goldPixelSpan": 446,
+            "spanPerBuildingHeight": 0.413
+          }
+        ]
+      },
+      "v9": {
+        "croppedSize": [
+          736,
+          1065
+        ],
+        "goldSpans": [
+          {
+            "fractionFromTop": 0.2,
+            "goldPixelSpan": 300,
+            "spanPerBuildingHeight": 0.2817
+          },
+          {
+            "fractionFromTop": 0.35,
+            "goldPixelSpan": 424,
+            "spanPerBuildingHeight": 0.3981
+          },
+          {
+            "fractionFromTop": 0.5,
+            "goldPixelSpan": 486,
+            "spanPerBuildingHeight": 0.4563
+          },
+          {
+            "fractionFromTop": 0.65,
+            "goldPixelSpan": 486,
+            "spanPerBuildingHeight": 0.4563
+          },
+          {
+            "fractionFromTop": 0.72,
+            "goldPixelSpan": 466,
+            "spanPerBuildingHeight": 0.4376
+          }
+        ]
+      }
+    },
+    "rear": {
+      "reference": {
+        "croppedSize": [
+          917,
+          1359
+        ],
+        "goldSpans": [
+          {
+            "fractionFromTop": 0.2,
+            "goldPixelSpan": 345,
+            "spanPerBuildingHeight": 0.2539
+          },
+          {
+            "fractionFromTop": 0.35,
+            "goldPixelSpan": 526,
+            "spanPerBuildingHeight": 0.387
+          },
+          {
+            "fractionFromTop": 0.5,
+            "goldPixelSpan": 624,
+            "spanPerBuildingHeight": 0.4592
+          },
+          {
+            "fractionFromTop": 0.65,
+            "goldPixelSpan": 603,
+            "spanPerBuildingHeight": 0.4437
+          },
+          {
+            "fractionFromTop": 0.72,
+            "goldPixelSpan": 548,
+            "spanPerBuildingHeight": 0.4032
+          }
+        ]
+      },
+      "v8": {
+        "croppedSize": [
+          860,
+          1080
+        ],
+        "goldSpans": [
+          {
+            "fractionFromTop": 0.2,
+            "goldPixelSpan": 300,
+            "spanPerBuildingHeight": 0.2778
+          },
+          {
+            "fractionFromTop": 0.35,
+            "goldPixelSpan": 424,
+            "spanPerBuildingHeight": 0.3926
+          },
+          {
+            "fractionFromTop": 0.5,
+            "goldPixelSpan": 487,
+            "spanPerBuildingHeight": 0.4509
+          },
+          {
+            "fractionFromTop": 0.65,
+            "goldPixelSpan": 487,
+            "spanPerBuildingHeight": 0.4509
+          },
+          {
+            "fractionFromTop": 0.72,
+            "goldPixelSpan": 446,
+            "spanPerBuildingHeight": 0.413
+          }
+        ]
+      },
+      "v9": {
+        "croppedSize": [
+          736,
+          1065
+        ],
+        "goldSpans": [
+          {
+            "fractionFromTop": 0.2,
+            "goldPixelSpan": 300,
+            "spanPerBuildingHeight": 0.2817
+          },
+          {
+            "fractionFromTop": 0.35,
+            "goldPixelSpan": 424,
+            "spanPerBuildingHeight": 0.3981
+          },
+          {
+            "fractionFromTop": 0.5,
+            "goldPixelSpan": 486,
+            "spanPerBuildingHeight": 0.4563
+          },
+          {
+            "fractionFromTop": 0.65,
+            "goldPixelSpan": 486,
+            "spanPerBuildingHeight": 0.4563
+          },
+          {
+            "fractionFromTop": 0.72,
+            "goldPixelSpan": 466,
+            "spanPerBuildingHeight": 0.4376
+          }
+        ]
+      }
+    }
+  }
+}

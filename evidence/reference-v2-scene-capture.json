@@ -1,0 +1,20 @@
+{
+  "browser": "155.0.8059.79",
+  "url": "http://127.0.0.1:5174/",
+  "cells": "462,491",
+  "items": "462,442",
+  "renderer": {
+    "visibleCells": 404774,
+    "triangles": 2201954,
+    "drawCalls": 54
+  },
+  "assets": [
+    "http://127.0.0.1:5174/assets/index-D5JskG7S.js"
+  ],
+  "mobile": {
+    "cells": "462,491",
+    "items": "462,442",
+    "touchChangedPixels": true,
+    "noHorizontalOverflow": true
+  }
+}

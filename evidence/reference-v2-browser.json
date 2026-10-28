@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-10-19T17:59:00.344Z",
+  "command": "BROWSER_EXECUTABLE_PATH=C:/Program Files/Google/Chrome/Application/chrome.exe npx playwright test e2e/campus.spec.ts",
+  "result": "passed",
+  "passed": 3,
+  "startTime": "2026-10-19T17:54:23.892Z",
+  "duration": 163907.658,
+  "expected": 3,
+  "skipped": 0,
+  "unexpected": 0,
+  "flaky": 0,
+  "browser": "155.0.8059.79",
+  "campus": {
+    "cells": 519434,
+    "inventoryItems": 519385,
+    "buildingDistricts": 12,
+    "terrainTiles": 18,
+    "totalDistricts": 30
+  },
+  "sourceBoundary": {
+    "layoutAndMaterialsFrozen": true,
+    "wholeSourceFrozen": false,
+    "concurrentChange": "Parent reported terrain oak_leaves persistent=true,distance=1 correction after desktop case passed, while district persistence case was running. Geometry, coordinates and counts unchanged. Leaf-state acceptance belongs to parent static registry/model checks; no whole-source-frozen claim."
+  },
+  "checks": [
+    "Public full-campus JSON matches cell count and contains all twelve explicit buildings plus terrain tiles",
+    "All coordinates and UIDs unique; each independently editable district below 50000 cells",
+    "Exact canonical overview picking, presets and read-only cutaway export consistency",
+    "Studio foundation pick and empty edit location derived from public canonical export; edit and completion survive return/reopen",
+    "390px touchscreen camera responds and document has no horizontal overflow"
+  ],
+  "screenshots": [
+    "evidence/reference-v2-desktop.png",
+    "evidence/reference-v2-desktop-full.png",
+    "evidence/reference-v2-mobile.png",
+    "evidence/reference-v2-mobile-full.png",
+    "evidence/reference-v2-scene.png"
+  ],
+  "productionSceneCapture": {
+    "browser": "155.0.8059.79",
+    "url": "http://127.0.0.1:5174/",
+    "cells": "519,434",
+    "items": "519,385",
+    "renderer": {
+      "visibleCells": 461717,
+      "triangles": 2524818,
+      "drawCalls": 54
+    },
+    "assets": [
+      "http://127.0.0.1:5174/assets/index-DiwQcD-C.js"
+    ]
+  },
+  "visualReview": {
+    "inspected": true,
+    "reference": "public/local-references/reference-01.png",
+    "improvements": [
+      "Central lens tower front X braces and white/gold ribs now visible",
+      "Dark diagonal ring blade, white globe, elevated dark-glass airport and linked terrain recognizable",
+      "Real forests, cliff volumes, curved paths, ocean and shadows present"
+    ],
+    "remainingGaps": [
+      "Terrain still reads as comparatively flat-topped plateaus with straight column cliffs; reference has more irregular slopes and fine waterways",
+      "Reference has denser small foliage, railings, frames, balconies and facade detailing",
+      "Aircraft and dragon sculptures are coarse, twin tower caps are solid pale voxel domes rather than finely framed glass",
+      "Camera and proportions are closer but not identical; no fidelity equivalence claimed"
+    ]
+  },
+  "priorRun": {
+    "passed": 3,
+    "durationMs": 161137.401,
+    "wholeSourceFrozen": false,
+    "desktopCells": 511851,
+    "mobileCells": 512313,
+    "note": "Earlier v2 run changed model counts during execution; retained separately and not treated as frozen acceptance."
+  },
+  "limits": [
+    "Three targeted UI cases only; complete49 suite was not rerun for reference-v2.",
+    "Software-GPU Chrome browser evidence is not Minecraft in-game validation or a framerate guarantee.",
+    "Production scene capture is read-only; existing5174 server left running."
+  ],
+  "finalShoreline": {
+    "recordedAt": "2026-10-19T18:06:25.139Z",
+    "command": "BROWSER_EXECUTABLE_PATH=C:/Program Files/Google/Chrome/Application/chrome.exe npx playwright test e2e/campus.spec.ts -g 'complete campus exports'",
+    "result": "passed",
+    "passed": 1,
+    "startTime": "2026-10-19T18:04:31.823Z",
+    "duration": 34459.237,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "geometryChange": "Terrain minimum Y trimmed from -23 to -10; ocean at -10.5. Buildings, bridges and camera unchanged.",
+    "cells": 462491,
+    "inventoryItems": 462442,
+    "productionCapture": {
+      "browser": "155.0.8059.79",
+      "url": "http://127.0.0.1:5174/",
+      "cells": "462,491",
+      "items": "462,442",
+      "renderer": {
+        "visibleCells": 404774,
+        "triangles": 2201954,
+        "drawCalls": 54
+      },
+      "assets": [
+        "http://127.0.0.1:5174/assets/index-D5JskG7S.js"
+      ],
+      "mobile": {
+        "cells": "462,491",
+        "items": "462,442",
+        "touchChangedPixels": true,
+        "noHorizontalOverflow": true
+      }
+    },
+    "screenshots": [
+      "evidence/reference-v2-desktop.png",
+      "evidence/reference-v2-desktop-full.png",
+      "evidence/reference-v2-scene.png",
+      "evidence/reference-v2-mobile.png",
+      "evidence/reference-v2-mobile-full.png"
+    ],
+    "visualInspection": "Desktop production canvas and touch-mobile images inspected. Shorter exposed shoreline reduces the cliff pedestal height relative to buildings. Remaining gaps: comparatively flat terraces and straight rock walls; finer vegetation, railings, frames and aircraft/dragon details remain simplified. Not identical to reference.",
+    "scopeBoundary": "One final export/picking/cutaway case plus standalone production desktop/mobile-touch checks. Earlier three-case results above are preserved; persistence/full49 not rerun because buildings and editor APIs unchanged."
+  }
+}

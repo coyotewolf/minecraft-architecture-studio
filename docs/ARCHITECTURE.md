@@ -116,3 +116,27 @@ This section supersedes earlier milestone-specific future tense. React owns the 
 Native IndexedDB stores validated schema-v1 workspaces: current/original/approved designs, snapshots, prepared inventory, completion, partial view state and bounded audit history. Saves are serialized, autosave debounced and errors visible; there is no fallback that silently loses durable data. Rename retains active undo; snapshot restore is a transaction; cross-reload undo stacks are not persisted. The additive optional originalAi flag preserves the first accepted AI design independently of prunable logs and remains compatible with earlier v1 records. Unknown future schema versions are rejected.
 
 A generic HTTP provider adapter is shared between Vite development middleware and the compiled Node server. Server-only environment configuration, consent, request/response/time limits and repeated proposal validation isolate untrusted output from canonical writes. Missing configuration returns disabled capability. The production server serves the built client and API on loopback by default; it was exercised by M10, not deployed publicly. No actual vendor account or successful paid/image-generation call is asserted. See API_PROVIDER.md and progress/M10.md.
+
+
+## 2026-10-21 decision: one complete project per independent building
+
+The user rejected construction part files. Independent collection schema v2 contains one full canonical Project per entry; the golden leaf model is never split for editing or download. Legacy v1 parts merge with stable XYZ/UID/logical structures, including saved edits. Existing source workspaces are retained. A new fixture is added explicitly rather than overwriting prior personal designs.
+
+Canonical parsing now permits 1,000,000 cells and 384 MiB model/CSV input; transaction changes remain bounded at 10,000. Workspace snapshots share immutable instances, with a 2,000,000 distinct-snapshot-cell safety budget and 384 MiB backup limit. Version2 workspace packages intern shared snapshots and retain all originals, approved designs, history, progress and prepared materials in one JSON file; legacy schema1 JSON still imports. Database workspace records are gzip-compressed complete packages; collection storage uses one compressed full building record per entry. No user-facing shard files are required. Decompression is byte bounded and all decoded data is validated.
+
+Large editor models use exposed-face material batches while preserving canonical UID picking and projection-only offsets/opacity. Limits are safety bounds, not performance guarantees. Whole-building browser evidence is recorded in progress/GOLDEN_LEAF_REBUILD.md.
+
+## 2026-10-22 decision: lazy building library and explicit campus loading
+
+Collection storage v4 separates a metadata-only library index from independently compressed canonical projects. React retains metadata and only the selected Project; selected model loads are serialized and stale completions are ignored. Incremental saves put supplied new/changed records and index atomically without clearing unrelated records. Legacy indexed and inline formats remain readable; legacy inline data is archived before its current index is replaced. Exported building and collection JSON contracts remain unchanged.
+
+Workspace menus read cursor metadata without decompressing snapshots; updated envelopes carry title/updatedAt, with identifier fallback for old compressed records. Root / does not instantiate a model. Full campus loading is explicit and its module caches are released on leaving. These choices supersede eager collection/workspace listing. Unknown legacy cell counts are not an aggregate performance guarantee; each selected building retains canonical validation and byte limits. See progress/COLLECTION_LAZY_LOADING.md for evidence and limitations.
+
+
+## ADR-010 — Local procedural generation and metadata discovery
+
+The public Creeper workshop workflow suggests explicit dimensions, a reviewable placement preview, and library discovery. Its client download is All Rights Reserved and calls a remote AI service; neither its implementation nor backend algorithms are incorporated. The new generator is original deterministic geometry, not an AI provider or photo reconstruction.
+
+Generator inputs produce bounded canonical block records through createPlacement and designDiff. The reserved interior as well as occupied shell must be collision-free. One complete proposal, one preview approval, one atomic undo; no partial generation is published. Changing parameters invalidates pending previews. Material counts come from generated records; supported palettes have single-item placements including bottom slabs. Existing AI credentials/consent and proposal validation are unchanged.
+
+The viewer can explicitly fit a generated preview without changing canonical coordinates. Collection discovery uses lightweight index metadata only; unknown legacy counts sort last. A currently selected building remains accessible when filtering excludes it. This preserves lazy collection loading and one-building-one-file exports.

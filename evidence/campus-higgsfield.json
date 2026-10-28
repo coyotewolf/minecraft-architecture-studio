@@ -1,0 +1,491 @@
+{
+  "projectId": "48489e23-0056-4141-b2a2-d65fa792ee04",
+  "projectUrl": "https://higgsfield.ai/3d-jutsu/48489e23-0056-4141-b2a2-d65fa792ee04",
+  "revision": 17,
+  "sceneSequence": 0,
+  "operations": [
+    {
+      "id": "campus-district-0-v1",
+      "status": "failed",
+      "revisionBefore": 0,
+      "revisionAfter": null,
+      "sceneSequenceAfter": null,
+      "result": null,
+      "error": {
+        "code": "PYTHON_EXCEPTION",
+        "message": "'NoneType' object has no attribute 'color' and no __dict__ for setting new attributes",
+        "retryable": false
+      }
+    },
+    {
+      "id": "campus-district-0-v2",
+      "status": "succeeded",
+      "revisionBefore": 0,
+      "revisionAfter": 1,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "ring-control-spire",
+        "cells": 10399,
+        "objects": 14,
+        "total_objects": 17
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-1-v1",
+      "status": "succeeded",
+      "revisionBefore": 1,
+      "revisionAfter": 2,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "teardrop-command",
+        "cells": 11779,
+        "objects": 14,
+        "total_objects": 31
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-2-v1",
+      "status": "succeeded",
+      "revisionBefore": 2,
+      "revisionAfter": 3,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "twin-residential-library",
+        "cells": 14597,
+        "objects": 15,
+        "total_objects": 46
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-3-v1",
+      "status": "succeeded",
+      "revisionBefore": 3,
+      "revisionAfter": 4,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "sphere-observatory",
+        "cells": 4137,
+        "objects": 18,
+        "total_objects": 64
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-4-v1",
+      "status": "succeeded",
+      "revisionBefore": 4,
+      "revisionAfter": 5,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "campus-industry",
+        "cells": 12289,
+        "objects": 16,
+        "total_objects": 80
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-5-v1",
+      "status": "succeeded",
+      "revisionBefore": 5,
+      "revisionAfter": 6,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "campus-airport",
+        "cells": 19460,
+        "objects": 13,
+        "total_objects": 93
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-6-v1",
+      "status": "succeeded",
+      "revisionBefore": 6,
+      "revisionAfter": 7,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "campus-dragons",
+        "cells": 13599,
+        "objects": 14,
+        "total_objects": 107
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-7-v1",
+      "status": "succeeded",
+      "revisionBefore": 7,
+      "revisionAfter": 8,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "campus-workshop",
+        "cells": 7802,
+        "objects": 15,
+        "total_objects": 122
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-8-v1",
+      "status": "succeeded",
+      "revisionBefore": 8,
+      "revisionAfter": 9,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "garden-greenhouses",
+        "cells": 12927,
+        "objects": 12,
+        "total_objects": 134
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-9-v1",
+      "status": "succeeded",
+      "revisionBefore": 9,
+      "revisionAfter": 10,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "garden-apartments",
+        "cells": 17438,
+        "objects": 13,
+        "total_objects": 147
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-10-v1",
+      "status": "succeeded",
+      "revisionBefore": 10,
+      "revisionAfter": 11,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "garden-pavilions",
+        "cells": 6085,
+        "objects": 6,
+        "total_objects": 153
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-11-v1",
+      "status": "succeeded",
+      "revisionBefore": 11,
+      "revisionAfter": 12,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "garden-temples",
+        "cells": 3948,
+        "objects": 10,
+        "total_objects": 163
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-12-v1",
+      "status": "succeeded",
+      "revisionBefore": 12,
+      "revisionAfter": 13,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "campus-landscape-center",
+        "cells": 20479,
+        "objects": 12,
+        "total_objects": 175
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-13-v1",
+      "status": "succeeded",
+      "revisionBefore": 13,
+      "revisionAfter": 14,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "campus-landscape-north",
+        "cells": 14945,
+        "objects": 9,
+        "total_objects": 184
+      },
+      "error": null
+    },
+    {
+      "id": "campus-district-14-v1",
+      "status": "succeeded",
+      "revisionBefore": 14,
+      "revisionAfter": 15,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "campus-landscape-south",
+        "cells": 18328,
+        "objects": 8,
+        "total_objects": 192
+      },
+      "error": null
+    },
+    {
+      "id": "campus-observatory-color-v1",
+      "status": "succeeded",
+      "revisionBefore": 15,
+      "revisionAfter": 16,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "sphere-observatory",
+        "cells": 4137,
+        "objects": 18,
+        "total_objects": 192
+      },
+      "error": null
+    },
+    {
+      "id": "campus-apartments-color-v1",
+      "status": "succeeded",
+      "revisionBefore": 16,
+      "revisionAfter": 17,
+      "sceneSequenceAfter": 0,
+      "result": {
+        "district": "garden-apartments",
+        "cells": 17438,
+        "objects": 13,
+        "total_objects": 192
+      },
+      "error": null
+    }
+  ],
+  "verificationAttempts": [
+    {
+      "id": "campus-final-overview-v1",
+      "status": "timed_out",
+      "result": null,
+      "error": {
+        "code": "EXECUTION_TIMEOUT",
+        "message": "Blender execution exceeded the 300000ms limit.",
+        "retryable": true,
+        "retryAdvice": "Reduce or split the Python work before submitting a new operationId."
+      },
+      "generatedArtifacts": []
+    },
+    {
+      "id": "campus-form-overview-v1",
+      "status": "succeeded",
+      "result": {
+        "collections": [
+          {
+            "name": "campus-airport",
+            "cells": 19460,
+            "objects": 13
+          },
+          {
+            "name": "campus-dragons",
+            "cells": 13599,
+            "objects": 14
+          },
+          {
+            "name": "campus-industry",
+            "cells": 12289,
+            "objects": 16
+          },
+          {
+            "name": "campus-landscape-center",
+            "cells": 20479,
+            "objects": 12
+          },
+          {
+            "name": "campus-landscape-north",
+            "cells": 14945,
+            "objects": 9
+          },
+          {
+            "name": "campus-landscape-south",
+            "cells": 18328,
+            "objects": 8
+          },
+          {
+            "name": "campus-workshop",
+            "cells": 7802,
+            "objects": 15
+          },
+          {
+            "name": "garden-apartments",
+            "cells": 17438,
+            "objects": 13
+          },
+          {
+            "name": "garden-greenhouses",
+            "cells": 12927,
+            "objects": 12
+          },
+          {
+            "name": "garden-pavilions",
+            "cells": 6085,
+            "objects": 6
+          },
+          {
+            "name": "garden-temples",
+            "cells": 3948,
+            "objects": 10
+          },
+          {
+            "name": "ring-control-spire",
+            "cells": 10399,
+            "objects": 14
+          },
+          {
+            "name": "sphere-observatory",
+            "cells": 4137,
+            "objects": 18
+          },
+          {
+            "name": "teardrop-command",
+            "cells": 11779,
+            "objects": 14
+          },
+          {
+            "name": "twin-residential-library",
+            "cells": 14597,
+            "objects": 15
+          }
+        ],
+        "total_cells": 188212,
+        "mesh_objects": 189,
+        "vertices": 430376,
+        "polygons": 322782,
+        "materials": 51,
+        "bounds_min": [
+          -114,
+          -139,
+          -7
+        ],
+        "bounds_max": [
+          134,
+          100,
+          63
+        ],
+        "camera": "CAM_main",
+        "lights": [
+          "LGT_key",
+          "LGT_fill"
+        ]
+      },
+      "error": null,
+      "generatedArtifacts": [
+        {
+          "size": 465891,
+          "etag": "0904d06cdec00ea53b32ba911460ffbf",
+          "id": "9d4a59e30588f8d52ba9a00aee4062f7",
+          "name": "campus-form-overview.png",
+          "mediaType": "image/png",
+          "width": 640,
+          "height": 480
+        }
+      ]
+    },
+    {
+      "id": "campus-corrected-form-v1",
+      "status": "succeeded",
+      "result": {
+        "total_cells": 188212,
+        "district_collections": [
+          "campus-airport",
+          "campus-dragons",
+          "campus-industry",
+          "campus-landscape-center",
+          "campus-landscape-north",
+          "campus-landscape-south",
+          "campus-workshop",
+          "garden-apartments",
+          "garden-greenhouses",
+          "garden-pavilions",
+          "garden-temples",
+          "ring-control-spire",
+          "sphere-observatory",
+          "teardrop-command",
+          "twin-residential-library"
+        ],
+        "objects": 192,
+        "corrected": [
+          {
+            "name": "sphere-observatory",
+            "cells": 4137,
+            "materials": [
+              "MAT_10451280_1",
+              "MAT_10648398_1",
+              "MAT_12011072_1",
+              "MAT_12051927_1",
+              "MAT_12163684_1",
+              "MAT_13748380_1",
+              "MAT_14399575_1",
+              "MAT_14605521_1",
+              "MAT_15065556_1",
+              "MAT_2435889_1",
+              "MAT_3775910_0.48",
+              "MAT_3775910_1",
+              "MAT_4414367_1",
+              "MAT_5274179_1",
+              "MAT_5331808_1",
+              "MAT_7443274_1",
+              "MAT_8884888_1",
+              "MAT_9990986_1"
+            ]
+          },
+          {
+            "name": "garden-apartments",
+            "cells": 17438,
+            "materials": [
+              "MAT_11884367_1",
+              "MAT_12163684_1",
+              "MAT_14605521_0.48",
+              "MAT_14605521_1",
+              "MAT_15065556_1",
+              "MAT_3775910_0.48",
+              "MAT_5274179_1",
+              "MAT_7361595_1",
+              "MAT_8159620_1",
+              "MAT_8884888_1",
+              "MAT_9004868_1",
+              "MAT_9990984_1",
+              "MAT_9990986_1"
+            ]
+          }
+        ]
+      },
+      "error": null,
+      "generatedArtifacts": [
+        {
+          "size": 465456,
+          "etag": "486e9a8045cc57fa60441f5b482b1a4f",
+          "id": "9f9c6b239a0a9f6bdec873f282a347f0",
+          "name": "campus-corrected-overview.png",
+          "mediaType": "image/png",
+          "width": 640,
+          "height": 480
+        }
+      ]
+    }
+  ],
+  "finalArtifact": {
+    "ok": true,
+    "artifact": {
+      "projectId": "48489e23-0056-4141-b2a2-d65fa792ee04",
+      "revision": 17,
+      "size": 465456,
+      "etag": "486e9a8045cc57fa60441f5b482b1a4f",
+      "id": "9f9c6b239a0a9f6bdec873f282a347f0",
+      "name": "campus-corrected-overview.png",
+      "mediaType": "image/png",
+      "operationId": "campus-corrected-form-v1",
+      "width": 640,
+      "height": 480
+    },
+    "projectUrl": "https://higgsfield.ai/3d-jutsu/48489e23-0056-4141-b2a2-d65fa792ee04"
+  },
+  "delivery": {
+    "revision": 17,
+    "showSceneCalled": true,
+    "visualInspection": "Website desktop/mobile canonical geometry inspected; hosted material-preview URL could not be retrieved by this client. Hosted lighting not visually accepted; Eevee query timed out. Structural metrics and material assignments verified."
+  }
+}

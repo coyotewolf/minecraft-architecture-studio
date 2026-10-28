@@ -1,0 +1,96 @@
+{
+  "model": {
+    "cells": 1491644,
+    "items": 1491583,
+    "parts": 39,
+    "buildingGroups": 12,
+    "buildingParts": 17,
+    "terrainParts": 22
+  },
+  "browser": "Installed Chrome155.0.8059.79, headless SwiftShader",
+  "productionBuild": {
+    "passed": true,
+    "asset": "index-DIIwI45X.js"
+  },
+  "testEnvironment": {
+    "origin": "http://127.0.0.1:5180",
+    "buildMode": "Vite development server",
+    "workers": 1,
+    "nodeHarnessHeapMB": 8192,
+    "userStorage": "isolated contexts; existing5174 storage untouched"
+  },
+  "initialRun": {
+    "startTime": "2026-10-19T19:10:50.003Z",
+    "duration": 280507.339,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0,
+    "resultFile": "reference-v3-browser-initial-results.json",
+    "passed": [
+      "complete export, canonical overview picking, filters and presets",
+      "mobile390px no overflow,3:2 frame and real touch camera"
+    ],
+    "failed": "Studio fixture assumed air above minimum-Y foundation; new base has two layers."
+  },
+  "focusedProjectionRun": {
+    "startTime": "2026-10-19T19:15:58.718Z",
+    "duration": 125147.46399999999,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0,
+    "resultFile": "reference-v3-studio-projection-failure.json",
+    "failed": "Test used studio front(-Z) for selected+Z surface; corrected to back(+Z), exact UID assertion retained."
+  },
+  "interruptedRun": {
+    "result": "interrupted; no pass claimed",
+    "stage": "initial renderer-stats wait",
+    "trace": "reference-v3-studio-interrupted.trace",
+    "observation": "No leftover owned browser processes after termination. Fresh rerun progressed; no OOM output. No timeout increase."
+  },
+  "finalStudioRun": {
+    "startTime": "2026-10-19T19:24:58.906Z",
+    "duration": 206994.802,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "resultFile": "reference-v3-studio-final-results.json",
+    "verified": [
+      "exact selected part UID via real3D picking",
+      "coordinate placement increments exact part count",
+      "layer completion approval",
+      "return/reopen preserves edit and exact progress",
+      "downloaded saved part contains expected stone with user_created source"
+    ]
+  },
+  "acceptance": "3 distinct campus cases have passing executions across initial2 plus focused1; not a single clean3-case run and not full historical suite.",
+  "fixedCapture": {
+    "frame": [
+      1536,
+      1024
+    ],
+    "yaw": 35,
+    "pitch": 32,
+    "autoFit": false,
+    "pageErrors": [],
+    "files": [
+      "reference-v3-final-model.png",
+      "reference-v3-final-side.png",
+      "reference-v3-final-overlay.png",
+      "reference-v3-final-alignment.json"
+    ]
+  },
+  "regressionScreenshots": [
+    "reference-v3-regression-desktop.png",
+    "reference-v3-regression-desktop-full.png",
+    "reference-v3-regression-mobile.png",
+    "reference-v3-regression-mobile-full.png"
+  ],
+  "limits": [
+    "Not Minecraft in-game acceptance.",
+    "Anchor alignment does not establish silhouette equality or user visual acceptance.",
+    "Interrupted initialization remains recorded; not claimed as a clean uninterrupted run."
+  ]
+}

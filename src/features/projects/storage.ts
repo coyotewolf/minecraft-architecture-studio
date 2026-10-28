@@ -1,7 +1,7 @@
 import { parseTransaction } from '../../core/engine.ts';
 import type { EditTransaction, Project } from '../../core/contracts.ts';
 import { MAX_COORDINATE } from '../../core/coordinates.ts';
-import { deepFreeze, object, parseProject, stableJson, text } from '../../core/model.ts';
+import { deepFreeze, MAX_BLOCKS, object, parseProject, stableJson, text } from '../../core/model.ts';
 import { itemStackSize } from '../../core/versioned-registry.ts';
 
 export interface WorkspaceRecord {
@@ -18,8 +18,9 @@ export interface WorkspaceRecord {
   readonly revisionLog: readonly { readonly id: string; readonly label: string; readonly at: string; readonly detail?:string; readonly transaction?:EditTransaction }[];
 }
 
-export const MAX_WORKSPACE_BYTES = 128 * 1024 * 1024;
-export const MAX_SNAPSHOT_BLOCKS = 250_000;
+export const MAX_WORKSPACE_BYTES = 384 * 1024 * 1024;
+export const MAX_SNAPSHOT_BLOCKS = 2_000_000;
+const validatedSnapshots = new WeakSet<object>();
 function identifier(value: unknown): string {
   const id = text(value);
   if (!/^[A-Za-z0-9_:.,-]+$/.test(id) || ['__proto__', 'constructor', 'prototype'].includes(id)) throw new Error('Unsafe identifier');
@@ -48,19 +49,26 @@ export function parseWorkspace(input: unknown): WorkspaceRecord {
   // Count raw snapshots before constructing any normalized copies.
   const rawProjects = [w.project, w.original, w.approvedDesign, ...rawMilestones.map(m => m.project)];
   let blocks = 0;
+  const countedSnapshots=new Set<unknown>();
   for (const raw of rawProjects) {
     if (!raw || typeof raw !== 'object' || !('blocks' in raw) || !Array.isArray(raw.blocks)) throw new Error('Invalid snapshot');
+    if(countedSnapshots.has(raw))continue;countedSnapshots.add(raw);
     blocks += raw.blocks.length;
     if (blocks > MAX_SNAPSHOT_BLOCKS) throw new Error('Workspace snapshot block limit exceeded');
   }
+  const parsedSnapshots=new Map<unknown,Project>();
   function snapshot(raw: unknown): Project {
+    const reused=parsedSnapshots.get(raw);if(reused)return reused;
     const p = parseProject(raw);
+    parsedSnapshots.set(raw,p);
+    if (validatedSnapshots.has(p)) return p;
     identifier(p.id); identifier(p.designRevision);
     for (const b of p.blocks) {
       identifier(b.uid); identifier(b.edits.createdByTransactionId); identifier(b.edits.lastModifiedByTransactionId);
       for (const id of [b.componentId, b.logicalStructureId, b.constructionPhaseId, b.source.referenceRegionId]) if (id !== undefined) identifier(id);
     }
     for (const s of p.logicalStructures) identifier(s.uid);
+    validatedSnapshots.add(p);
     return p;
   }
   const project = snapshot(w.project), original = snapshot(w.original), approvedDesign = snapshot(w.approvedDesign);
@@ -74,7 +82,7 @@ export function parseWorkspace(input: unknown): WorkspaceRecord {
     if (typeof quantity !== 'number' || !Number.isSafeInteger(quantity) || quantity < 0) throw new Error('Invalid prepared quantity');
     prepared[id] = quantity;
   }
-  const completed = array(w.completed, 50_000).map(identifier);
+  const completed = array(w.completed, MAX_BLOCKS).map(identifier);
   unique(completed);
   const approvedUids = new Set(approvedDesign.blocks.map(b => b.uid));
   if (completed.some(uid => !approvedUids.has(uid))) throw new Error('Completed UID is not in approved design');
@@ -102,17 +110,50 @@ export function createWorkspace(project: Project): WorkspaceRecord {
     view: { layer: 0, mode: 'all', progress: 0 }, updatedAt: new Date().toISOString(), revisionLog: [] });
 }
 function checkTextSize(value: string): void {
-  if (value.length > MAX_WORKSPACE_BYTES || new TextEncoder().encode(value).length > MAX_WORKSPACE_BYTES) throw new Error('Workspace backup exceeds 128 MiB limit');
+  if (value.length > MAX_WORKSPACE_BYTES || new TextEncoder().encode(value).length > MAX_WORKSPACE_BYTES) throw new Error('Workspace backup exceeds 384 MiB limit');
+}
+/** One file, with shared immutable snapshots stored once instead of repeating a whole building. */
+function packWorkspace(record:WorkspaceRecord) {
+  const projects:Project[]=[],byReference=new Map<Project,number>();
+  function intern(project:Project){let index=byReference.get(project);if(index!==undefined)return index;index=projects.length;projects.push(project);byReference.set(project,index);return index;}
+  const workspace={...record,project:intern(record.project),original:intern(record.original),approvedDesign:intern(record.approvedDesign),milestones:record.milestones.map(m=>({...m,project:intern(m.project)}))};
+  return {format:'minecraft-workspace',version:2,projects,workspace};
+}
+function unpackWorkspace(input:unknown):WorkspaceRecord {
+  if(!input||typeof input!=='object'||!('format' in input))return parseWorkspace(input);
+  const p=object(input,['format','version','projects','workspace']);
+  if(p.format!=='minecraft-workspace'||p.version!==2)throw new Error('Unsupported workspace package');
+  const projects=array(p.projects,13);
+  const w=object(p.workspace,['schemaVersion','project','original','originalAi','approvedDesign','milestones','prepared','completed','view','updatedAt','revisionLog']);
+  function get(value:unknown){if(typeof value!=='number'||!Number.isInteger(value)||value<0||value>=projects.length)throw new Error('Invalid snapshot reference');return projects[value];}
+  return parseWorkspace({...w,project:get(w.project),original:get(w.original),approvedDesign:get(w.approvedDesign),milestones:array(w.milestones,10).map(value=>{const m=object(value,['id','title','createdAt','project']);return {...m,project:get(m.project)};})});
 }
 export function serializeWorkspace(record: WorkspaceRecord): string {
-  const json = stableJson(parseWorkspace(record));
+  const json = stableJson(packWorkspace(parseWorkspace(record)));
   checkTextSize(json);
   return json;
 }
 export function deserializeWorkspace(value: string): WorkspaceRecord {
   if (typeof value !== 'string') throw new Error('Expected JSON text');
   checkTextSize(value);
-  return parseWorkspace(JSON.parse(value) as unknown);
+  return unpackWorkspace(JSON.parse(value) as unknown);
+}
+/** A single compressed database record keeps a complete building under browser per-record limits. */
+export async function encodeWorkspace(record:WorkspaceRecord):Promise<{storageVersion:2;project:{id:string};title:string;updatedAt:string;payload:Blob}> {
+  const valid=parseWorkspace(record),json=serializeWorkspace(valid);
+  const payload=await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'))).blob();
+  return {storageVersion:2,project:{id:valid.project.id},title:valid.project.title,updatedAt:valid.updatedAt,payload};
+}
+export async function decodeWorkspace(input:unknown):Promise<WorkspaceRecord> {
+  if(!input||typeof input!=='object'||!('storageVersion' in input))return parseWorkspace(input);
+  const p=object(input,['storageVersion','project','title','updatedAt','payload']);
+  if(p.storageVersion!==2||!(p.payload instanceof Blob))throw new Error('Invalid stored workspace');
+  const id=identifier(object(p.project,['id']).id);
+  let bytes=0;
+  const bounded=new TransformStream<Uint8Array,Uint8Array>({transform(chunk,controller){bytes+=chunk.byteLength;if(bytes>MAX_WORKSPACE_BYTES)throw new Error('Stored workspace exceeds byte limit');controller.enqueue(chunk);}});
+  const value=deserializeWorkspace(await new Response(p.payload.stream().pipeThrough(new DecompressionStream('gzip')).pipeThrough(bounded)).text());
+  if(value.project.id!==id)throw new Error('Stored workspace identity mismatch');
+  return value;
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -157,17 +198,48 @@ async function transact<T>(mode: IDBTransactionMode, run: (store: IDBObjectStore
   } finally { db.close(); }
 }
 export async function saveWorkspace(record: WorkspaceRecord): Promise<void> {
-  const valid = parseWorkspace(record);
+  const valid = await encodeWorkspace(record);
   await transact('readwrite', store => store.put(valid));
 }
 export async function loadWorkspace(id: string): Promise<WorkspaceRecord | undefined> {
   const key = identifier(id);
   const value: unknown = await transact('readonly', store => store.get(key));
-  return value === undefined ? undefined : parseWorkspace(value);
+  return value === undefined ? undefined : decodeWorkspace(value);
 }
 export async function listWorkspaces(): Promise<WorkspaceRecord[]> {
   const values: unknown[] = await transact('readonly', store => store.getAll());
-  return values.map(parseWorkspace).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.project.id.localeCompare(b.project.id));
+  const records:WorkspaceRecord[]=[];for(const value of values)records.push(await decodeWorkspace(value));
+  return records.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.project.id.localeCompare(b.project.id));
+}
+export interface WorkspaceSummary { readonly id:string; readonly title:string; readonly updatedAt:string }
+/** Read list labels only. In particular, never inflate compressed model snapshots. */
+export function workspaceSummary(input:unknown):WorkspaceSummary {
+  if(!input||typeof input!=='object')throw new Error('Invalid stored workspace');
+  const value=input as Record<string,unknown>;
+  if(!value.project||typeof value.project!=='object')throw new Error('Invalid stored workspace');
+  const project=value.project as Record<string,unknown>,id=identifier(project.id);
+  const title=value.storageVersion===2?value.title:project.title;
+  return {id,title:typeof title==='string'&&title.trim()?title:id,updatedAt:typeof value.updatedAt==='string'?value.updatedAt:''};
+}
+export async function listWorkspaceSummaries():Promise<WorkspaceSummary[]> {
+  const db=await openDatabase();
+  try {
+    return await new Promise<WorkspaceSummary[]>((resolve,reject)=>{
+      const summaries:WorkspaceSummary[]=[];
+      const tx=db.transaction('projects','readonly');
+      let failure:unknown;
+      tx.oncomplete=()=>resolve(summaries.sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt)||a.id.localeCompare(b.id)));
+      tx.onabort=()=>reject(failure??tx.error??new Error('IndexedDB transaction aborted'));
+      tx.onerror=()=>{failure=tx.error;};
+      const request=tx.objectStore('projects').openCursor();
+      request.onerror=()=>{failure=request.error;};
+      request.onsuccess=()=>{
+        const cursor=request.result;if(!cursor)return;
+        try {summaries.push(workspaceSummary(cursor.value));cursor.continue();}
+        catch(error){failure=error;tx.abort();}
+      };
+    });
+  } finally {db.close();}
 }
 export async function deleteWorkspace(id: string): Promise<void> {
   const key = identifier(id);

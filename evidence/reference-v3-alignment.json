@@ -1,0 +1,335 @@
+{
+  "camera": {
+    "projection": "orthographic",
+    "yaw": 3.202437649682749,
+    "pitch": 20.934979888636043,
+    "fov": 30,
+    "distance": 1187.2185565683358,
+    "span": 358.1015846622073,
+    "target": [
+      0.006615534313383797,
+      44.943930300875586,
+      1.0957671749884383
+    ]
+  },
+  "frame": [
+    1536,
+    1024
+  ],
+  "landmarks": [
+    {
+      "id": "teardrop-command",
+      "label": "指揮塔",
+      "world": [
+        0.5,
+        97.5,
+        -0.5
+      ],
+      "reference": [
+        755,
+        390
+      ],
+      "pixel": [
+        769.6635562791247,
+        370.03579010691357
+      ],
+      "errorPixels": 24.770739985036123,
+      "inFrame": true
+    },
+    {
+      "id": "ring-control-spire",
+      "label": "環門刀鋒",
+      "world": [
+        -177.5,
+        88,
+        3
+      ],
+      "reference": [
+        260,
+        345
+      ],
+      "pixel": [
+        260.9040694681888,
+        388.81857129073694
+      ],
+      "errorPixels": 43.827896727594705,
+      "inFrame": true
+    },
+    {
+      "id": "campus-industry",
+      "label": "工廠",
+      "world": [
+        -154.5,
+        95.8,
+        -169.5
+      ],
+      "reference": [
+        335,
+        120
+      ],
+      "pixel": [
+        354.12631817790685,
+        193.3260080996966
+      ],
+      "errorPixels": 75.77941350313618,
+      "inFrame": true
+    },
+    {
+      "id": "campus-airport",
+      "label": "空港",
+      "world": [
+        136.5,
+        133.7,
+        -163
+      ],
+      "reference": [
+        1255,
+        190
+      ],
+      "pixel": [
+        1183.909951556483,
+        115.34491144655391
+      ],
+      "errorPixels": 103.0882012386697,
+      "inFrame": true
+    },
+    {
+      "id": "twin-residential-library",
+      "label": "雙塔",
+      "world": [
+        99.5,
+        80,
+        20.5
+      ],
+      "reference": [
+        938,
+        438
+      ],
+      "pixel": [
+        1048.9596980378017,
+        443.84760792179645
+      ],
+      "errorPixels": 111.11367650765222,
+      "inFrame": true
+    },
+    {
+      "id": "campus-workshop",
+      "label": "工坊",
+      "world": [
+        224.5,
+        77.5,
+        68.5
+      ],
+      "reference": [
+        1410,
+        570
+      ],
+      "pixel": [
+        1398.1742576555503,
+        506.6257753096442
+      ],
+      "errorPixels": 64.46813582771735,
+      "inFrame": true
+    },
+    {
+      "id": "campus-dragons",
+      "label": "龍棲舍",
+      "world": [
+        178.5,
+        27.5,
+        253.5
+      ],
+      "reference": [
+        1310,
+        790
+      ],
+      "pixel": [
+        1237.2888626472075,
+        826.263174262973
+      ],
+      "errorPixels": 81.25224490906953,
+      "inFrame": true
+    },
+    {
+      "id": "garden-greenhouses",
+      "label": "溫室",
+      "world": [
+        -13.5,
+        34.15,
+        255.5
+      ],
+      "reference": [
+        625,
+        817
+      ],
+      "pixel": [
+        688.7981759031749,
+        799.5839399529764
+      ],
+      "errorPixels": 66.13264244028038,
+      "inFrame": true
+    },
+    {
+      "id": "garden-pavilions",
+      "label": "粉晶亭",
+      "world": [
+        -167.5,
+        25.5,
+        294.5
+      ],
+      "reference": [
+        350,
+        843
+      ],
+      "pixel": [
+        242.88916299026434,
+        853.6812768581402
+      ],
+      "errorPixels": 107.64209715648614,
+      "inFrame": true
+    },
+    {
+      "id": "sphere-observatory",
+      "label": "天文館",
+      "world": [
+        -87,
+        43,
+        178.5
+      ],
+      "reference": [
+        435,
+        687
+      ],
+      "pixel": [
+        491.2517072179605,
+        693.2020413694253
+      ],
+      "errorPixels": 56.59257797700338,
+      "inFrame": true
+    }
+  ],
+  "rmsePixels": 78.2122465742098,
+  "methodology": {
+    "browser": "Chrome 155.0.8059.79",
+    "renderer": "real canonical cells, software GPU SwiftShader",
+    "cells": 1379684,
+    "referenceFrame": [
+      1536,
+      1024
+    ],
+    "landmarkCaveat": "Initial world anchors are estimated bounding centers; residuals mix anchor, shape and layout differences.",
+    "oceanY": -4.5
+  },
+  "corrections": [
+    {
+      "id": "teardrop-command",
+      "referenceMinusModelPixels": [
+        -14.663556279124691,
+        19.964209893086434
+      ],
+      "suggestedWorldXZAtSameY": [
+        -4.028404469814716,
+        19.79554066900598
+      ]
+    },
+    {
+      "id": "ring-control-spire",
+      "referenceMinusModelPixels": [
+        -0.9040694681888226,
+        -43.81857129073694
+      ],
+      "suggestedWorldXZAtSameY": [
+        -2.7114823690611822,
+        -42.80194649441911
+      ]
+    },
+    {
+      "id": "campus-industry",
+      "referenceMinusModelPixels": [
+        -19.126318177906853,
+        -73.3260080996966
+      ],
+      "suggestedWorldXZAtSameY": [
+        -10.68735031266716,
+        -71.28068957694026
+      ]
+    },
+    {
+      "id": "campus-airport",
+      "referenceMinusModelPixels": [
+        71.09004844351693,
+        74.65508855344609
+      ],
+      "suggestedWorldXZAtSameY": [
+        28.903803242293193,
+        71.56430067397538
+      ]
+    },
+    {
+      "id": "twin-residential-library",
+      "referenceMinusModelPixels": [
+        -110.95969803780167,
+        -5.8476079217964525
+      ],
+      "suggestedWorldXZAtSameY": [
+        -39.06268482768501,
+        -3.546574545492925
+      ]
+    },
+    {
+      "id": "campus-workshop",
+      "referenceMinusModelPixels": [
+        11.825742344449736,
+        63.37422469035579
+      ],
+      "suggestedWorldXZAtSameY": [
+        7.59414154980266,
+        61.698408858150145
+      ]
+    },
+    {
+      "id": "campus-dragons",
+      "referenceMinusModelPixels": [
+        72.71113735279255,
+        -36.26317426297305
+      ],
+      "suggestedWorldXZAtSameY": [
+        23.405282400448193,
+        -36.85695026300435
+      ]
+    },
+    {
+      "id": "garden-greenhouses",
+      "referenceMinusModelPixels": [
+        -63.798175903174865,
+        17.41606004702362
+      ],
+      "suggestedWorldXZAtSameY": [
+        -21.323691729278817,
+        18.2653823331866
+      ]
+    },
+    {
+      "id": "garden-pavilions",
+      "referenceMinusModelPixels": [
+        107.11083700973566,
+        -10.681276858140222
+      ],
+      "suggestedWorldXZAtSameY": [
+        36.815077082076265,
+        -12.5302978326162
+      ]
+    },
+    {
+      "id": "sphere-observatory",
+      "referenceMinusModelPixels": [
+        -56.25170721796047,
+        -6.202041369425274
+      ],
+      "suggestedWorldXZAtSameY": [
+        -19.980086566924307,
+        -4.9617092871364274
+      ]
+    }
+  ]
+}

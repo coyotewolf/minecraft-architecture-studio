@@ -1,0 +1,16 @@
+{
+  "command": "npm run check",
+  "result": "passed",
+  "codeCheckpoint": "d495ec31b8a2074b460da7e508c15b94b6a712a4",
+  "model": "reference-v2 final shoreline",
+  "typecheck": "passed",
+  "lint": "passed",
+  "unitTests": 1322,
+  "testFiles": 29,
+  "clientBuild": "passed",
+  "serverBuild": "passed",
+  "clientAsset": "index-D5JskG7S.js",
+  "cells": 462491,
+  "inventoryItems": 462442,
+  "limit": "Static/browser validation is not Minecraft game acceptance or visual equivalence to the concept image."
+}

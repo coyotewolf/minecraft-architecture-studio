@@ -34,7 +34,7 @@ describe('chunk-instanced renderer and canonical projection', () => {
   });
 
   it('keeps UID mapping across multiple stair parts, log face materials and wireframe markers', () => {
-    const blocks = [block('stair', -2, -1, -2, 'minecraft:oak_stairs'), block('log', -1, -1, -2, 'minecraft:oak_log'), block('marker', 0, -1, -2, 'minecraft:anvil')];
+    const blocks = [block('stair', -2, -1, -2, 'minecraft:oak_stairs'), block('log', -1, -1, -2, 'minecraft:oak_log'), block('marker', 0, -1, -2, 'minecraft:dragon_egg')];
     const group = buildModelGroup(blocks, blocks.map(shapeForBlock));
     try {
       expect(group.children.filter(mesh => mesh.userData.uids.includes('stair')).length).toBeGreaterThan(1);
@@ -151,3 +151,4 @@ describe('chunk-instanced renderer and canonical projection', () => {
     } finally { disposeGroup(group); }
   });
 });
+

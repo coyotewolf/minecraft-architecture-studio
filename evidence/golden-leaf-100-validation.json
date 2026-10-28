@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-21",
+  "fixture": "golden-leaf-100-complete-v5",
+  "fullUnitSuite": {
+    "round": 3,
+    "files": 36,
+    "passed": 1375,
+    "durationSeconds": 44.14
+  },
+  "finalGeometryRegression": {
+    "round": 4,
+    "passed": 7,
+    "scope": "golden-leaf.test.ts including static traversal"
+  },
+  "typecheck": "passed",
+  "lint": "passed",
+  "build": "passed",
+  "productionBundle": "index-DbgTEHSH.js",
+  "productionBrowser": {
+    "startTime": "2026-10-20T23:15:19.13Z",
+    "duration": 34464.265999999996,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browserEnvironment": "Installed Chrome with SwiftShader, isolated desktop and mobile-emulated contexts",
+  "screenshotDirectory": "evidence/golden-leaf-100-round4",
+  "comparison": "evidence/golden-leaf-100-comparison.png",
+  "visualAcceptance": "partial; not an exact reference match",
+  "minecraftAcceptance": "not tested",
+  "paidGenerationsSubmitted": 0
+}

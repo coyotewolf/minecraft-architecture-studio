@@ -1,0 +1,79 @@
+{
+  "result": "PASS",
+  "environment": {
+    "url": "http://127.0.0.1:5174",
+    "buildAsset": "index-fO8lRLxP.js",
+    "browser": "Google Chrome",
+    "rendering": "SwiftShader software rendering",
+    "build": "production"
+  },
+  "stats": {
+    "startTime": "2026-10-20T22:30:46.949Z",
+    "duration": 156957.273,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "cases": [
+    {
+      "name": "collection preserves metadata, edited complete building and additive backup copies",
+      "passed": true,
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 148103
+        }
+      ]
+    },
+    {
+      "name": "mobile collection has no overflow and supports touch view and reference controls",
+      "passed": true,
+      "results": [
+        {
+          "status": "passed",
+          "durationMs": 7394
+        }
+      ]
+    }
+  ],
+  "verified": [
+    "one canonical project per building without parts",
+    "unique canonical coordinates and more than 50000 cells",
+    "single-building JSON exactly equals canonical collection project",
+    "metadata save and reload",
+    "front rear top cameras and reference image",
+    "complete-building editor open",
+    "place stone and verify count",
+    "undo and redo exact count",
+    "save and return to collection",
+    "edited JSON retains placed stone with user_created provenance",
+    "reopen saved complete building",
+    "additive collection backup import preserves source and copies canonical blocks",
+    "reload imported entries with exact equality",
+    "no browser page errors",
+    "mobile no overflow and touch orbit",
+    "calibrated front and rear camera pitch equals 14 degrees"
+  ],
+  "limits": [
+    "Complete-building edits and storage are slow in software-rendered Chrome; passing correctness tests is not a smooth-performance claim.",
+    "No Minecraft in-game validation."
+  ],
+  "history": [
+    "Initial dev desktop failed large-model editor opening; root fixed spread-based bounds and large-model rendering.",
+    "Second dev worker passed editing and saved backup but failed old 5s reopen assertion.",
+    "First production run passed edit undo redo but failed old 5s return-heading assertion; actual asynchronous saving required a larger bounded wait.",
+    "Final unchanged production build passed both cases after setting appropriate bounded save/open waits.",
+    "After occupied-bounds camera calibration to 14 degrees, the final production asset index-fO8lRLxP.js passed both cases again. Previous passing reports retained separately."
+  ],
+  "evidence": [
+    "collection-complete-building-production-results.json",
+    "collection-complete-building-production-initial-results.json",
+    "collection-complete-building-initial-browser.json",
+    "collection-complete-building-editor-browser.json",
+    "collection-desktop.png",
+    "collection-mobile.png",
+    "collection-complete-building-production-before-camera-results.json",
+    "collection-complete-building-browser-before-camera-summary.json"
+  ]
+}

@@ -61,8 +61,8 @@ describe('full canonical XYZ CSV', () => {
     expect(() => csvToModel(csv.replace('""uid"":', '""unknown"":1,""uid"":'))).toThrow();
   });
   it('enforces the byte bound before CSV parsing', () => {
-    expect(() => csvToModel('x'.repeat(MAX_IMPORT_BYTES + 1))).toThrow('32 MiB');
-    expect(() => csvToModel('界'.repeat(Math.floor(MAX_IMPORT_BYTES / 3) + 1))).toThrow('32 MiB');
+    expect(() => csvToModel('x'.repeat(MAX_IMPORT_BYTES + 1))).toThrow('384 MiB');
+    expect(() => csvToModel('界'.repeat(Math.floor(MAX_IMPORT_BYTES / 3) + 1))).toThrow('384 MiB');
   });
 });
 

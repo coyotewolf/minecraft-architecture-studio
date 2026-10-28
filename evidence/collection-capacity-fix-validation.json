@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-21",
+  "revision": "golden-leaf-100-v14",
+  "geometryChanged": false,
+  "maxCollectionCells": 5000000,
+  "maxBuildingCells": 1000000,
+  "maxEntries": 100,
+  "storageUnitTests": 19,
+  "typecheck": "passed",
+  "lint": "passed",
+  "build": "passed",
+  "bundle": "index-CrjCGpK5.js",
+  "browserCasesPassed": 6,
+  "browserRuns": "4 passed in initial full run; two new tests corrected textarea locator and both passed targeted rerun",
+  "largeCollection": {
+    "priorEntries": 19,
+    "priorCells": 950019,
+    "finalEntries": 20,
+    "finalCells": 1001004,
+    "reload": "passed",
+    "oldIdsNotesCounts": "preserved"
+  },
+  "failureRecovery": [
+    "100-entry limit",
+    "injected storage quota failure"
+  ],
+  "actualUserCollection": "not modified by test tools; refresh required",
+  "performanceLimit": "5m is validation ceiling, not benchmark",
+  "paidGenerations": 0
+}

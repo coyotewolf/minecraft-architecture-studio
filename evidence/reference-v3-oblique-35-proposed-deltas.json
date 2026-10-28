@@ -1,0 +1,80 @@
+{
+  "orientation": {
+    "yaw": 35,
+    "pitch": 32
+  },
+  "span": 439.62574038941443,
+  "method": "Same-Y XZ corrections from estimated anchors, not collision-checked placement instructions",
+  "corrections": [
+    {
+      "id": "teardrop-command",
+      "worldDeltaXZ": [
+        -32,
+        26
+      ]
+    },
+    {
+      "id": "ring-control-spire",
+      "worldDeltaXZ": [
+        -58,
+        102
+      ]
+    },
+    {
+      "id": "campus-industry",
+      "worldDeltaXZ": [
+        -152,
+        117
+      ]
+    },
+    {
+      "id": "campus-airport",
+      "worldDeltaXZ": [
+        -52,
+        -19
+      ]
+    },
+    {
+      "id": "twin-residential-library",
+      "worldDeltaXZ": [
+        -61,
+        -31
+      ]
+    },
+    {
+      "id": "campus-workshop",
+      "worldDeltaXZ": [
+        39,
+        -111
+      ]
+    },
+    {
+      "id": "campus-dragons",
+      "worldDeltaXZ": [
+        106,
+        -191
+      ]
+    },
+    {
+      "id": "garden-greenhouses",
+      "worldDeltaXZ": [
+        76,
+        3
+      ]
+    },
+    {
+      "id": "garden-pavilions",
+      "worldDeltaXZ": [
+        103,
+        50
+      ]
+    },
+    {
+      "id": "sphere-observatory",
+      "worldDeltaXZ": [
+        31,
+        52
+      ]
+    }
+  ]
+}

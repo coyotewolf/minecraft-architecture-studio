@@ -1,0 +1,212 @@
+{
+  "camera": {
+    "projection": "orthographic",
+    "yaw": 34.99999999999999,
+    "pitch": 32,
+    "fov": 30,
+    "distance": 1192.5492567219499,
+    "span": 439.62574038941443,
+    "target": [
+      -1.3908321550594702,
+      63.90910349975804,
+      59.6500331194116
+    ]
+  },
+  "frame": [
+    1536,
+    1024
+  ],
+  "landmarks": [
+    {
+      "id": "teardrop-command",
+      "label": "指揮塔",
+      "world": [
+        0.5,
+        97.5,
+        -0.5
+      ],
+      "reference": [
+        755,
+        390
+      ],
+      "pixel": [
+        851.9684890415961,
+        386.1686395381819
+      ],
+      "errorPixels": 97.04415072531943,
+      "inFrame": true
+    },
+    {
+      "id": "ring-control-spire",
+      "label": "環門刀鋒",
+      "world": [
+        -177.5,
+        88,
+        3
+      ],
+      "reference": [
+        260,
+        345
+      ],
+      "pixel": [
+        507.66613033428075,
+        282.4534690620467
+      ],
+      "errorPixels": 255.44193204548324,
+      "inFrame": true
+    },
+    {
+      "id": "campus-industry",
+      "label": "工廠",
+      "world": [
+        -154.5,
+        95.8,
+        -169.5
+      ],
+      "reference": [
+        335,
+        120
+      ],
+      "pixel": [
+        782.0113280411053,
+        108.91587079629198
+      ],
+      "errorPixels": 447.1487284084314,
+      "inFrame": true
+    },
+    {
+      "id": "campus-airport",
+      "label": "空港",
+      "world": [
+        136.5,
+        133.7,
+        -163
+      ],
+      "reference": [
+        1255,
+        190
+      ],
+      "pixel": [
+        1328.5591206981612,
+        246.64406202996958
+      ],
+      "errorPixels": 92.84123007124417,
+      "inFrame": true
+    },
+    {
+      "id": "twin-residential-library",
+      "label": "雙塔",
+      "world": [
+        99.5,
+        80,
+        20.5
+      ],
+      "reference": [
+        938,
+        438
+      ],
+      "pixel": [
+        1012.8056818136016,
+        512.0591941578263
+      ],
+      "errorPixels": 105.26468672306213,
+      "inFrame": true
+    },
+    {
+      "id": "campus-workshop",
+      "label": "工坊",
+      "world": [
+        224.5,
+        77.5,
+        68.5
+      ],
+      "reference": [
+        1410,
+        570
+      ],
+      "pixel": [
+        1187.1790763322228,
+        654.0268139102002
+      ],
+      "errorPixels": 238.13792112987963,
+      "inFrame": true
+    },
+    {
+      "id": "campus-dragons",
+      "label": "龍棲舍",
+      "world": [
+        178.5,
+        27.5,
+        253.5
+      ],
+      "reference": [
+        1310,
+        790
+      ],
+      "pixel": [
+        852.2495113206191,
+        907.2781296860064
+      ],
+      "errorPixels": 472.53536332094734,
+      "inFrame": true
+    },
+    {
+      "id": "garden-greenhouses",
+      "label": "溫室",
+      "world": [
+        -13.5,
+        34.15,
+        255.5
+      ],
+      "reference": [
+        625,
+        817
+      ],
+      "pixel": [
+        483.2389763107286,
+        760.2332632114297
+      ],
+      "errorPixels": 152.70445390705856,
+      "inFrame": true
+    },
+    {
+      "id": "garden-pavilions",
+      "label": "粉晶亭",
+      "world": [
+        -132.5,
+        25.5,
+        281.5
+      ],
+      "reference": [
+        350,
+        843
+      ],
+      "pixel": [
+        221.44927662584445,
+        719.3591803953343
+      ],
+      "errorPixels": 178.36014339681427,
+      "inFrame": true
+    },
+    {
+      "id": "sphere-observatory",
+      "label": "天文館",
+      "world": [
+        -87,
+        43,
+        178.5
+      ],
+      "reference": [
+        435,
+        687
+      ],
+      "pixel": [
+        445.872409481843,
+        612.8613772127114
+      ],
+      "errorPixels": 74.9315999878338,
+      "inFrame": true
+    }
+  ],
+  "rmsePixels": 252.0030468402502
+}

@@ -4,9 +4,12 @@ import { coordinateKey, DIRECTIONS, position } from './coordinates.ts';
 import { validateEvidence } from './project.ts';
 import { normalizeBlockState } from './versioned-registry.ts';
 
-export const MAX_BLOCKS = 50_000;
+// A building is one canonical project, even when its model exceeds the former 50k part size.
+export const MAX_BLOCKS = 1_000_000;
 export const MAX_TRANSACTION_CHANGES = 10_000;
-export const MAX_IMPORT_BYTES = 32 * 1024 * 1024;
+export const MAX_IMPORT_BYTES = 384 * 1024 * 1024;
+const validatedProjects = new WeakSet<object>();
+const deeplyFrozenValues = new WeakSet<object>();
 
 export function object(value: unknown, allowed: readonly string[]): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Expected object');
@@ -120,6 +123,8 @@ function validateStructures(blocks: readonly BlockRecord[], structures: readonly
   }
 }
 export function parseProject(value: unknown): Project {
+  // Only objects created and recursively frozen by this parser can use this path.
+  if (value && typeof value === 'object' && validatedProjects.has(value)) return value as Project;
   const p = object(value, ['schemaVersion', 'minecraftVersion', 'coordinateConvention', 'id', 'title', 'designRevision', 'blocks', 'logicalStructures']);
   if (p.schemaVersion !== SCHEMA_VERSION || p.minecraftVersion !== MINECRAFT_VERSION || p.coordinateConvention !== COORDINATE_CONVENTION) {
     throw new Error('Unsupported schema, game version or coordinate convention');
@@ -139,15 +144,19 @@ export function parseProject(value: unknown): Project {
   const logicalStructures = p.logicalStructures.map(parseStructure);
   validateStructures(blocks, logicalStructures);
   if (typeof p.title !== 'string' || p.title.length > 512) throw new Error('Invalid project title');
-  return deepFreeze({
+  const result = deepFreeze({
     schemaVersion: SCHEMA_VERSION, minecraftVersion: MINECRAFT_VERSION, coordinateConvention: COORDINATE_CONVENTION,
     id: text(p.id), title: p.title, designRevision: text(p.designRevision), blocks, logicalStructures,
   });
+  validatedProjects.add(result);
+  return result;
 }
 export function deepFreeze<T>(value: T): T {
   if (value && typeof value === 'object') {
+    if (deeplyFrozenValues.has(value)) return value;
     Object.freeze(value);
     for (const member of Object.values(value)) deepFreeze(member);
+    deeplyFrozenValues.add(value);
   }
   return value;
 }
@@ -170,6 +179,6 @@ export function exportProject(project: Project): string {
   });
 }
 export function importProject(json: string): Project {
-  if (new TextEncoder().encode(json).length > MAX_IMPORT_BYTES) throw new Error('Import exceeds byte limit');
+  if (json.length > MAX_IMPORT_BYTES || new TextEncoder().encode(json).length > MAX_IMPORT_BYTES) throw new Error('Import exceeds byte limit');
   return parseProject(JSON.parse(json) as unknown);
 }
