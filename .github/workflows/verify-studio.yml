@@ -23,6 +23,7 @@ jobs:
           python3 -m unittest discover -s scripts -p scan_secrets_test.py
           python3 scripts/scan_secrets.py --history
       - run: npm ci --ignore-scripts
-      - run: npm audit --audit-level=high
+      - run: npm audit --audit-level=low
       - run: npm run verify:vendor
+      - run: npm run verify:lint-toolchain
       - run: npm run check

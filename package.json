@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.12.0"
+    "node": "^22.13.0 || >=24.0.0"
   },
   "packageManager": "npm@11.13.0",
   "scripts": {
@@ -17,6 +17,7 @@
     "check": "npm run typecheck && npm run lint && npm test && npm run build",
     "test:e2e": "playwright test",
     "verify:vendor": "node scripts/verify-vendor.mjs",
+    "verify:lint-toolchain": "node scripts/verify-lint-toolchain.mjs",
     "build:server": "vite build --ssr server/start.ts --outDir dist-server",
     "start": "node dist-server/start.js"
   },
@@ -26,15 +27,18 @@
     "three": "file:vendor/three"
   },
   "devDependencies": {
-    "@eslint/js": "9.32.0",
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.59.1",
     "@types/node": "22.16.5",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
-    "eslint": "9.32.0",
+    "eslint": "10.14.0",
     "typescript": "5.8.3",
-    "typescript-eslint": "8.38.0",
+    "typescript-eslint": "8.72.1",
     "vite": "7.3.7",
     "vitest": "4.1.12"
+  },
+  "overrides": {
+    "minimatch": "11.0.1"
   }
 }
