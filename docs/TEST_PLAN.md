@@ -1,6 +1,6 @@
 # Verification and regression plan
 
-**Status:** Required acceptance criteria; no automated tests have been run at documentation-bootstrap time.
+**Status:** M0–M10 bounded roadmap gates executed; final M10 baseline: 1,240 unit/integration tests in 18 files and 36 real Chrome browser tests, including three size profiles. Typecheck, lint, client/server builds and pinned-vendor verification passed. M8 uses the user-approved configurable API with no-key disablement; live provider and game acceptance remain unexecuted. See [M10 report](progress/M10.md) and [release scope](RELEASE_SCOPE.md).
 
 ## Test levels
 
@@ -70,3 +70,20 @@ Every test report records:
 ## Defect handling
 
 A failing required gate is **FAIL** until corrected and retested. A missing external service is **BLOCKED**; dependent AI claims remain unavailable. Never weaken assertions, silently skip failing tests, replace real behavior with permanent mocks or mark an unexecuted test green.
+
+
+## M1 executed scope
+
+`engine.test.ts` covers VXL-001/003/004/005 and the canonical JSON subset of VXL-013, plus immutable snapshots, stale revisions, explicit collision outcomes, evidence/identity preservation, logical-pair bounds and invalid input limits. `versioned-registry.test.ts` checks all 1,000 non-air registry defaults, actual Java state fixtures, stack sizes and conservative item rule metadata. No registry or engine mock is substituted. These tests do not establish renderer picking, materials aggregation, storage, full VXL-013, AI approval or game physics. Branch coverage is still unmeasured; the 90% target remains a target.
+
+## M2 executed scope
+
+Total 105 unit/integration tests in six suites, typecheck/lint/build, plus six Playwright real-browser scenarios passed at code commit ae7e5c653f0237482f159b536627efe0e930ae6a. See progress/M2.md and evidence/m2-e2e-summary.json. Covered: deterministic 288-cell fixture, stair state occupancy, slabs/doors/beds, actual Three.js raycasts including negative boundaries, transparent selection, camera pointer/keyboard/touch, center-reticle keyboard selection, focus across resize, real WebGL loss/restoration, empty/reload and mobile overflow. Screenshots were visually checked.
+
+This historical M2 checkpoint establishes inspection only. Later M3–M10 reports record editing, persistence, export, AI adapter and measured large-fixture acceptance. Branch-coverage percentage and in-game acceptance remain unmeasured/unexecuted.
+
+## M10 executed scope
+
+Final integrated baseline on 2026-10-19: 1,240/1,240 Vitest tests across 18 files and 36/36 Playwright cases on installed Chrome 155.0.8059.79, including 3 profiles, 4 AI cases, desktop release journey and compiled-server smoke. Real public UI downloads are decoded and compared to canonical state; native IndexedDB persistence and failure handling are exercised. Desktop and 390px touch views were visually checked. No mocked engine, storage or renderer replaces those paths. AI configured-provider browser responses alone use explicit test fixtures.
+
+Performance records interaction latency, effective camera update throughput and sampled heap; it does not measure display FPS or peak memory. 50k operations complete within protective bounds but are slow. Native NBT/Litematica exporters are absent, so no game-format acceptance is claimed. Broad full-spec gaps and the unmeasured 90% coverage target remain visible. See progress/M10.md, evidence/performance.json and RELEASE_SCOPE.md.

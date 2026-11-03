@@ -1,0 +1,52 @@
+{
+  "revision": "golden-leaf-100-v9",
+  "date": "2026-10-21",
+  "fullTests": {
+    "passed": 1382,
+    "files": 36
+  },
+  "afterFinalLighting": {
+    "geometryTestsPassed": 76,
+    "typecheck": "passed",
+    "lint": "passed",
+    "build": "passed"
+  },
+  "productionE2e": {
+    "passed": 2,
+    "seconds": 39.8
+  },
+  "model": {
+    "dimensions": [
+      71,
+      100,
+      51
+    ],
+    "foundation": [
+      71,
+      47
+    ],
+    "cells": 52496,
+    "inventoryItems": 52492,
+    "materials": 18,
+    "slabs": 24273,
+    "glowstone": 234,
+    "floors": 26,
+    "rearExteriorLedges": 13,
+    "registryAndRoundtrip": "passed"
+  },
+  "visual": {
+    "rounds": 4,
+    "comparison": "evidence/golden-leaf-v9-comparison.png",
+    "pitchDegrees": 14,
+    "camera": "estimated, not calibrated to source",
+    "exactMatch": false,
+    "remaining": [
+      "Rear lower shell stepped arcs",
+      "Tip edges",
+      "Fine glazing grid",
+      "Landscaping"
+    ]
+  },
+  "minecraftInGame": "not tested",
+  "paidGenerations": 0
+}

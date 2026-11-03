@@ -1,0 +1,74 @@
+import { test, expect, type Page } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
+import type { Project } from '../src/core/contracts.ts';
+
+async function exportModel(page:Page):Promise<Project>{
+  await page.locator('summary').filter({hasText:'專案與備份'}).click();
+  const waiting=page.waitForEvent('download');
+  await page.getByRole('button',{name:'下載模型 JSON',exact:true}).click();
+  const file=await(await waiting).path();if(!file)throw new Error('No exported file');
+  const result=JSON.parse(await readFile(file,'utf8')) as Project;
+  await page.locator('.utility-drawer[open]').getByRole('button',{name:'關閉面板'}).click();
+  return result;
+}
+test('offline whole-building preview, edit invalidation, undo, collision and collection roundtrip',async({page})=>{
+  test.setTimeout(240000);
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('/');await page.getByRole('button',{name:'建立新建築',exact:true}).click();
+  await expect(page.locator('.editing-save')).toContainText('已儲存');
+  await expect(page.getByTestId('cell-count')).toHaveText('0');
+  await page.locator('.generator-section>summary').click();
+  const generator=page.getByRole('region',{name:'離線建築產生器'});
+  await generator.getByLabel('建築材質').selectOption('modern');
+  await generator.getByRole('button',{name:'預覽整棟建築'}).click();
+  await expect(page.locator('.selection-preview')).toContainText('本機參數式建築');
+  await expect(page.getByTestId('cell-count')).toHaveText('0');
+  await generator.getByLabel('寬度 X',{exact:true}).fill('15');
+  await expect(page.locator('.selection-preview')).toHaveCount(0);
+  await generator.getByRole('button',{name:'預覽整棟建築'}).click();
+  await page.getByRole('button',{name:'套用批次預覽',exact:true}).click();
+  const count=Number((await page.getByTestId('cell-count').innerText()).replaceAll(',',''));
+  expect(count).toBeGreaterThan(100);expect(count).toBeLessThan(5001);
+  await page.getByRole('button',{name:'復原上一步',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText('0');
+  await page.getByRole('button',{name:'重做上一步',exact:true}).click();
+  const model=await exportModel(page);expect(model.blocks).toHaveLength(count);
+  expect(new Set(model.blocks.map(b=>`${b.pos.x},${b.pos.y},${b.pos.z}`)).size).toBe(count);
+  expect(model.blocks.filter(b=>b.pos.y===10).every(b=>b.id==='minecraft:smooth_quartz_slab'&&b.state.type==='bottom')).toBe(true);
+  await generator.getByRole('button',{name:'預覽整棟建築'}).click();
+  await expect(generator.getByRole('alert')).toContainText('已有方塊');
+  expect((await exportModel(page)).blocks).toEqual(model.blocks);
+  await page.getByRole('button',{name:'立即儲存',exact:true}).click();
+  await expect(page.locator('.editing-save')).toContainText('已儲存');
+  await page.getByRole('button',{name:'返回建築庫',exact:true}).click();
+  await expect(page.getByLabel('加入的施工專案')).toBeVisible({timeout:120000});
+  await page.getByLabel('加入的施工專案').selectOption({label:'我的新建築'});
+  await page.getByRole('button',{name:'加入獨立副本',exact:true}).click();
+  await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue('我的新建築',{timeout:120000});
+  await page.getByLabel('搜尋名稱或筆記').fill('不存在的查詢');
+  await expect(page.locator('.collection-discovery')).toContainText('找到 0');
+  await expect(page.getByRole('button',{name:'編輯這棟建築',exact:true})).toBeEnabled();
+  await page.getByRole('button',{name:'清除搜尋',exact:true}).click();
+  await page.getByLabel('排列方式').selectOption('name');
+  await page.reload();await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue('我的新建築',{timeout:120000});
+  const waiting=page.waitForEvent('download');await page.getByRole('button',{name:'下載完整建築 JSON',exact:true}).click();
+  const file=await(await waiting).path();if(!file)throw new Error('No collection download');
+  const saved=JSON.parse(await readFile(file,'utf8')) as Project;expect([...saved.blocks].sort((a,b)=>a.uid.localeCompare(b.uid))).toEqual([...model.blocks].sort((a,b)=>a.uid.localeCompare(b.uid)));
+  await page.getByRole('button',{name:'編輯這棟建築',exact:true}).click();
+  await expect(page.locator('.viewport-host canvas')).toBeVisible();
+  await page.screenshot({path:'evidence/offline-generated-building.png',fullPage:true});
+  expect(errors).toEqual([]);
+});
+
+test('mobile generator remains operable and rejects invalid sizes without publishing',async({page})=>{
+  await page.setViewportSize({width:390,height:844});await page.goto('/');
+  await page.getByRole('button',{name:'建立新建築',exact:true}).click();
+  await expect(page.locator('.editing-save')).toContainText('已儲存');
+  await page.locator('.generator-section>summary').click();
+  const generator=page.getByRole('region',{name:'離線建築產生器'});
+  await generator.getByLabel('樓層數',{exact:true}).fill('20');
+  await generator.getByLabel('層高',{exact:true}).fill('8');
+  await generator.getByRole('button',{name:'預覽整棟建築'}).click();
+  await expect(generator.getByRole('alert')).toContainText('100');
+  await expect(page.getByTestId('cell-count')).toHaveText('0');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+});

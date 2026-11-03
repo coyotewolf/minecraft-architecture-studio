@@ -1,0 +1,219 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\playwright.config.ts",
+    "rootDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.59.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5180 --strictPort",
+      "url": "http://127.0.0.1:5180",
+      "reuseExistingServer": false,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "campus.spec.ts",
+      "file": "campus.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "complete campus exports all real districts and retains exact picking through overview filters and camera presets",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 360000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 92297,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T19:10:51.915Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "908b0a273b53a7bc24ac-8883601120c2baf2f003",
+          "file": "campus.spec.ts",
+          "line": 43,
+          "column": 1
+        },
+        {
+          "title": "district studio preserves global coordinates, edits and construction completion across return and reopening",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 480000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 79734,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeDefined\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mundefined\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeDefined\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mundefined\u001b[39m\n    at C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts:70:21",
+                    "location": {
+                      "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts",
+                      "column": 21,
+                      "line": 70
+                    },
+                    "snippet": "  68 |  const groundY=Math.min(...ringBlocks.map(b=>b.pos.y)),frontZ=Math.max(...ringBlocks.filter(b=>b.pos.y===groundY).map(b=>b.pos.z));\n  69 |  const foundation=ringBlocks.filter(b=>b.pos.y===groundY&&b.pos.z===frontZ).sort((a,b)=>a.pos.x-b.pos.x).find(b=>!allOccupied.has([b.pos.x,b.pos.y+1,b.pos.z].join(',')))!;\n> 70 |  expect(foundation).toBeDefined();const ringPart=ringParts.find(d=>d.project.blocks.some(b=>b.uid===foundation.uid))!,ringProject=ringPart.project,initial=ringProject.blocks.length;const edit={x:foundation.pos.x,y:foundation.pos.y+1,z:foundation.pos.z};\n     |                     ^\n  71 |  await ring(page);await page.getByRole('combobox',{name:'施工分檔',exact:true}).selectOption(ringPart.id);await page.getByRole('button',{name:'進入此區逐層施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial));await expect(page.locator('.studio-summary')).toContainText(ringProject.title);\n  72 |  await page.getByRole('button',{name:'正面',exact:true}).click();await clickWorld(page,[foundation.pos.x+.5,foundation.pos.y+.5,foundation.pos.z+1]);await expect(page.locator('.block-inspector')).toContainText(foundation.uid);\n  73 |  await openSection(page,'編輯工具與方塊');await page.getByRole('radio',{name:'放置',exact:true}).check();await page.getByRole('combobox',{name:'方塊種類',exact:true}).selectOption('minecraft:stone');await coordinate(page,edit.x,edit.y,edit.z);await page.getByRole('button',{name:'套用變更',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial+1));"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts",
+                        "column": 21,
+                        "line": 70
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeDefined\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mundefined\u001b[39m\n\n  68 |  const groundY=Math.min(...ringBlocks.map(b=>b.pos.y)),frontZ=Math.max(...ringBlocks.filter(b=>b.pos.y===groundY).map(b=>b.pos.z));\n  69 |  const foundation=ringBlocks.filter(b=>b.pos.y===groundY&&b.pos.z===frontZ).sort((a,b)=>a.pos.x-b.pos.x).find(b=>!allOccupied.has([b.pos.x,b.pos.y+1,b.pos.z].join(',')))!;\n> 70 |  expect(foundation).toBeDefined();const ringPart=ringParts.find(d=>d.project.blocks.some(b=>b.uid===foundation.uid))!,ringProject=ringPart.project,initial=ringProject.blocks.length;const edit={x:foundation.pos.x,y:foundation.pos.y+1,z:foundation.pos.z};\n     |                     ^\n  71 |  await ring(page);await page.getByRole('combobox',{name:'施工分檔',exact:true}).selectOption(ringPart.id);await page.getByRole('button',{name:'進入此區逐層施工',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial));await expect(page.locator('.studio-summary')).toContainText(ringProject.title);\n  72 |  await page.getByRole('button',{name:'正面',exact:true}).click();await clickWorld(page,[foundation.pos.x+.5,foundation.pos.y+.5,foundation.pos.z+1]);await expect(page.locator('.block-inspector')).toContainText(foundation.uid);\n  73 |  await openSection(page,'編輯工具與方塊');await page.getByRole('radio',{name:'放置',exact:true}).check();await page.getByRole('combobox',{name:'方塊種類',exact:true}).selectOption('minecraft:stone');await coordinate(page,edit.x,edit.y,edit.z);await page.getByRole('button',{name:'套用變更',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(initial+1));\n    at C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts:70:21"
+                    },
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T19:12:25.041Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\test-results\\campus-district-studio-pre-6c040-across-return-and-reopening\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\campus.spec.ts",
+                    "column": 21,
+                    "line": 70
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "908b0a273b53a7bc24ac-20921a5c3ffcdbe42572",
+          "file": "campus.spec.ts",
+          "line": 64,
+          "column": 1
+        },
+        {
+          "title": "mobile campus fits 390px and accepts real touch camera gestures",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 360000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 70745,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-19T19:14:16.279Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "908b0a273b53a7bc24ac-3d62b5717566e946edbe",
+          "file": "campus.spec.ts",
+          "line": 80,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-19T19:10:50.003Z",
+    "duration": 280507.339,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

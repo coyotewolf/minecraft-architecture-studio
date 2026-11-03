@@ -1,0 +1,537 @@
+{
+  "method": "Approximate fixed-row gold-color pixel runs; manually identified leaf top/base/max-width. Not a full image similarity metric. Gold criterion r>100,g>70,b<.65g,r>1.04g; bridge gaps <=5px; runs need >5 gold pixels.",
+  "images": [
+    {
+      "name": "reference-front",
+      "source": "C:\\Users\\coyot\\Downloads\\minecraft建築\\葉子前視圖.png",
+      "top": 0,
+      "base": 1100,
+      "max_width": 624,
+      "rows": [
+        {
+          "t": 0.15,
+          "pixel_y": 165,
+          "gold_runs": [
+            [
+              492,
+              537
+            ],
+            [
+              700,
+              733
+            ]
+          ],
+          "outer_span_over_max": 0.386
+        },
+        {
+          "t": 0.3,
+          "pixel_y": 330,
+          "gold_runs": [
+            [
+              393,
+              473
+            ],
+            [
+              775,
+              817
+            ]
+          ],
+          "outer_span_over_max": 0.679
+        },
+        {
+          "t": 0.5,
+          "pixel_y": 550,
+          "gold_runs": [
+            [
+              315,
+              413
+            ],
+            [
+              855,
+              888
+            ]
+          ],
+          "outer_span_over_max": 0.918
+        },
+        {
+          "t": 0.7,
+          "pixel_y": 770,
+          "gold_runs": [
+            [
+              304,
+              419
+            ],
+            [
+              886,
+              922
+            ]
+          ],
+          "outer_span_over_max": 0.99
+        },
+        {
+          "t": 0.85,
+          "pixel_y": 935,
+          "gold_runs": [
+            [
+              345,
+              469
+            ],
+            [
+              683,
+              688
+            ],
+            [
+              864,
+              898
+            ]
+          ],
+          "outer_span_over_max": 0.886
+        }
+      ]
+    },
+    {
+      "name": "reference-rear",
+      "source": "C:\\Users\\coyot\\Downloads\\minecraft建築\\葉子後視圖.png",
+      "top": 0,
+      "base": 1190,
+      "max_width": 642,
+      "rows": [
+        {
+          "t": 0.15,
+          "pixel_y": 178,
+          "gold_runs": [
+            [
+              477,
+              514
+            ],
+            [
+              555,
+              562
+            ],
+            [
+              629,
+              634
+            ],
+            [
+              651,
+              692
+            ]
+          ],
+          "outer_span_over_max": 0.335
+        },
+        {
+          "t": 0.3,
+          "pixel_y": 357,
+          "gold_runs": [
+            [
+              371,
+              453
+            ],
+            [
+              691,
+              799
+            ]
+          ],
+          "outer_span_over_max": 0.667
+        },
+        {
+          "t": 0.5,
+          "pixel_y": 595,
+          "gold_runs": [
+            [
+              287,
+              424
+            ],
+            [
+              501,
+              512
+            ],
+            [
+              630,
+              643
+            ],
+            [
+              706,
+              882
+            ]
+          ],
+          "outer_span_over_max": 0.927
+        },
+        {
+          "t": 0.7,
+          "pixel_y": 833,
+          "gold_runs": [
+            [
+              262,
+              522
+            ],
+            [
+              610,
+              889
+            ]
+          ],
+          "outer_span_over_max": 0.977
+        },
+        {
+          "t": 0.85,
+          "pixel_y": 1012,
+          "gold_runs": [
+            [
+              304,
+              360
+            ],
+            [
+              374,
+              442
+            ],
+            [
+              458,
+              721
+            ],
+            [
+              739,
+              834
+            ]
+          ],
+          "outer_span_over_max": 0.826
+        }
+      ]
+    },
+    {
+      "name": "v13-front",
+      "source": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\evidence\\golden-leaf-v13-final\\golden-leaf-front.png",
+      "top": 58,
+      "base": 1007,
+      "max_width": 486,
+      "rows": [
+        {
+          "t": 0.15,
+          "pixel_y": 200,
+          "gold_runs": [
+            [
+              350,
+              442
+            ],
+            [
+              557,
+              608
+            ]
+          ],
+          "outer_span_over_max": 0.531
+        },
+        {
+          "t": 0.3,
+          "pixel_y": 343,
+          "gold_runs": [
+            [
+              319,
+              380
+            ],
+            [
+              608,
+              680
+            ]
+          ],
+          "outer_span_over_max": 0.743
+        },
+        {
+          "t": 0.5,
+          "pixel_y": 532,
+          "gold_runs": [
+            [
+              267,
+              328
+            ],
+            [
+              671,
+              732
+            ]
+          ],
+          "outer_span_over_max": 0.957
+        },
+        {
+          "t": 0.7,
+          "pixel_y": 722,
+          "gold_runs": [
+            [
+              257,
+              318
+            ],
+            [
+              681,
+              742
+            ]
+          ],
+          "outer_span_over_max": 0.998
+        },
+        {
+          "t": 0.85,
+          "pixel_y": 865,
+          "gold_runs": [
+            [
+              288,
+              359
+            ],
+            [
+              639,
+              711
+            ]
+          ],
+          "outer_span_over_max": 0.87
+        }
+      ]
+    },
+    {
+      "name": "v13-rear",
+      "source": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\evidence\\golden-leaf-v13-final\\golden-leaf-rear.png",
+      "top": 58,
+      "base": 1007,
+      "max_width": 486,
+      "rows": [
+        {
+          "t": 0.15,
+          "pixel_y": 200,
+          "gold_runs": [
+            [
+              391,
+              491
+            ],
+            [
+              515,
+              649
+            ]
+          ],
+          "outer_span_over_max": 0.531
+        },
+        {
+          "t": 0.3,
+          "pixel_y": 343,
+          "gold_runs": [
+            [
+              319,
+              432
+            ],
+            [
+              567,
+              680
+            ]
+          ],
+          "outer_span_over_max": 0.743
+        },
+        {
+          "t": 0.5,
+          "pixel_y": 532,
+          "gold_runs": [
+            [
+              267,
+              390
+            ],
+            [
+              608,
+              732
+            ]
+          ],
+          "outer_span_over_max": 0.957
+        },
+        {
+          "t": 0.7,
+          "pixel_y": 722,
+          "gold_runs": [
+            [
+              257,
+              453
+            ],
+            [
+              546,
+              742
+            ]
+          ],
+          "outer_span_over_max": 0.998
+        },
+        {
+          "t": 0.85,
+          "pixel_y": 865,
+          "gold_runs": [
+            [
+              288,
+              711
+            ]
+          ],
+          "outer_span_over_max": 0.87
+        }
+      ]
+    },
+    {
+      "name": "v14-front",
+      "source": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\evidence\\golden-leaf-v14-final\\golden-leaf-front.png",
+      "top": 58,
+      "base": 1007,
+      "max_width": 486,
+      "rows": [
+        {
+          "t": 0.15,
+          "pixel_y": 200,
+          "gold_runs": [
+            [
+              391,
+              452
+            ],
+            [
+              546,
+              577
+            ]
+          ],
+          "outer_span_over_max": 0.383
+        },
+        {
+          "t": 0.3,
+          "pixel_y": 343,
+          "gold_runs": [
+            [
+              329,
+              411
+            ],
+            [
+              629,
+              670
+            ]
+          ],
+          "outer_span_over_max": 0.702
+        },
+        {
+          "t": 0.5,
+          "pixel_y": 532,
+          "gold_runs": [
+            [
+              267,
+              349
+            ],
+            [
+              691,
+              732
+            ]
+          ],
+          "outer_span_over_max": 0.957
+        },
+        {
+          "t": 0.7,
+          "pixel_y": 722,
+          "gold_runs": [
+            [
+              257,
+              339
+            ],
+            [
+              702,
+              742
+            ]
+          ],
+          "outer_span_over_max": 0.998
+        },
+        {
+          "t": 0.85,
+          "pixel_y": 865,
+          "gold_runs": [
+            [
+              288,
+              380
+            ],
+            [
+              660,
+              711
+            ]
+          ],
+          "outer_span_over_max": 0.87
+        }
+      ]
+    },
+    {
+      "name": "v14-rear",
+      "source": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\evidence\\golden-leaf-v14-final\\golden-leaf-rear.png",
+      "top": 58,
+      "base": 1007,
+      "max_width": 486,
+      "rows": [
+        {
+          "t": 0.15,
+          "pixel_y": 200,
+          "gold_runs": [
+            [
+              422,
+              485
+            ],
+            [
+              515,
+              608
+            ]
+          ],
+          "outer_span_over_max": 0.383
+        },
+        {
+          "t": 0.3,
+          "pixel_y": 343,
+          "gold_runs": [
+            [
+              329,
+              421
+            ],
+            [
+              557,
+              670
+            ]
+          ],
+          "outer_span_over_max": 0.702
+        },
+        {
+          "t": 0.5,
+          "pixel_y": 532,
+          "gold_runs": [
+            [
+              267,
+              380
+            ],
+            [
+              598,
+              732
+            ]
+          ],
+          "outer_span_over_max": 0.957
+        },
+        {
+          "t": 0.7,
+          "pixel_y": 722,
+          "gold_runs": [
+            [
+              257,
+              442
+            ],
+            [
+              474,
+              483
+            ],
+            [
+              536,
+              742
+            ]
+          ],
+          "outer_span_over_max": 0.998
+        },
+        {
+          "t": 0.85,
+          "pixel_y": 865,
+          "gold_runs": [
+            [
+              288,
+              432
+            ],
+            [
+              443,
+              711
+            ]
+          ],
+          "outer_span_over_max": 0.87
+        }
+      ]
+    }
+  ]
+}

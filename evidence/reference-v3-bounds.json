@@ -1,0 +1,435 @@
+{
+  "schema": "minecraft-campus-bounds-1",
+  "measuredAt": "2026-10-19T19:18:37.482Z",
+  "coordinateConvention": "x-east-y-up-z-south",
+  "definition": "Bounds of occupied canonical cells. Coordinate span=max-min; inclusive cell extent=max-min+1. Group bounds include attached decks, bridges, furniture and all authored cells, not just nominal architectural shell parameters.",
+  "parts": 39,
+  "total": {
+    "min": {
+      "x": -447,
+      "y": -5,
+      "z": -383
+    },
+    "max": {
+      "x": 409,
+      "y": 187,
+      "z": 431
+    },
+    "cells": 1491644,
+    "coordinateSpan": {
+      "x": 856,
+      "y": 192,
+      "z": 814
+    },
+    "inclusiveCellExtent": {
+      "x": 857,
+      "y": 193,
+      "z": 815
+    }
+  },
+  "groups": [
+    {
+      "id": "ring-control-spire",
+      "title": "環形控制塔",
+      "origin": [
+        -236,
+        30,
+        102
+      ],
+      "parts": 2,
+      "min": {
+        "x": -301,
+        "y": 30,
+        "z": 87
+      },
+      "max": {
+        "x": -171,
+        "y": 145,
+        "z": 122
+      },
+      "cells": 53894,
+      "coordinateSpan": {
+        "x": 130,
+        "y": 115,
+        "z": 35
+      },
+      "inclusiveCellExtent": {
+        "x": 131,
+        "y": 116,
+        "z": 36
+      }
+    },
+    {
+      "id": "teardrop-command",
+      "title": "中央水滴指揮塔",
+      "origin": [
+        -32,
+        22,
+        26
+      ],
+      "parts": 2,
+      "min": {
+        "x": -67,
+        "y": 22,
+        "z": 0
+      },
+      "max": {
+        "x": 3,
+        "y": 177,
+        "z": 50
+      },
+      "cells": 56809,
+      "coordinateSpan": {
+        "x": 70,
+        "y": 155,
+        "z": 50
+      },
+      "inclusiveCellExtent": {
+        "x": 71,
+        "y": 156,
+        "z": 51
+      }
+    },
+    {
+      "id": "twin-residential-library",
+      "title": "雙子玻璃居住塔",
+      "origin": [
+        42,
+        32,
+        -11
+      ],
+      "parts": 1,
+      "min": {
+        "x": 3,
+        "y": 32,
+        "z": -31
+      },
+      "max": {
+        "x": 83,
+        "y": 127,
+        "z": 9
+      },
+      "cells": 43619,
+      "coordinateSpan": {
+        "x": 80,
+        "y": 95,
+        "z": 40
+      },
+      "inclusiveCellExtent": {
+        "x": 81,
+        "y": 96,
+        "z": 41
+      }
+    },
+    {
+      "id": "sphere-observatory",
+      "title": "白色天文球與玻璃展廊",
+      "origin": [
+        -64,
+        22,
+        230
+      ],
+      "parts": 1,
+      "min": {
+        "x": -94,
+        "y": 22,
+        "z": 200
+      },
+      "max": {
+        "x": -19,
+        "y": 63,
+        "z": 260
+      },
+      "cells": 15954,
+      "coordinateSpan": {
+        "x": 75,
+        "y": 41,
+        "z": 60
+      },
+      "inclusiveCellExtent": {
+        "x": 76,
+        "y": 42,
+        "z": 61
+      }
+    },
+    {
+      "id": "campus-industry",
+      "title": "高密度分節工廠與跨山鐵道",
+      "origin": [
+        -322,
+        70,
+        -53
+      ],
+      "parts": 1,
+      "min": {
+        "x": -392,
+        "y": 70,
+        "z": -89
+      },
+      "max": {
+        "x": -222,
+        "y": 112,
+        "z": -17
+      },
+      "cells": 42112,
+      "coordinateSpan": {
+        "x": 170,
+        "y": 42,
+        "z": 72
+      },
+      "inclusiveCellExtent": {
+        "x": 171,
+        "y": 43,
+        "z": 73
+      }
+    },
+    {
+      "id": "campus-airport",
+      "title": "高架空港與延伸飛船泊位",
+      "origin": [
+        93,
+        90,
+        -189
+      ],
+      "parts": 2,
+      "min": {
+        "x": 5,
+        "y": 90,
+        "z": -249
+      },
+      "max": {
+        "x": 163,
+        "y": 187,
+        "z": -116
+      },
+      "cells": 57164,
+      "coordinateSpan": {
+        "x": 158,
+        "y": 97,
+        "z": 133
+      },
+      "inclusiveCellExtent": {
+        "x": 159,
+        "y": 98,
+        "z": 134
+      }
+    },
+    {
+      "id": "campus-dragons",
+      "title": "六連精細龍舍與多龍停機坪",
+      "origin": [
+        284,
+        22,
+        55
+      ],
+      "parts": 2,
+      "min": {
+        "x": 210,
+        "y": 22,
+        "z": 13
+      },
+      "max": {
+        "x": 358,
+        "y": 43,
+        "z": 111
+      },
+      "cells": 52242,
+      "coordinateSpan": {
+        "x": 148,
+        "y": 21,
+        "z": 98
+      },
+      "inclusiveCellExtent": {
+        "x": 149,
+        "y": 22,
+        "z": 99
+      }
+    },
+    {
+      "id": "campus-workshop",
+      "title": "多層斜撐玻璃工坊塔",
+      "origin": [
+        263,
+        32,
+        -43
+      ],
+      "parts": 1,
+      "min": {
+        "x": 238,
+        "y": 32,
+        "z": -70
+      },
+      "max": {
+        "x": 288,
+        "y": 122,
+        "z": -16
+      },
+      "cells": 43105,
+      "coordinateSpan": {
+        "x": 50,
+        "y": 90,
+        "z": 54
+      },
+      "inclusiveCellExtent": {
+        "x": 51,
+        "y": 91,
+        "z": 55
+      }
+    },
+    {
+      "id": "garden-greenhouses-v3",
+      "title": "細框雙拱農牧溫室",
+      "origin": [
+        62,
+        22,
+        258
+      ],
+      "parts": 1,
+      "min": {
+        "x": 14,
+        "y": 22,
+        "z": 204
+      },
+      "max": {
+        "x": 110,
+        "y": 50,
+        "z": 312
+      },
+      "cells": 43081,
+      "coordinateSpan": {
+        "x": 96,
+        "y": 28,
+        "z": 108
+      },
+      "inclusiveCellExtent": {
+        "x": 97,
+        "y": 29,
+        "z": 109
+      }
+    },
+    {
+      "id": "garden-apartments-v3",
+      "title": "錯落折線花園住宅",
+      "origin": [
+        -143,
+        30,
+        283
+      ],
+      "parts": 2,
+      "min": {
+        "x": -180,
+        "y": 30,
+        "z": 252
+      },
+      "max": {
+        "x": -106,
+        "y": 105,
+        "z": 316
+      },
+      "cells": 63950,
+      "coordinateSpan": {
+        "x": 74,
+        "y": 75,
+        "z": 64
+      },
+      "inclusiveCellExtent": {
+        "x": 75,
+        "y": 76,
+        "z": 65
+      }
+    },
+    {
+      "id": "garden-pavilions-v3",
+      "title": "六座粉晶亭與放射圓廣場",
+      "origin": [
+        -30,
+        20,
+        331
+      ],
+      "parts": 1,
+      "min": {
+        "x": -88,
+        "y": 20,
+        "z": 273
+      },
+      "max": {
+        "x": 28,
+        "y": 36,
+        "z": 389
+      },
+      "cells": 26265,
+      "coordinateSpan": {
+        "x": 116,
+        "y": 16,
+        "z": 116
+      },
+      "inclusiveCellExtent": {
+        "x": 117,
+        "y": 17,
+        "z": 117
+      }
+    },
+    {
+      "id": "garden-temples-v3",
+      "title": "細金階梯雙殿與白柱玻璃廳",
+      "origin": [
+        86,
+        26,
+        71
+      ],
+      "parts": 1,
+      "min": {
+        "x": 58,
+        "y": 26,
+        "z": 55
+      },
+      "max": {
+        "x": 114,
+        "y": 56,
+        "z": 87
+      },
+      "cells": 7912,
+      "coordinateSpan": {
+        "x": 56,
+        "y": 30,
+        "z": 32
+      },
+      "inclusiveCellExtent": {
+        "x": 57,
+        "y": 31,
+        "z": 33
+      }
+    },
+    {
+      "id": "campus-landscape",
+      "title": "曲線群島、山脊森林與多層白橋",
+      "origin": [
+        0,
+        0,
+        0
+      ],
+      "parts": 22,
+      "min": {
+        "x": -447,
+        "y": -5,
+        "z": -383
+      },
+      "max": {
+        "x": 409,
+        "y": 141,
+        "z": 431
+      },
+      "cells": 985537,
+      "coordinateSpan": {
+        "x": 856,
+        "y": 146,
+        "z": 814
+      },
+      "inclusiveCellExtent": {
+        "x": 857,
+        "y": 147,
+        "z": 815
+      }
+    }
+  ]
+}

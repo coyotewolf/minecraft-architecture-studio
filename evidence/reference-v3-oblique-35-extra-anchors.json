@@ -1,0 +1,58 @@
+{
+  "camera": {
+    "projection": "orthographic",
+    "yaw": 34.99999999999999,
+    "pitch": 32,
+    "fov": 30,
+    "distance": 1192.5492567219499,
+    "span": 439.62574038941443,
+    "target": [
+      -1.3908321550594702,
+      63.90910349975804,
+      59.6500331194116
+    ]
+  },
+  "anchors": [
+    {
+      "id": "garden-apartments",
+      "world": [
+        -189.5,
+        68,
+        145.5
+      ],
+      "reference": [
+        200,
+        630
+      ],
+      "pixel": [
+        294.38923296809173,
+        457.5448999537216
+      ],
+      "deltaXZ": [
+        46.943617203658725,
+        137.6927823595361
+      ]
+    },
+    {
+      "id": "garden-temples",
+      "world": [
+        88.5,
+        41.5,
+        141.5
+      ],
+      "reference": [
+        920,
+        630
+      ],
+      "pixel": [
+        830.1609091818016,
+        702.6635108306479
+      ],
+      "deltaXZ": [
+        -2.17150567815231,
+        -70.34579873495035
+      ]
+    }
+  ],
+  "note": "Bounds-center height .5 estimated from complete source envelopes; same fixed framing."
+}

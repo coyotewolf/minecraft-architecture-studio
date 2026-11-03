@@ -1,7 +1,7 @@
 # MASTER SPECIFICATION — AI Minecraft Architecture Studio
 
 **Version:** 1.0 (2026-10-19)  
-**Status:** Approved development target; implementation NOT STARTED  
+**Status:** Approved full-product target. M0–M10 bounded roadmap gates passed; see progress/M10.md and RELEASE_SCOPE.md. M8 follows the user-approved configurable API / disabled-without-key scope. Full-product photo reconstruction and the listed advanced features remain unfinished.  
 **Execution preference:** Codex Cloud + private GitHub repository, local Minecraft checks when needed  
 **Target game:** Minecraft Java Edition 1.20.1 **Vanilla**
 

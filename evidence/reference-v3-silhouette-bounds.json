@@ -1,0 +1,304 @@
+{
+  "camera": {
+    "projection": "orthographic",
+    "yaw": 35,
+    "pitch": 32,
+    "fov": 30,
+    "distance": 1187.2185565683358,
+    "span": 439.62574038941443,
+    "target": [
+      -1.3908321550594702,
+      63.90910349975804,
+      59.6500331194116
+    ]
+  },
+  "frame": [
+    1536,
+    1024
+  ],
+  "canonicalCells": 1395062,
+  "method": "All eight unit-cell corners, full canonical building group including floors/accesses; no occlusion approximation, no camera refit.",
+  "groups": [
+    {
+      "id": "ring-control-spire",
+      "title": "環形控制塔",
+      "cells": 53888,
+      "minX": 136.51005455566224,
+      "minY": 188.7450226185926,
+      "maxX": 350.6033853690301,
+      "maxY": 503.83965953647714,
+      "width": 214.09333081336786,
+      "height": 315.09463691788454,
+      "referenceApprox": {
+        "minX": 125,
+        "minY": 215,
+        "maxX": 425,
+        "maxY": 480,
+        "width": 300,
+        "height": 265
+      },
+      "targetToModelRatio": {
+        "width": 1.4012580348031476,
+        "height": 0.8410171705621905
+      }
+    },
+    {
+      "id": "teardrop-command",
+      "title": "中央水滴指揮塔",
+      "cells": 35366,
+      "minX": 688.9135200029415,
+      "minY": 259.15404820221,
+      "maxX": 818.0943258962456,
+      "maxY": 528.1276491856606,
+      "width": 129.18080589330407,
+      "height": 268.97360098345064,
+      "referenceApprox": {
+        "minX": 674,
+        "minY": 230,
+        "maxX": 833,
+        "maxY": 550,
+        "width": 159,
+        "height": 320
+      },
+      "targetToModelRatio": {
+        "width": 1.2308330088242743,
+        "height": 1.1897078331478668
+      }
+    },
+    {
+      "id": "twin-residential-library",
+      "title": "雙子玻璃居住塔",
+      "cells": 43619,
+      "minX": 859.8865456176018,
+      "minY": 321.8841769256702,
+      "maxX": 1033.7156511714368,
+      "maxY": 570.4190643154515,
+      "width": 173.829105553835,
+      "height": 248.53488738978126,
+      "referenceApprox": {
+        "minX": 848,
+        "minY": 318,
+        "maxX": 1024,
+        "maxY": 525,
+        "width": 176,
+        "height": 207
+      },
+      "targetToModelRatio": {
+        "width": 1.0124886706357277,
+        "height": 0.8328810581645166
+      }
+    },
+    {
+      "id": "sphere-observatory",
+      "title": "白色天文球與玻璃展廊",
+      "cells": 15954,
+      "minX": 349.7760304368273,
+      "minY": 633.2768769743938,
+      "maxX": 542.1211792353614,
+      "maxY": 779.5777339077839,
+      "width": 192.34514879853413,
+      "height": 146.30085693339015,
+      "referenceApprox": {
+        "minX": 347,
+        "minY": 643,
+        "maxX": 542,
+        "maxY": 779,
+        "width": 195,
+        "height": 136
+      },
+      "targetToModelRatio": {
+        "width": 1.0138025378755282,
+        "height": 0.9295912741093508
+      }
+    },
+    {
+      "id": "campus-industry",
+      "title": "高密度分節工廠與跨山鐵道",
+      "cells": 42112,
+      "minX": 137.14146035972385,
+      "minY": 20.631191440851694,
+      "maxX": 486.1237970884146,
+      "maxY": 253.74450522080667,
+      "width": 348.98233672869077,
+      "height": 233.11331377995498,
+      "referenceApprox": {
+        "minX": 185,
+        "minY": 55,
+        "maxX": 450,
+        "maxY": 210,
+        "width": 265,
+        "height": 155
+      },
+      "targetToModelRatio": {
+        "width": 0.7593507524881378,
+        "height": 0.6649126876824836
+      }
+    },
+    {
+      "id": "campus-airport",
+      "title": "高架空港與延伸飛船泊位",
+      "cells": 57164,
+      "minX": 1105.7115005799542,
+      "minY": 112.2495268082539,
+      "maxX": 1495.9259286398922,
+      "maxY": 389.5057804221785,
+      "width": 390.214428059938,
+      "height": 277.25625361392457,
+      "referenceApprox": {
+        "minX": 1124,
+        "minY": 60,
+        "maxX": 1430,
+        "maxY": 325,
+        "width": 306,
+        "height": 265
+      },
+      "targetToModelRatio": {
+        "width": 0.7841842279419704,
+        "height": 0.9557944917232012
+      }
+    },
+    {
+      "id": "campus-dragons",
+      "title": "六連精細龍舍與多龍停機坪",
+      "cells": 52242,
+      "minX": 1101.396659904515,
+      "minY": 663.4800247456704,
+      "maxX": 1517.9551329337487,
+      "maxY": 902.8622047396032,
+      "width": 416.5584730292337,
+      "height": 239.3821799939327,
+      "referenceApprox": {
+        "minX": 1045,
+        "minY": 655,
+        "maxX": 1535,
+        "maxY": 984,
+        "width": 490,
+        "height": 329
+      },
+      "targetToModelRatio": {
+        "width": 1.1763054450355934,
+        "height": 1.3743713087095235
+      }
+    },
+    {
+      "id": "campus-workshop",
+      "title": "多層斜撐玻璃工坊塔",
+      "cells": 43105,
+      "minX": 1324.4936872113276,
+      "minY": 445.9080248427673,
+      "maxX": 1495.2826432668385,
+      "maxY": 705.1419673387054,
+      "width": 170.78895605551088,
+      "height": 259.2339424959381,
+      "referenceApprox": {
+        "minX": 1318,
+        "minY": 426,
+        "maxX": 1516,
+        "maxY": 680,
+        "width": 198,
+        "height": 254
+      },
+      "targetToModelRatio": {
+        "width": 1.1593255475819222,
+        "height": 0.9798099645226045
+      }
+    },
+    {
+      "id": "garden-greenhouses",
+      "title": "細框雙拱農牧溫室",
+      "cells": 43081,
+      "minX": 458.8890394856247,
+      "minY": 713.1103943155243,
+      "maxX": 789.5908806610647,
+      "maxY": 930.5141104376473,
+      "width": 330.70184117544,
+      "height": 217.403716122123,
+      "referenceApprox": {
+        "minX": 463,
+        "minY": 714,
+        "maxX": 815,
+        "maxY": 900,
+        "width": 352,
+        "height": 186
+      },
+      "targetToModelRatio": {
+        "width": 1.0644029036816314,
+        "height": 0.8555511530240704
+      }
+    },
+    {
+      "id": "garden-apartments",
+      "title": "錯落折線花園住宅",
+      "cells": 74768,
+      "minX": 86.6344861366075,
+      "minY": 480.75261181257963,
+      "maxX": 311.9957861418402,
+      "maxY": 762.800072563696,
+      "width": 225.3613000052327,
+      "height": 282.0474607511163,
+      "referenceApprox": {
+        "minX": 90,
+        "minY": 518,
+        "maxX": 309,
+        "maxY": 740,
+        "width": 219,
+        "height": 222
+      },
+      "targetToModelRatio": {
+        "width": 0.9717728820117518,
+        "height": 0.7871015729366794
+      }
+    },
+    {
+      "id": "garden-pavilions",
+      "title": "六座粉晶亭與放射圓廣場",
+      "cells": 16685,
+      "minX": 242.8837356668123,
+      "minY": 776.8582192104209,
+      "maxX": 459.4650073010566,
+      "maxY": 914.1180694809293,
+      "width": 216.58127163424427,
+      "height": 137.25985027050842,
+      "referenceApprox": {
+        "minX": 207,
+        "minY": 756,
+        "maxX": 491,
+        "maxY": 927,
+        "width": 284,
+        "height": 171
+      },
+      "targetToModelRatio": {
+        "width": 1.311286049144685,
+        "height": 1.2458122288709867
+      }
+    },
+    {
+      "id": "garden-temples",
+      "title": "細金階梯雙殿與白柱玻璃廳",
+      "cells": 7912,
+      "minX": 843.4427857995122,
+      "minY": 588.3744485671415,
+      "maxX": 996.2877065694253,
+      "maxY": 697.9488244882963,
+      "width": 152.84492076991307,
+      "height": 109.5743759211548,
+      "referenceApprox": {
+        "minX": 849,
+        "minY": 588,
+        "maxX": 985,
+        "maxY": 678,
+        "width": 136,
+        "height": 90
+      },
+      "targetToModelRatio": {
+        "width": 0.8897907716850416,
+        "height": 0.8213599141532897
+      }
+    }
+  ],
+  "referenceAudit": {
+    "source": "public/local-references/reference-01.png",
+    "method": "Manual visible extents at native1536×1024; approximate ±15px. Occluded/backside geometry cannot be measured. Airport terminal+ship reference excludes remote runway; factory reference may exclude rail approach. Sphere extent includes basin/gallery estimate.",
+    "warning": "Canonical group bounds include foundations and hidden cells. Ratios are diagnostic, not automatic uniform scale factors."
+  }
+}

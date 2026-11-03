@@ -1,0 +1,111 @@
+{
+  "revision": "reference-v3",
+  "status": "implemented_visual_differences_remain",
+  "cells": 1491644,
+  "inventoryItems": 1491583,
+  "materials": 59,
+  "parts": 39,
+  "groups": [
+    {
+      "id": "ring-control-spire",
+      "title": "環形控制塔",
+      "cells": 53894,
+      "parts": 2
+    },
+    {
+      "id": "teardrop-command",
+      "title": "中央水滴指揮塔",
+      "cells": 56809,
+      "parts": 2
+    },
+    {
+      "id": "twin-residential-library",
+      "title": "雙子玻璃居住塔",
+      "cells": 43619,
+      "parts": 1
+    },
+    {
+      "id": "sphere-observatory",
+      "title": "白色天文球與玻璃展廊",
+      "cells": 15954,
+      "parts": 1
+    },
+    {
+      "id": "campus-industry",
+      "title": "高密度分節工廠與跨山鐵道",
+      "cells": 42112,
+      "parts": 1
+    },
+    {
+      "id": "campus-airport",
+      "title": "高架空港與延伸飛船泊位",
+      "cells": 57164,
+      "parts": 2
+    },
+    {
+      "id": "campus-dragons",
+      "title": "六連精細龍舍與多龍停機坪",
+      "cells": 52242,
+      "parts": 2
+    },
+    {
+      "id": "campus-workshop",
+      "title": "多層斜撐玻璃工坊塔",
+      "cells": 43105,
+      "parts": 1
+    },
+    {
+      "id": "garden-greenhouses-v3",
+      "title": "細框雙拱農牧溫室",
+      "cells": 43081,
+      "parts": 1
+    },
+    {
+      "id": "garden-apartments-v3",
+      "title": "錯落折線花園住宅",
+      "cells": 63950,
+      "parts": 2
+    },
+    {
+      "id": "garden-pavilions-v3",
+      "title": "六座粉晶亭與放射圓廣場",
+      "cells": 26265,
+      "parts": 1
+    },
+    {
+      "id": "garden-temples-v3",
+      "title": "細金階梯雙殿與白柱玻璃廳",
+      "cells": 7912,
+      "parts": 1
+    },
+    {
+      "id": "campus-landscape",
+      "title": "曲線群島、山脊森林與多層白橋",
+      "cells": 985537,
+      "parts": 22
+    }
+  ],
+  "canonical": "All 3D geometry, grids, materials and full model downloads derive from the same integer XYZ cells. Every cell is AI Estimated Area.",
+  "checks": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "unitTests": 1348,
+    "unitFiles": 34,
+    "build": "passed",
+    "browser": "3 distinct cases passed across initial 2 plus focused studio 1; see reference-v3-browser-summary.json for failures and interrupted run"
+  },
+  "camera": {
+    "projection": "orthographic",
+    "yaw": 35,
+    "pitch": 32,
+    "width": 1536,
+    "height": 1024,
+    "calibration": "estimated fixed matching frame; not recovered physical source camera"
+  },
+  "visualComparison": "reference-v3-final-alignment.json",
+  "limits": [
+    "Visible differences in terrain, silhouettes, detail density and materials remain.",
+    "No exact photo reconstruction or in-game acceptance claimed.",
+    "Higgsfield V2 partial upload was superseded; V3 is local/source only."
+  ]
+}

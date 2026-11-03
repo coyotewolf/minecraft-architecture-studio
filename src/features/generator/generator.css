@@ -1,0 +1,7 @@
+.generator-panel { padding: 1rem; border: 1px solid #536173; border-radius: .7rem; margin-block: 1rem; }
+.generator-panel p { line-height: 1.5; }
+.generator-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: .75rem; margin-block: 1rem; }
+.generator-fields label { display: grid; gap: .3rem; }
+.generator-fields input, .generator-fields select { width: 100%; min-width: 0; box-sizing: border-box; padding: .5rem; }
+.generator-panel [role="alert"] { color: #ffb4a9; }
+.generator-panel li { overflow-wrap: anywhere; }

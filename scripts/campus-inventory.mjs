@@ -1,0 +1,2 @@
+import console from 'node:console';
+import {createServer} from 'vite'; const s=await createServer({server:{middlewareMode:true}});try{const {createCampus}=await s.ssrLoadModule('/src/fixtures/campus/index.ts');const {inventory}=await s.ssrLoadModule('/src/features/build/model.ts'); console.log(JSON.stringify(createCampus().districts.map(d=>({id:d.id,unknown:[...new Set(inventory(d.project).unresolved.map(u=>u.reason))]}))));}finally{await s.close();}

@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-10-19T17:17:08.575Z",
+  "command": "BROWSER_EXECUTABLE_PATH=C:/Program Files/Google/Chrome/Application/chrome.exe npx playwright test",
+  "result": "passed",
+  "singleCleanRun": true,
+  "startTime": "2026-10-19T17:12:57.708Z",
+  "duration": 232544.891,
+  "expected": 49,
+  "skipped": 0,
+  "unexpected": 0,
+  "flaky": 0,
+  "browser": "155.0.8059.79",
+  "checks": [
+    "All 49 Playwright cases, including three production performance profiles",
+    "15 real campus districts; 188212 cells; all 11 references; exact exported coordinate and UID uniqueness",
+    "Canonical overview picking; four camera presets; cutaway does not mutate downloaded campus",
+    "District world-coordinate editing and construction completion survive return/reopen",
+    "390px real touch navigation and no document horizontal overflow",
+    "Existing house/atrium editing, references, persistence, release, and viewer regressions"
+  ],
+  "performance": {
+    "buildMode": "production",
+    "appOrigin": "http://127.0.0.1:5292",
+    "methodology": "Explicit production build at http://127.0.0.1:5292. Production excludes React development instrumentation; STUDIO_PROFILE_DEV=1 retains development reproduction. All thresholds and workflows are identical. Public JSON file import and editor UI; driver-observed elapsed times include automation overhead. Two requestAnimationFrame callbacks follow measured interactions. Orbit throughput is effective update throughput, not display FPS. Heap samples are not peak memory. Software GPU launch flags are configured by Playwright.",
+    "fixtures": [
+      {
+        "cells": 1000,
+        "status": "passed",
+        "importToRenderMs": 530.7409000000043,
+        "pickRoundTripMs": 199.06499999998778,
+        "orbitMeanMs": 64.71354333333196,
+        "orbitP95Ms": 68.81949999999779,
+        "removeCommitToRenderMs": 190.73040000000037,
+        "undoToRenderMs": 113.43469999999797,
+        "heapAfterUndoBytes": 24396152,
+        "renderer": {
+          "drawCalls": 35,
+          "geometries": 35,
+          "triangles": 14066,
+          "visibleInstances": 1172
+        }
+      },
+      {
+        "cells": 10000,
+        "status": "passed",
+        "importToRenderMs": 988.2788,
+        "pickRoundTripMs": 293.9859999999899,
+        "orbitMeanMs": 132.60778333333195,
+        "orbitP95Ms": 142.79619999999704,
+        "removeCommitToRenderMs": 576.9618999999948,
+        "undoToRenderMs": 245.97969999999623,
+        "heapAfterUndoBytes": 65047076,
+        "renderer": {
+          "drawCalls": 154,
+          "geometries": 154,
+          "triangles": 140738,
+          "visibleInstances": 11728
+        }
+      },
+      {
+        "cells": 50000,
+        "status": "passed",
+        "importToRenderMs": 3472.9329,
+        "pickRoundTripMs": 1158.2121000000043,
+        "orbitMeanMs": 567.5420266666687,
+        "orbitP95Ms": 585.6638999999996,
+        "removeCommitToRenderMs": 2219.494399999996,
+        "undoToRenderMs": 1556.5086999999912,
+        "heapAfterUndoBytes": 453055320,
+        "renderer": {
+          "drawCalls": 230,
+          "geometries": 230,
+          "triangles": 703634,
+          "visibleInstances": 58636
+        }
+      }
+    ]
+  },
+  "screenshots": [
+    "evidence/campus-desktop.png",
+    "evidence/campus-desktop-full.png",
+    "evidence/campus-mobile.png",
+    "evidence/campus-mobile-full.png",
+    "evidence/redesign-desktop.png",
+    "evidence/redesign-mobile.png",
+    "evidence/m10-desktop.png"
+  ],
+  "priorEvidence": [
+    {
+      "run": "initial campus targeted",
+      "passed": 2,
+      "failed": 1,
+      "reason": "Harness compared innerText with textContent including hidden detail warning. Fixed useInnerText; no application mutation."
+    },
+    {
+      "run": "campus plus atrium after harness correction",
+      "passed": 6,
+      "failed": 0,
+      "durationSeconds": 57.5
+    },
+    {
+      "run": "campus after actual-cell camera fit",
+      "passed": 3,
+      "failed": 0,
+      "durationSeconds": 49.2
+    }
+  ],
+  "limitations": [
+    "Production profiles use software GPU and driver-observed elapsed time; not display FPS or a smoothness guarantee.",
+    "Heap values are samples, not peak memory.",
+    "Prior development-mode 50k removal failures remain historical evidence; this production result does not assert development gate success.",
+    "No Minecraft in-game traversal or real paid AI provider acceptance claimed."
+  ],
+  "finalMaterialPolishTargeted": {
+    "recordedAt": "2026-10-19T17:24:52.480Z",
+    "command": "BROWSER_EXECUTABLE_PATH=C:/Program Files/Google/Chrome/Application/chrome.exe npx playwright test e2e/campus.spec.ts",
+    "result": "passed",
+    "passed": 3,
+    "startTime": "2026-10-19T17:23:58.048Z",
+    "duration": 43638.314999999995,
+    "expected": 3,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "scope": "Material-only changes: cyan apartment glazing and white observatory envelope with slit bands. Counts and coordinates unchanged.",
+    "campusCells": 188212,
+    "campusItems": 188171,
+    "screenshots": [
+      "evidence/campus-desktop.png",
+      "evidence/campus-desktop-full.png",
+      "evidence/campus-mobile.png",
+      "evidence/campus-mobile-full.png"
+    ],
+    "visualInspection": "Desktop and mobile images inspected: white planetarium and cyan apartment facade visible; campus remains fully framed.",
+    "note": "Earlier clean 49-case result and production performance measurements are preserved above; full suite was not rerun after this material-only polish."
+  }
+}

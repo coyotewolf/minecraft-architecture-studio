@@ -1,58 +1,61 @@
-# Higgsfield, GitHub and Codex capability audit
+# Environment-specific capability audit
 
-**Audit date:** 2026-10-19  
-**Scope:** ChatGPT conversation/connector discovery. **DO NOT assume the same apps, scopes or tokens are available in a Codex Cloud task or the final deployed website.**
+**2026-10-19 Asia/Singapore.** This execution is Windows ChatGPT Work Mode, with workspace `C:\Users\coyot\Documents\Codex\2026-10-19\new-chat-4`, not a pre-mounted Linux Codex Cloud checkout. Do not transfer capability claims to a different task or production browser.
 
-## Verified in connected ChatGPT session
+## Verified in this environment
 
-### GitHub
+| Capability | Executed evidence | Meaning |
+| --- | --- | --- |
+| GitHub private repository read | github_fetch / github_fetch_file read all required documents and main commit | Target repo exists, private, connector reports push permission |
+| GitHub branch creation | create_branch created codex/m0-foundation from 9f32a95b215ed16fe7e0f04abe896a87a5c3edd4 | Connector mutation works; code commit/readback evidence in M0 report |
+| Local processes/files | exec_command ran Node 24.16.0, npm 11.13.0, Git 2.54.0.windows.1 | Windows execution, no assumption of Linux shared paths |
+| Subagent | collaboration.spawn_agent + followup_task completed contract_review | Inherited model/reasoning only; no distinct tier routing tested |
+| Higgsfield authentication | list_workspaces returned accessible workspace | Read-only access works in THIS agent session |
+| Higgsfield model catalog | models_list(type="3d",limit=20) returned catalog, has_more=false | Metadata, not generated outputs |
+| Versioned registry source | GitHub pinned wrapper/data reads by reviewer | Pinned source verified; M1 projection generated and used by core tests |
 
-- GitHub login: `coyotewolf`.
-- `coyotewolf/minecraft-architecture-studio` exists, is **private**, and connector reports `push: true` / `admin: true`.
-- Creating/editing repository files through the GitHub connection works; readback of committed files must be used to verify bootstrap integrity.
-- GitHub connector does not expose **create repository**, but this repository has already been created by the user; no further repository-creation operation is necessary.
+Higgsfield metadata includes sam_3_3d (Meta; single-image textured GLB), image_to_3d and multi_image_to_3d (Meshy; general GLB), and additional Meshy/Tripo/Hunyuan models. Catalog details describe general meshes, not legal Minecraft block coordinates/states. The catalog also exposes Blender scene inspection/edit/import/export tools; those tools were **discovered only**, not executed in this audit. No generation, scene creation, upload or paid job was invoked. No generated output or actual credit debit was tested.
 
-### Higgsfield
+Available tool surfaces include GitHub, Higgsfield, shell/files, Node execution, browser control and collaboration. Discovery is not authentication/execution proof for every tool. No Minecraft process or in-game access was tested. No credentials were read or copied.
 
-Read-only `models_list(type="3d")` exposed at least these generation options:
+## Blocked / unverified
 
-| Model ID | Provider | Input | Output | Interpretation |
-| --- | --- | --- | --- | --- |
-| `sam_3_3d` | Meta | 1 image | Textured GLB | General object mesh/reference |
-| `image_to_3d` | Meshy | 1 image | GLB, optional texture/PBR | General mesh/reference |
-| `multi_image_to_3d` | Meshy | 1–4 views | GLB mesh | Multi-view general mesh/reference |
+- Direct Git clone: `getaddrinfo() thread failed to start`.
+- npm online ping: `ENOTFOUND registry.npmjs.org`. Network is restricted; there is no verified domain allowlist in this Windows session. No firewall/proxy/access-control changes made.
+- Installed dependencies and check outcomes must be read from M0.md, not inferred from Node being installed. Existing npm tarballs were used to reconstruct a writable scratch cache after an offline index miss.
+- Distinct model/High/Medium/Low routing is advertised in tool schema but was not exercised. No claim of Astra or any other switched model.
+- Isolated Git worktrees and Linux Cloud environment are not tested.
+- Paid Higgsfield output is untested because it is not authorized or necessary for M0.
+- Website runtime API credentials, per-user consent/billing, production licensing and provider rate limits remain unverified. Never copy personal connector credentials to the app.
+- Actual game compatibility, NBT/Litematic serialization and in-game tests are not implemented.
+- Live provider structured output remains unimplemented. M1 runtime registry ingestion is now tested; conditional pitcher_crop model support remains rejected.
 
-No generation job has been submitted, no credits charged and no generated mesh has been validated. A GLB mesh **does not contain** authoritative legal Minecraft Java 1.20.1 XYZ block placement states. Do not convert it into 'Minecraft build complete' by renaming or merely voxel-rendering its triangles.
+## Planned
 
-The Higgsfield tool catalog also exposes image generation and visual editing operations; this is **not** proof of accurate architecture reconstruction or production API permission.
+Geometry/picking and editor (M2–M5), materials/build reconciliation (M6), persistence/export (M7), optional server-side provider integration and human-approved bounded diffs (M8), responsive/performance/release testing (M9–M10).
 
-## NOT YET verified — M0 duties in Codex Cloud
+M0 contracts deliberately separate mesh_reference from voxel_proposal; tests are a type-level boundary and synthetic contract checks, **not a live generation/voxelization test**. A missing AI provider does not block the manual editor.
 
-- The active Codex task can see and authenticate Higgsfield tools; scopes and rate/credit limits.
-- Actual callable subagent API and ability to route High, Medium or Low per agent; availability of parallel worktrees.
-- The exact supported image/vision tools, 3D image outputs, and whether a GLB result can be exported for authorized analysis.
-- Reliable structured output from the selected LLM and a tested Minecraft block-registry source.
-- An approved, server-side production API for end users of the deployed website, including licensing, user consent, per-request charging, quotas, ToS and security.
-- Version-matched Minecraft structure serialization (.nbt/.litematic) and independent format validation.
-- Actual Node build and browser-test commands in cloud.
+## Policy
 
-## Implementation policy
+Use independently authorized server-side provider integrations. Validate every external plan against exact schema/game version, bounded coordinates, duplicate/conflicting occupants and a versioned registry. Keep observed/inferred/ai_estimated evidence separate from user modification. Show unavailable capabilities honestly, and seek explicit authorization of cost before paid generation.
 
-1. Keep provider contracts separate: `AiVisionProvider`, `BlockPlanProvider`, `AiEditProposalProvider`, and optionally `HiggsfieldProvider`.
-2. Build a functional manual viewer/editor even when all AI providers are missing.
-3. Always validate externally generated plans against a **versioned block registry**, schema, coordinates, overlap and transaction limits.
-4. Require user approval before any paid Higgsfield generation; record preview/estimated credit cost where supported.
-5. No browser-embedded OAuth/API secret, and no copying user-account ChatGPT connector credentials into a deployed app.
-6. Explicitly label mock adapters as mocks, never live AI results.
-7. Write an environment-specific verified/blocked/planned audit in the M0 progress report before claiming capability.
+## M1 execution update
 
-## M0 proof checklist
+GitHub create_tree/create_commit/update_ref saved the canonical engine on `codex/m1-engine`; the exact code SHA is in progress/M1.md. Node execution ran actual typecheck/lint/unit/build checks and deterministic registry regeneration. No additional Higgsfield generation or paid operation was called.
 
-- [ ] Higgsfield actually callable from the Codex task
-- [ ] Provider can return useful output in authenticated scope
-- [ ] Available delegated agent/model tiers checked
-- [ ] No credential misuse or unapproved paid generation
-- [ ] Output separation (reference GLB vs true Block Model) tested
-- [ ] Provenance and structured validation contracts confirmed
+Inherited agents remained available, but their local Node filesystem reads stalled and were aborted. The lead successfully used its own Node filesystem/process tools and took over registry implementation. This is a tool-execution limitation, not evidence that model-tier routing was tested. The read-only reviewer was redirected to the committed GitHub ref; actual outcome is recorded in the milestone report.
 
-This document records verified integration discovery, **not a claim that the Minecraft website or its image-to-voxel pipeline has been implemented**.
+## M2 execution update — 2026-10-19
+
+Current workspace is C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio. Two subagents were actually routed to gpt-6-astra medium and low via explicit model/reasoning arguments at user request. Both delivered scoped source files and check evidence. See progress/M2.md.
+
+Direct npm DNS remains blocked, but existing tarballs and a pinned MIT Three.js subset produced a clean 183-package npm ci. Bundled Chromium could not spawn; an approved host-shell test run with installed Google Chrome 155.0.8059.79 passed six real browser tests including software WebGL, pointer, keyboard, touch emulation and context restoration. Sandboxed loopback and IAB access to that sandboxed server failed. This does not prove all browsers, physical devices, production hosting or game compatibility. No Higgsfield call or credential access was needed.
+
+M2 is tested; M3–M10 remain future work. Source snapshots/remote Git commits are used; no local Git checkout is claimed.
+
+## M3–M10 execution update — 2026-10-19
+
+The earlier M0/M1/M2 sections are historical capability snapshots. M3–M10 now have bounded gate reports, culminating in progress/M10.md. Actual Astra medium/low assignments and delivered ownership are recorded in AGENT_TASKS.md. Installed Chrome 155 executes desktop, touch-emulated mobile, native IndexedDB, real WebGL/picking, profile and compiled-server journeys; this is host-local browser evidence, not a cloud or physical-phone claim.
+
+The generic server-side AI adapter is implemented and tested with synthetic upstream protocol fixtures and a real disabled-without-key capability endpoint. No live provider credentials were configured, no paid generation occurred, and no output-quality or game acceptance is claimed. Public deployment, authentication/billing integration and full-product advanced features remain outside this tested release; see RELEASE_SCOPE.md. The project directory remains a source snapshot rather than a local Git checkout; GitHub connector commit/ref readbacks establish recovery points.

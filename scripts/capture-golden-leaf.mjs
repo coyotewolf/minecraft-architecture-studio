@@ -1,0 +1,15 @@
+import console from 'node:console';
+import process from 'node:process';
+import {mkdir} from 'node:fs/promises';
+import {chromium} from '@playwright/test';import {createServer} from 'vite';
+const destination=process.env.LEAF_EVIDENCE_DIR||'evidence';await mkdir(destination,{recursive:true});
+const server=await createServer({server:{host:'127.0.0.1',port:5183,strictPort:true}});await server.listen();
+const browser=await chromium.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true,args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+try{const page=await browser.newPage({viewport:{width:1000,height:1200}});page.on('pageerror',console.error);await page.goto('http://127.0.0.1:5183/scripts/golden-leaf-review.html');await page.waitForFunction(()=>globalThis.ready,undefined,{timeout:90000});
+for(const [name,yaw,pitch,span]of [['front',180,14,116],['rear',0,14,116],['top',180,90,106],['side',90,6,116]]){await page.evaluate(({yaw,pitch,span})=>globalThis.viewer.setCamera({projection:'orthographic',yaw,pitch,fov:30,distance:200,span,target:[.5,46,.5]}),{yaw,pitch,span});await page.waitForFunction(({yaw,pitch})=>{const camera=JSON.parse(globalThis.document.querySelector('canvas').dataset.camera||'{}');return Math.abs(camera.yaw-yaw)<.01&&Math.abs(camera.pitch-pitch)<.01;},{yaw,pitch});await page.screenshot({path:destination+'/golden-leaf-'+name+'.png'});}
+await page.goto('http://127.0.0.1:5183/scripts/golden-leaf-review.html?frame');await page.waitForFunction(()=>globalThis.ready,undefined,{timeout:90000});await page.waitForFunction(()=>!!globalThis.document.querySelector('canvas').dataset.camera);await page.screenshot({path:destination+'/golden-leaf-frame.png'});
+// A clearly named Y<=18 display cutaway exposes the real base and crescent footprints.
+await page.setViewportSize({width:1100,height:700});await page.goto('http://127.0.0.1:5183/scripts/golden-leaf-review.html?base');await page.waitForFunction(()=>globalThis.ready,undefined,{timeout:90000});
+for(const [name,pitch,span]of [['base-top',90,68],['base-front',20,62]]){await page.evaluate(({pitch,span})=>globalThis.viewer.setCamera({projection:'orthographic',yaw:180,pitch,fov:30,distance:200,span,target:[.5,8,.5]}),{pitch,span});await page.waitForFunction(pitch=>Math.abs(JSON.parse(globalThis.document.querySelector('canvas').dataset.camera||'{}').pitch-pitch)<.01,pitch);await page.screenshot({path:destination+'/golden-leaf-'+name+'.png'});}
+}finally{await browser.close();await server.close();}
+

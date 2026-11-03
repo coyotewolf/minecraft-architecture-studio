@@ -56,3 +56,31 @@ Escalation condition:
 7. **M2-T2 (Medium candidate):** camera toolbar and block inspector against frozen contracts.
 
 Nothing in this file constitutes completed implementation. Update status only with executed evidence and milestone-gate reports.
+
+## Executed M0 audit — 2026-10-19
+
+Actual `collaboration.spawn_agent` created `/root/contract_review`; `followup_task` successfully ran a second read-only registry-source investigation. Both returned substantive connector-read evidence. The worker inherited the selected lead model/reasoning; no model or reasoning override was requested. Tool schema advertises model/effort controls and a seven-agent total concurrency ceiling, but distinct routes and saturation limits were not tested. No isolated worktree was used: agents share the workspace.
+
+Ownership: lead alone writes all source/config/docs and integrates; reviewer had read-only docs/source research, no permitted edits or commits. Inputs: required repository docs; outputs: contract pitfalls, M0 test requirements, source pin/licensing caveat. Review commands were GitHub fetch/fetch_file, not app tests. Registry source findings were integrated into ARCHITECTURE.md. Lead owns actual check commands and final gate.
+
+Decision: real inherited-agent delegation is verified. High/Medium/Low remain responsibility labels rather than claims of tested model-tier switches. Do not infer this capability in another Cloud task. Save restart state on `codex/m0-foundation`; inspect docs/progress/M0.md and the branch head before continuing.
+
+## M1 task execution
+
+- Lead: owns canonical model validation, sparse indexes, transaction/undo/redo, integration, tests and GitHub commits. Core contracts were unchanged.
+- `/root/m1_registry`: delegated registry projection/module/tests/source notes only, with frozen getRegistryEntry/normalizeBlockState/itemStackSize APIs. Local Node reads stalled; no completed implementation was received. The agent was interrupted and file ownership explicitly returned to the lead before lead writes. Do not credit the worker with implemented files or passing tests.
+- `/root/contract_review`: read-only M1 source review. Local filesystem access stalled and the worker correctly reported BLOCKED without approval. Review was resumed through GitHub at the tested source commit; review completed and the provenance fix at 98760cc was approved; see M1.md for evidence.
+- Both workers inherited the selected model/reasoning. No distinct model/effort override was exercised. Agents shared the workspace; no isolated worktree or actual local Git checkout was available.
+- Lead implemented the registry from pinned connector-fetched data, integrated it with the engine, and executed all check commands. Restart from `codex/m1-engine`, not the earlier M0-only branch.
+
+## M2 actual model routing — 2026-10-19
+
+The user explicitly requested lower reasoning tiers. Actual collaboration.spawn_agent calls selected gpt-6-astra with reasoning_effort medium for viewer_ui, and gpt-6-astra with reasoning_effort low for viewer_styles, both fork_turns=none. Medium delivered the frozen toolbar/inspector and deterministic fixture/tests, then performed read-only review. Low delivered CSS and the vendor-hash script. Lead owned geometry, runtime, integration and browser gates. File ownership, actual checks and all three review fixes are recorded in progress/M2.md. These are executed model/effort selections, not inferred responsibility labels. Four total slots were advertised; only two workers plus lead were used. No worktree isolation or saturation test is claimed.
+
+Restart: codex/m2-viewer, M3 basic editing. Historical audit sections above remain historical, not current capability limits.
+
+## M3–M10 executed routing and ownership
+
+The user again explicitly requested Astra medium/low delegation. viewer_ui and persistence ran gpt-6-astra medium; viewer_styles ran gpt-6-astra low. The agents shared this workspace with frozen file ownership, not isolated worktrees. Medium delivered editor/blueprint/renderer UI, persistence/project/build/AI panels, independent tests and real-browser journeys. Low delivered styles, palette refinements, independent transform/projection fixtures, API and release documentation. Lead owned canonical commands, bounded batch/state transforms, construction contracts, provider validation/server boundary, integration reviews and GitHub checkpoints.
+
+Independent review found and corrected proposal/image/body limits, durable original-AI history preservation and a save-versus-switch race. Exact final regression and commit evidence is in progress/M10.md. All source is saved through GitHub connector tree/commit/ref operations on codex/m3-m10-studio, stacked over codex/m2-viewer in PR #3. No merged/main/public-deployment claim is made. Resume future work from the final branch head and RELEASE_SCOPE.md; M3 is no longer the next milestone.

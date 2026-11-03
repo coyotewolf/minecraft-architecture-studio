@@ -1,0 +1,76 @@
+{
+  "project": "golden-leaf-100-complete-v11",
+  "revision": "golden-leaf-100-v11",
+  "file": "outputs/buildings/golden-leaf-tower-100-v11.json",
+  "bytes": 24128061,
+  "sha256": "23e83898e6e3e862cc5e9888933e48c1be88fd3e27bd6bbc0dff9b4f304fcb34",
+  "bounds": {
+    "min": {
+      "x": -35,
+      "y": 0,
+      "z": -23
+    },
+    "max": {
+      "x": 35,
+      "y": 99,
+      "z": 25
+    },
+    "dimensions": {
+      "x": 71,
+      "y": 100,
+      "z": 49
+    }
+  },
+  "cells": 51205,
+  "inventoryItems": 51201,
+  "materials": 17,
+  "logicalStructures": 4,
+  "floorLevels": [
+    11,
+    14,
+    17,
+    20,
+    23,
+    26,
+    29,
+    32,
+    35,
+    38,
+    41,
+    44,
+    47,
+    50,
+    53,
+    56,
+    59,
+    62,
+    65,
+    68,
+    71,
+    74,
+    77,
+    80,
+    83,
+    86
+  ],
+  "ribMaterials": [
+    "minecraft:smooth_stone",
+    "minecraft:smooth_stone_slab"
+  ],
+  "slabs": 24271,
+  "glowstoneByCategory": {
+    "Facade ledge light": 76,
+    "Annex eave light": 70,
+    "Annex roof garden lamp": 8,
+    "Podium roof garden lamp": 8,
+    "Front ground garden lamp": 4,
+    "Rear ground garden lamp": 4,
+    "Entrance light pier": 20,
+    "Rear entrance light pier": 20,
+    "Front interior window light": 26
+  },
+  "registryAndRoundtrip": "passed",
+  "visualAcceptance": "see reference comparison audit; no exact-match claim",
+  "minecraftAcceptance": "not tested",
+  "paidGenerationsSubmitted": 0
+}

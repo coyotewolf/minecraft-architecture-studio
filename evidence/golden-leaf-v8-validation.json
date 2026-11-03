@@ -1,0 +1,42 @@
+{
+  "revision": "golden-leaf-100-v8",
+  "date": "2026-10-21",
+  "unitTests": {
+    "passed": 1380,
+    "files": 36,
+    "seconds": 54.07
+  },
+  "typecheck": "passed",
+  "lint": "passed",
+  "productionBuild": "passed",
+  "productionBrowserTests": {
+    "passed": 2,
+    "seconds": 41.7,
+    "coverage": [
+      "complete-building edit undo redo save reopen",
+      "additive backup import",
+      "desktop cameras",
+      "mobile touch controls and no overflow"
+    ]
+  },
+  "model": {
+    "base": "stadium: straight half-segment 12, semicircle radius 29",
+    "baseDimensions": [
+      83,
+      59
+    ],
+    "garden": "two inward crescents: radius 11 minus radius 10.5 shifted inward 6",
+    "height": 100,
+    "floors": 26,
+    "upperTowerMatchesV7": true,
+    "playerRoutes": "both entrances, 26 floors and two crescent gardens passed static collision BFS"
+  },
+  "visualReview": {
+    "rounds": 2,
+    "finalDirectory": "evidence/golden-leaf-v8-final",
+    "baseViews": "Y <= 18 cutaway, not full building",
+    "result": "capsule and crescent outlines visible; no obvious crop or holes; white decks partly visually merge with lower white podium"
+  },
+  "minecraftInGame": "not tested",
+  "paidGenerationsSubmitted": 0
+}

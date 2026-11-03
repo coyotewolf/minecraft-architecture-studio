@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "recordedAt": "2026-10-19T16:36:10.638Z",
+  "codeCommit": "48445e828e1c22a619981fa42ed60e1f3b76a740",
+  "checks": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "unitTests": 1259,
+    "unitFiles": 21,
+    "clientBuild": "passed",
+    "serverBuild": "passed",
+    "vendorFilesVerified": 4
+  },
+  "browser": {
+    "fullRun": {
+      "source": "Captured Playwright process output; original results.json was replaced by the targeted rerun.",
+      "passed": 45,
+      "failed": 1,
+      "total": 46,
+      "durationDisplay": "4.5m",
+      "failure": "Desktop construction CSV comparison assumed identical row ordering; all record values preserved; corrected to numeric XYZ sorting before exact equality."
+    },
+    "targetedRerun": {
+      "source": "test-results/results.json",
+      "stats": {
+        "startTime": "2026-10-19T16:33:22.519Z",
+        "duration": 12407.525000000001,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "case": "default reference atrium has real signed coordinates and honest estimated provenance; view filters never change exported design"
+    },
+    "aggregate": "All 46 distinct cases passed across full run plus corrected targeted rerun; not one clean 46-case run."
+  },
+  "profileMode": "production",
+  "screenshots": [
+    {
+      "path": "evidence/redesign-desktop.png",
+      "sha256": "fb30b753961079bd647f8cd4706a4867f38cec6966947957515145a57f2a6d73",
+      "visualInspection": "passed",
+      "availability": "local artifact, ignored by Git"
+    },
+    {
+      "path": "evidence/redesign-mobile.png",
+      "sha256": "50732b8ee85b0a7dd7eb3ec2a567b107a0b5d6f8b37331aec3d6c824c69dd601",
+      "visualInspection": "passed",
+      "availability": "local artifact, ignored by Git"
+    },
+    {
+      "path": "evidence/reference-board.png",
+      "sha256": "0094dbe9e7dd956f020a1068c82bdb7dd505d99b7b1ed1ed2b659fd03a80cf1c",
+      "visualInspection": "passed",
+      "availability": "local artifact, ignored by Git"
+    }
+  ],
+  "limitations": [
+    "Development 50k removal gate remains failed; production profiles are distinct",
+    "No live paid AI or photo reconstruction provider acceptance",
+    "No Minecraft in-game construction acceptance",
+    "Only the bounded atrium interpretation, not the full concept city",
+    "User reference images remain local and are excluded from Git and workspace backup"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "revision": "golden-leaf-100-v14",
+  "unitTests": {
+    "files": 36,
+    "passed": 1389,
+    "initialTransientFailure": "AI server random local port rejected by fetch; full rerun passed without weakening assertions"
+  },
+  "fixtureTests": 20,
+  "productionE2E": 3,
+  "typecheck": "passed",
+  "lint": "passed",
+  "build": "passed",
+  "servedBundle": "index-DY-qPLC9.js",
+  "roundtrip": "passed",
+  "paidGenerations": 0,
+  "visualComparison": "local evidence/golden-leaf-v14-comparison.png; approximate camera, not exact match",
+  "minecraftAcceptance": "not tested",
+  "dimensions": [
+    71,
+    100,
+    49
+  ],
+  "cells": 50985,
+  "inventoryItems": 51145
+}

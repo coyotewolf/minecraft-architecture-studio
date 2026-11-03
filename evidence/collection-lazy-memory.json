@@ -1,0 +1,11 @@
+{
+  "entries": 20,
+  "canonicalCells": 1001004,
+  "buildingReads": [
+    "preserved-project-18",
+    "collection-2ef395e8-8dcd-44ad-a552-a09c94aa9663"
+  ],
+  "bulkReads": [],
+  "heapUsedBytes": 169975532,
+  "note": "Chromium JS heap after GC, not total process or GPU memory"
+}

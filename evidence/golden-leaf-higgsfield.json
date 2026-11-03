@@ -1,0 +1,36 @@
+{
+  "projectId": "f588af47-d772-4b99-8b64-112527cc0f6d",
+  "url": "https://higgsfield.ai/3d-jutsu/f588af47-d772-4b99-8b64-112527cc0f6d",
+  "revision": 22,
+  "canonicalBuilding": "golden-leaf-tower-complete-v4",
+  "canonicalCells": 276418,
+  "buildingCollections": 1,
+  "allComplete": true,
+  "meshObjects": 71,
+  "polygons": 274338,
+  "blenderBounds": [
+    [
+      -70,
+      71
+    ],
+    [
+      -71,
+      70
+    ],
+    [
+      0,
+      214
+    ]
+  ],
+  "transform": "Minecraft (X,Y,Z) to Blender (X,-Z,Y)",
+  "visualInspection": {
+    "front": "v4 camera14 Workbench rendered and inspected",
+    "rear": "v4 camera14 Workbench rendered and inspected",
+    "sceneLighting": "not verified in v4; Workbench form only",
+    "sameAsReference": false
+  },
+  "gameAcceptance": false,
+  "previousRevision": 13,
+  "cameraPitchDegrees": 14,
+  "cameraCalibration": "estimated from reference roof ellipse, not exact calibration"
+}

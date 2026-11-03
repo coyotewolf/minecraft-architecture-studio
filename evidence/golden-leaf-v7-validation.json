@@ -1,0 +1,31 @@
+{
+  "date": "2026-10-21",
+  "fixture": "golden-leaf-100-complete-v7",
+  "fullUnitSuite": {
+    "files": 36,
+    "passed": 1377,
+    "durationSeconds": 49.36
+  },
+  "fixtureTests": {
+    "passed": 9,
+    "scope": "height, canonical validity, radial proportions, curved rib face connectivity, facade material hierarchy, 26-floor static traversal"
+  },
+  "typecheck": "passed",
+  "lint": "passed",
+  "build": "passed",
+  "productionBundle": "index-trN0wf4J.js",
+  "productionBrowser": {
+    "startTime": "2026-10-21T08:32:12.661Z",
+    "duration": 45147.24,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browserEnvironment": "Installed Chrome with SwiftShader, isolated desktop and mobile-emulated contexts",
+  "screenshotDirectory": "evidence/golden-leaf-v7-final",
+  "comparison": "evidence/golden-leaf-v7-comparison.png",
+  "visualAcceptance": "continuous curved ribs and shell/floor revisions improved; not an exact reference match",
+  "minecraftAcceptance": "not tested",
+  "paidGenerationsSubmitted": 0
+}
