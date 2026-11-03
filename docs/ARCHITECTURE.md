@@ -6,7 +6,7 @@
 
 Use React + TypeScript + Vite, npm with an exact dependency manifest and generated package-lock. This amends the Next.js preference, not the product requirements: the initial editor has no server rendering/account requirement, and its core must run without AI credentials. A future authorized server adapter can be added separately. No Next.js/Tailwind/shadcn/Three.js dependency is needed to prove M0. Add R3F/Three.js in M2 and IndexedDB/Dexie in M7 after their boundaries are tested.
 
-Node >=22.12, strict TypeScript, ESLint, Vitest. Commands: `npm ci`, `npm run dev`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`; `npm run check` aggregates the gates. Selected package versions reflect locally available packages, not a claim to be the latest. Do not expose the development server publicly. Recheck dependency security before deployment.
+Node 22.x >=22.13 or >=24, strict TypeScript, ESLint, Vitest. Commands: `npm ci`, `npm run dev`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`; `npm run check` aggregates the gates. The security toolchain decision below supersedes the historical M0 versions. Do not expose the development server publicly. Recheck dependency security before deployment.
 
 ## ADR-002 — canonical coordinate system
 
@@ -140,3 +140,7 @@ The public Creeper workshop workflow suggests explicit dimensions, a reviewable 
 Generator inputs produce bounded canonical block records through createPlacement and designDiff. The reserved interior as well as occupied shell must be collision-free. One complete proposal, one preview approval, one atomic undo; no partial generation is published. Changing parameters invalidates pending previews. Material counts come from generated records; supported palettes have single-item placements including bottom slabs. Existing AI credentials/consent and proposal validation are unchanged.
 
 The viewer can explicitly fit a generated preview without changing canonical coordinates. Collection discovery uses lightweight index metadata only; unknown legacy counts sort last. A currently selected building remains accessible when filtering excludes it. This preserves lazy collection loading and one-building-one-file exports.
+
+## ADR-011 — Patched lint matcher and supported Node runtime
+
+ESLint 10.14.0 and TypeScript ESLint 8.72.1 use the named minimatch API. Pin minimatch 11.0.1 with an explicit npm override to address GHSA-g3hv-75wg-m249. The override crosses upstream semver ranges, so `verify:lint-toolchain` exercises real lint errors, source/ignore matching and bounded advisory-shaped glob expansion, in addition to full lint and application regression. Do not remove these checks or assume every 10.x option is interchangeable. Node now requires 22.x >=22.13 or >=24; CI uses 24. See progress/MINIMATCH_SECURITY_20261104.md for evidence and public-source review. No canonical model or runtime-provider contract changes.

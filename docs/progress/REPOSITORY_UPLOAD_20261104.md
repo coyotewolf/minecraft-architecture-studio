@@ -31,6 +31,8 @@ Windows 主機，Node `24.16.0`、npm `11.13.0`，獨立 Git clone：
 
 ## 依賴風險與驗收界線
 
+後續狀態：下列中度告警為本次首次上傳的歷史結果；已由 [minimatch 安全修補](MINIMATCH_SECURITY_20261104.md)解決，完整開發／正式依賴 audit 均為 0。
+
 初始 npm audit 回報 22 個受影響依賴節點：14 moderate、6 high、2 critical。修補後 high／critical 均為 0；正式執行依賴 `npm audit --omit=dev` 為 0。
 
 開發依賴仍有 [minimatch glob 模式擴張造成資源耗用的中度告警](https://github.com/isaacs/minimatch/security/advisories/GHSA-g3hv-75wg-m249)，牽連 ESLint／TypeScript ESLint 的 11 個依賴節點，並非 11 個獨立漏洞。當前套件宣告的相容範圍尚未涵蓋公告修補版 11.0.1；未強制覆寫不相容的主版本或降級 lint 工具以取得零告警。這些套件只供開發檢查，未由應用程式匯入；仍應在上游更新後重新處理，且不應對開發工具輸入不可信的 glob 設定。CI 以 high 作為阻擋門檻，並沒有忽略或刪除這項 audit 結果。
