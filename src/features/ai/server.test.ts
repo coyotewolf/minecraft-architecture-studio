@@ -1,9 +1,10 @@
 import { PassThrough } from 'node:stream';
 import { EventEmitter } from 'node:events';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import { createServer, type Server } from 'node:http';
+import { createServer, request as httpRequest, type Server } from 'node:http';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createAiHandler, type AiConfig } from '../../../server/ai.ts';
+import { isTrustedHost } from '../../../server/host.ts';
 import { createEmptyProject } from '../../core/project.ts';
 const servers: Server[] = [];
 afterEach(async () => { await Promise.all(servers.splice(0).map(server => new Promise<void>((resolve, reject) => { server.closeAllConnections(); server.close(error => error ? reject(error) : resolve()); }))); });
@@ -37,6 +38,25 @@ describe('real local AI HTTP boundary with test-only upstream', () => {
     const upstream = vi.fn<typeof fetch>(); const url = await start(config, upstream);
     expect((await post(url, payload, 'https://attacker.invalid')).status).toBe(403);
     expect(upstream).not.toHaveBeenCalled();
+  });
+  it('rejects a matching attacker Host and Origin when no public origin is configured', async () => {
+    const upstream = vi.fn<typeof fetch>(); const url = await start({ ...config, publicOrigin: '' }, upstream);
+    const status = await new Promise<number | undefined>((resolve, reject) => {
+      const request = httpRequest(url + '/api/ai/propose', { method: 'POST', headers: { Host: 'attacker.invalid', Origin: 'http://attacker.invalid', 'Content-Type': 'application/json' } }, response => { response.resume(); response.on('end', () => resolve(response.statusCode)); });
+      request.on('error', reject); request.end(JSON.stringify(payload));
+    });
+    expect(status).toBe(403); expect(upstream).not.toHaveBeenCalled();
+  });
+  it('preserves valid local-origin proposals without a configured public origin', async () => {
+    const upstream = vi.fn<typeof fetch>().mockResolvedValue(Response.json(proposal()));
+    const url = await start({ ...config, publicOrigin: '' }, upstream);
+    expect((await post(url, payload, url)).status).toBe(200); expect(upstream).toHaveBeenCalledTimes(1);
+  });
+  it('limits trusted hosts to loopback or the exact configured public host', () => {
+    for (const host of ['localhost:5174', '127.0.0.1:5174', '[::1]:5174']) expect(isTrustedHost(host)).toBe(true);
+    for (const host of [undefined, '', 'localhost.attacker.invalid', '127.0.0.1.attacker.invalid', 'localhost:5174@attacker.invalid', 'localhost:5174/path', 'attacker.invalid']) expect(isTrustedHost(host)).toBe(false);
+    expect(isTrustedHost('studio.example:8443', 'https://studio.example:8443')).toBe(true);
+    expect(isTrustedHost('studio.example:8444', 'https://studio.example:8443')).toBe(false);
   });
   it('requires consent before any upstream call', async () => {
     const upstream = vi.fn<typeof fetch>(); const url = await start(config, upstream);
@@ -78,7 +98,7 @@ describe('isolated incoming-stream timeout regression (mock response only)', () 
       const upstream = vi.fn<typeof fetch>().mockResolvedValue(Response.json(proposal()));
       const handler = createAiHandler(config, upstream);
       function incoming() {
-        return Object.assign(new PassThrough(), { url: '/api/ai/propose', method: 'POST', headers: { origin: config.publicOrigin, 'content-type': 'application/json' } });
+        return Object.assign(new PassThrough(), { url: '/api/ai/propose', method: 'POST', headers: { host: 'studio.test', origin: config.publicOrigin, 'content-type': 'application/json' } });
       }
       function response() {
         const res = Object.assign(new EventEmitter(), { writableEnded: false, writeHead: vi.fn(), end: vi.fn() });

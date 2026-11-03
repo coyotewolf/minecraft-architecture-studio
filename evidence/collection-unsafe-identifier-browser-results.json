@@ -1,0 +1,195 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\playwright.config.ts",
+    "rootDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.59.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5180 --strictPort",
+      "url": "http://127.0.0.1:5180",
+      "reuseExistingServer": false,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "collection.spec.ts",
+      "file": "collection.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "collection preserves metadata, edited canonical parts and additive backup copies",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 78499,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('cell-count')\nExpected: \u001b[32m\"45000\"\u001b[39m\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('cell-count')\u001b[22m\n",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('cell-count')\nExpected: \u001b[32m\"45000\"\u001b[39m\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('cell-count')\u001b[22m\n\n    at C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\collection.spec.ts:14:154",
+                    "location": {
+                      "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\collection.spec.ts",
+                      "column": 154,
+                      "line": 14
+                    },
+                    "snippet": "  12 |  for(const [name,yaw] of [['正面',180],['背面',0]] as const){await page.getByRole('button',{name,exact:true}).click();await expect.poll(async()=>JSON.parse((await page.locator('.collection-preview canvas').getAttribute('data-camera'))!).yaw).toBeCloseTo(yaw,3);}\n  13 |  await page.getByRole('button',{name:'俯視',exact:true}).click();await expect.poll(async()=>JSON.parse((await page.locator('.collection-preview canvas').getAttribute('data-camera'))!).pitch).toBeGreaterThan(80);await page.getByRole('button',{name:'正面參考',exact:true}).click();await expect.poll(()=>page.locator('.collection-reference img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0);await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:'evidence/collection-desktop.png',fullPage:true});\n> 14 |  console.info('Backup and cameras verified');await page.locator('.collection-parts button').first().click();await expect(page.getByTestId('cell-count')).toHaveText(String(part.blocks.length),{timeout:60000});const summary=page.locator('summary').filter({hasText:/^編輯工具與方塊$/});if(await summary.locator('..').getAttribute('open')===null)await summary.click();await page.getByRole('radio',{name:'放置',exact:true}).check();await page.getByRole('combobox',{name:'方塊種類',exact:true}).selectOption('minecraft:stone');const pos={x:Math.max(...part.blocks.map(b=>b.pos.x))+2,y:0,z:0};await coordinate(page,pos.x,pos.y,pos.z);await page.getByRole('button',{name:'套用變更',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(part.blocks.length+1));await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);\n     |                                                                                                                                                          ^\n  15 |  await expect(page.getByRole('textbox',{name:'建築筆記',exact:true})).toHaveValue(entry.notes);const edited=await backup(page);const current=edited.entries[0]!.parts[0]!;expect(current.blocks).toHaveLength(part.blocks.length+1);expect(current.blocks.find(b=>b.pos.x===pos.x&&b.pos.y===pos.y&&b.pos.z===pos.z)).toMatchObject({id:'minecraft:stone',source:{origin:'user_created'}});\n  16 |  await page.locator('.collection-parts button').first().click();await expect(page.getByTestId('cell-count')).toHaveText(String(current.blocks.length));await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);\n  17 |  await page.getByLabel('匯入收藏備份',{exact:true}).setInputFiles({name:'collection.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(edited))});await expect(page.getByRole('status')).toContainText('已加入備份');const imported=await backup(page);expect(imported.entries).toHaveLength(2);expect(imported.entries[0]).toEqual(edited.entries[0]);expect(imported.entries[1]!.parts.map(p=>p.id)).not.toEqual(edited.entries[0]!.parts.map(p=>p.id));expect(imported.entries[1]!.parts.map(p=>p.blocks)).toEqual(edited.entries[0]!.parts.map(p=>p.blocks));await page.reload();await ready(page);expect((await backup(page)).entries).toEqual(imported.entries);expect(errors).toEqual([]);"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\collection.spec.ts",
+                        "column": 154,
+                        "line": 14
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByTestId('cell-count')\nExpected: \u001b[32m\"45000\"\u001b[39m\nTimeout: 60000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" with timeout 60000ms\u001b[22m\n\u001b[2m  - waiting for getByTestId('cell-count')\u001b[22m\n\n\n  12 |  for(const [name,yaw] of [['正面',180],['背面',0]] as const){await page.getByRole('button',{name,exact:true}).click();await expect.poll(async()=>JSON.parse((await page.locator('.collection-preview canvas').getAttribute('data-camera'))!).yaw).toBeCloseTo(yaw,3);}\n  13 |  await page.getByRole('button',{name:'俯視',exact:true}).click();await expect.poll(async()=>JSON.parse((await page.locator('.collection-preview canvas').getAttribute('data-camera'))!).pitch).toBeGreaterThan(80);await page.getByRole('button',{name:'正面參考',exact:true}).click();await expect.poll(()=>page.locator('.collection-reference img').evaluate((img:HTMLImageElement)=>img.naturalWidth)).toBeGreaterThan(0);await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:'evidence/collection-desktop.png',fullPage:true});\n> 14 |  console.info('Backup and cameras verified');await page.locator('.collection-parts button').first().click();await expect(page.getByTestId('cell-count')).toHaveText(String(part.blocks.length),{timeout:60000});const summary=page.locator('summary').filter({hasText:/^編輯工具與方塊$/});if(await summary.locator('..').getAttribute('open')===null)await summary.click();await page.getByRole('radio',{name:'放置',exact:true}).check();await page.getByRole('combobox',{name:'方塊種類',exact:true}).selectOption('minecraft:stone');const pos={x:Math.max(...part.blocks.map(b=>b.pos.x))+2,y:0,z:0};await coordinate(page,pos.x,pos.y,pos.z);await page.getByRole('button',{name:'套用變更',exact:true}).click();await expect(page.getByTestId('cell-count')).toHaveText(String(part.blocks.length+1));await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);\n     |                                                                                                                                                          ^\n  15 |  await expect(page.getByRole('textbox',{name:'建築筆記',exact:true})).toHaveValue(entry.notes);const edited=await backup(page);const current=edited.entries[0]!.parts[0]!;expect(current.blocks).toHaveLength(part.blocks.length+1);expect(current.blocks.find(b=>b.pos.x===pos.x&&b.pos.y===pos.y&&b.pos.z===pos.z)).toMatchObject({id:'minecraft:stone',source:{origin:'user_created'}});\n  16 |  await page.locator('.collection-parts button').first().click();await expect(page.getByTestId('cell-count')).toHaveText(String(current.blocks.length));await page.getByRole('button',{name:'返回建築庫',exact:true}).click();await ready(page);\n  17 |  await page.getByLabel('匯入收藏備份',{exact:true}).setInputFiles({name:'collection.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(edited))});await expect(page.getByRole('status')).toContainText('已加入備份');const imported=await backup(page);expect(imported.entries).toHaveLength(2);expect(imported.entries[0]).toEqual(edited.entries[0]);expect(imported.entries[1]!.parts.map(p=>p.id)).not.toEqual(edited.entries[0]!.parts.map(p=>p.id));expect(imported.entries[1]!.parts.map(p=>p.blocks)).toEqual(edited.entries[0]!.parts.map(p=>p.blocks));await page.reload();await ready(page);expect((await backup(page)).entries).toEqual(imported.entries);expect(errors).toEqual([]);\n    at C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\collection.spec.ts:14:154"
+                    },
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "Collection ready\n"
+                    },
+                    {
+                      "text": "Metadata reload verified\n"
+                    },
+                    {
+                      "text": "Backup and cameras verified\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T21:10:37.377Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\test-results\\collection-collection-pres-502a8--and-additive-backup-copies\\error-context.md"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\collection.spec.ts",
+                    "column": 154,
+                    "line": 14
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a433e3f19c9ef30ef149-9b2b349434a9ece4d22f",
+          "file": "collection.spec.ts",
+          "line": 7,
+          "column": 1
+        },
+        {
+          "title": "mobile collection has no overflow and supports touch view and reference controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 11312,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T21:12:27.606Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a433e3f19c9ef30ef149-7d15246da5a4225a6aa4",
+          "file": "collection.spec.ts",
+          "line": 19,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-20T21:10:35.596Z",
+    "duration": 125421.235,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

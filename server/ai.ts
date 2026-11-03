@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { parseAiRequest, validateAiResponse } from '../src/features/ai/proposals.ts';
+import { isTrustedHost } from './host.ts';
 export interface AiConfig {url:string;key:string;model:string;publicOrigin:string}
 export function configFromEnv(env:NodeJS.ProcessEnv):AiConfig{return {url:env.STUDIO_AI_URL??'',key:env.STUDIO_AI_KEY??'',model:env.STUDIO_AI_MODEL??'configured-service',publicOrigin:env.STUDIO_PUBLIC_ORIGIN??''};}
 function enabled(config:AiConfig):boolean{
@@ -27,6 +28,7 @@ export function createAiHandler(config:AiConfig,fetcher:typeof fetch=fetch){
   let active=false,lastRequest=0;
   return async(req:IncomingMessage,res:ServerResponse):Promise<boolean>=>{
     if(!req.url?.startsWith('/api/ai/'))return false;
+    if(!isTrustedHost(req.headers.host,config.publicOrigin)){reply(res,403,{error:'不允許的主機名稱'});return true;}
     const available=enabled(config);
     if(req.url==='/api/ai/capabilities'&&req.method==='GET'){
       reply(res,200,{enabled:available,model:config.model,reason:available?'已設定模型服務；每次傳送需明確同意。':'尚未設定服務端模型網址與金鑰，AI 已停用；手動編輯可正常使用。'});return true;}

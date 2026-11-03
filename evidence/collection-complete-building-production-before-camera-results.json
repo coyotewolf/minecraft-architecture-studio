@@ -1,0 +1,179 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\collection.production.config.ts",
+    "rootDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "collection.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "../evidence/collection-complete-building-production-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.59.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "collection.spec.ts",
+      "file": "collection.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "collection preserves metadata, edited complete building and additive backup copies",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 600000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 188362,
+                  "errors": [],
+                  "stdout": [
+                    {
+                      "text": "Collection ready\n"
+                    },
+                    {
+                      "text": "Metadata reload verified\n"
+                    },
+                    {
+                      "text": "Backup and cameras verified\n"
+                    },
+                    {
+                      "text": "Complete editor opened\n"
+                    },
+                    {
+                      "text": "Full building edit undo redo verified\n"
+                    },
+                    {
+                      "text": "Returning from complete editor\n"
+                    },
+                    {
+                      "text": "Returned to collection\n"
+                    },
+                    {
+                      "text": "Returning from complete editor\n"
+                    },
+                    {
+                      "text": "Returned to collection\n"
+                    }
+                  ],
+                  "stderr": [
+                    {
+                      "text": "Browser console: Failed to load resource: the server responded with a status of 404 (Not Found)\n"
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-20T22:12:54.071Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a433e3f19c9ef30ef149-ecb9e0fac9818475d7de",
+          "file": "collection.spec.ts",
+          "line": 7,
+          "column": 1
+        },
+        {
+          "title": "mobile collection has no overflow and supports touch view and reference controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 10120,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T22:16:03.126Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a433e3f19c9ef30ef149-7d15246da5a4225a6aa4",
+          "file": "collection.spec.ts",
+          "line": 20,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-20T22:12:53.306Z",
+    "duration": 200715.627,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

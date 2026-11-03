@@ -1,0 +1,177 @@
+{
+  "config": {
+    "configFile": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\playwright.config.ts",
+    "rootDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "C:/Users/coyot/Documents/ChatGPT/minecraft-2026/minecraft-architecture-studio/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.59.1",
+    "workers": 1,
+    "webServer": {
+      "command": "node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5180 --strictPort",
+      "url": "http://127.0.0.1:5180",
+      "reuseExistingServer": false,
+      "timeout": 30000
+    }
+  },
+  "suites": [
+    {
+      "title": "collection.spec.ts",
+      "file": "collection.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "collection preserves metadata, edited canonical parts and additive backup copies",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 240000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "timedOut",
+                  "duration": 240202,
+                  "error": {
+                    "message": "\u001b[31mTest timeout of 240000ms exceeded.\u001b[39m",
+                    "stack": "\u001b[31mTest timeout of 240000ms exceeded.\u001b[39m"
+                  },
+                  "errors": [
+                    {
+                      "message": "\u001b[31mTest timeout of 240000ms exceeded.\u001b[39m"
+                    },
+                    {
+                      "location": {
+                        "file": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\collection.spec.ts",
+                        "column": 162,
+                        "line": 9
+                      },
+                      "message": "Error: locator.fill: Test timeout of 240000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('建築筆記', { exact: true })\u001b[22m\n\n\n   7 | test('collection preserves metadata, edited canonical parts and additive backup copies',async({page})=>{\n   8 |  test.setTimeout(240000);const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/?view=collection');await ready(page);\n>  9 |  await page.getByLabel('收藏專案名稱',{exact:true}).fill('朋友的建築收藏');await page.getByLabel('建築名稱',{exact:true}).fill('金葉試作');await page.getByLabel('建築筆記',{exact:true}).fill('先完成外殼，再規劃花園。');await page.getByRole('button',{name:'儲存收藏',exact:true}).click();await expect(page.getByRole('status')).toContainText('已儲存');await page.reload();await ready(page);\n     |                                                                                                                                                                  ^\n  10 |  await expect(page.getByLabel('收藏專案名稱',{exact:true})).toHaveValue('朋友的建築收藏');await expect(page.getByLabel('建築名稱',{exact:true})).toHaveValue('金葉試作');await expect(page.getByLabel('建築筆記',{exact:true})).toHaveValue('先完成外殼，再規劃花園。');\n  11 |  const original=await backup(page),entry=original.entries[0]!,part=entry.parts[0]!;expect(part.blocks.length).toBeGreaterThan(1000);expect(entry.parts.every(p=>p.blocks.length<50000)).toBe(true);expect(new Set(entry.parts.flatMap(p=>p.blocks.map(b=>[b.pos.x,b.pos.y,b.pos.z].join(',')))).size).toBe(entry.parts.reduce((n,p)=>n+p.blocks.length,0));\n  12 |  for(const [name,yaw] of [['正面',180],['背面',0]] as const){await page.getByRole('button',{name,exact:true}).click();await expect.poll(async()=>JSON.parse((await page.locator('.collection-preview canvas').getAttribute('data-camera'))!).yaw).toBeCloseTo(yaw,3);}\n    at C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\e2e\\collection.spec.ts:9:162"
+                    },
+                    {
+                      "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                    }
+                  ],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T21:01:28.292Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "error-context",
+                      "contentType": "text/markdown",
+                      "path": "C:\\Users\\coyot\\Documents\\ChatGPT\\minecraft-2026\\minecraft-architecture-studio\\test-results\\collection-collection-pres-502a8--and-additive-backup-copies\\error-context.md"
+                    }
+                  ]
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "a433e3f19c9ef30ef149-9b2b349434a9ece4d22f",
+          "file": "collection.spec.ts",
+          "line": 7,
+          "column": 1
+        },
+        {
+          "title": "mobile collection has no overflow and supports touch view and reference controls",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 120000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 1,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 9532,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-20T21:06:00.155Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a433e3f19c9ef30ef149-7d15246da5a4225a6aa4",
+          "file": "collection.spec.ts",
+          "line": 19,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-20T21:01:26.491Z",
+    "duration": 284676.44800000003,
+    "expected": 1,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

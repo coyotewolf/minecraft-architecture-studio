@@ -3,8 +3,8 @@ node_modules/
 .pnpm-store/
 .yarn/
 .next/
-dist/
-build/
+/dist/
+/build/
 coverage/
 playwright-report/
 test-results/
@@ -50,3 +50,14 @@ public/local-references/
 # Local complete-building downloads and visual comparison captures
 outputs/
 evidence/**/*.png
+
+# Local logs, browser traces, deployment secrets and Python caches
+*.log
+*.trace
+*.dpapi
+*.pkcs8
+*.p12
+*.pfx
+.dev.vars*
+.wrangler/
+__pycache__/

@@ -3,10 +3,12 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 import { configFromEnv, createAiHandler } from './ai.ts';
-const root=resolve('dist'),api=createAiHandler(configFromEnv(process.env));
+import { isTrustedHost } from './host.ts';
+const config=configFromEnv(process.env),root=resolve('dist'),api=createAiHandler(config);
 const mime:Record<string,string>={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon'};
 const server=createServer(async(req,res)=>{
   try{
+    if(!isTrustedHost(req.headers.host,config.publicOrigin)){res.writeHead(403);res.end('Forbidden host');return;}
     if(await api(req,res))return;
     if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405);res.end();return;}
     const path=decodeURIComponent(new URL(req.url??'/','http://localhost').pathname);
