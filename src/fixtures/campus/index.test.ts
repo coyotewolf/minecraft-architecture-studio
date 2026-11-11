@@ -16,8 +16,10 @@ describe('whole-campus canonical collection',()=>{
   expect(campus.blocks.filter(b=>!shapeForBlock(b).supported).map(b=>b.id)).toEqual([]);
   expect(campus.blocks.every(b=>b.source.origin==='ai_estimated'&&b.source.referenceRegionId)).toBe(true);
  });
- it('exports every global coordinate and state without inventing a single aggregate Project',()=>{
+ it('exports every district coordinate and state in the full campus JSON',()=>{
   const parsed=JSON.parse(campusToJson(campus));expect(parsed.schema).toBe('minecraft-campus-1');expect(parsed.districts).toHaveLength(campus.districts.length);for(let i=0;i<campus.districts.length;i++)expect(JSON.stringify(parsed.districts[i].project.blocks)).toBe(JSON.stringify(campus.districts[i]!.project.blocks));
+ });
+ it('exports every global coordinate in the full campus CSV',()=>{
   const lines=campusToCsv(campus).split('\r\n');expect(lines).toHaveLength(campus.blocks.length+1);
   expect(lines[1]).toContain('"'+campus.blocks[0]!.uid+'"');
  });
