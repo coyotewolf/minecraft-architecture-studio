@@ -1,9 +1,16 @@
+import { deepStrictEqual } from 'node:assert/strict';
 import {REFERENCE_ORIGINS as O} from './reference-layout.ts';
-import {describe,it,expect} from 'vitest';
+import {beforeAll,describe,it,expect} from 'vitest';
 import {HighDetailBuilder} from './high-detail.ts';
 import {createLandmarkDistrictsV3} from './landmarks-v3.ts';
 const spec={id:'split-test',title:'測試',origin:[10,20,-30] as const,references:['reference-01'],features:[],notes:'推估'};
 describe('high detail canonical parts',()=>{
+ let parts: ReturnType<typeof createLandmarkDistrictsV3>;
+ beforeAll(()=>{ parts=createLandmarkDistrictsV3(); });
+ it('recreates exactly the same complete canonical projects',()=>{
+  // Strict structural equality avoids matcher overhead over hundreds of thousands of records.
+  deepStrictEqual(createLandmarkDistrictsV3().map(p=>p.project),parts.map(p=>p.project));
+ });
  it('keeps logical pairs atomic and connects before partitioning',()=>{
   const b=new HighDetailBuilder(spec);b.set(0,0,0,'minecraft:oak_fence');b.set(1,0,0,'minecraft:oak_fence');b.bed(2,0,2);b.door(4,0,0);const parts=b.finishParts(3);
   expect(parts.flatMap(p=>p.project.blocks)).toHaveLength(6);
@@ -12,9 +19,8 @@ describe('high detail canonical parts',()=>{
   expect(()=>b.clear(2,0,2)).toThrow();expect(()=>b.set(4,0,0)).toThrow();expect(()=>b.finishParts(50000)).toThrow();
  });
  it('builds four detailed groups with bounded projects and usable stair headroom',()=>{
-  const parts=createLandmarkDistrictsV3();const blocks=parts.flatMap(p=>p.project.blocks);const keys=new Set(blocks.map(b=>`${b.pos.x},${b.pos.y},${b.pos.z}`));
+  const blocks=parts.flatMap(p=>p.project.blocks);const keys=new Set(blocks.map(b=>`${b.pos.x},${b.pos.y},${b.pos.z}`));
   expect(blocks.length).toBeGreaterThan(120000);expect(blocks.length).toBeLessThan(230000);
-  expect(createLandmarkDistrictsV3().map(p=>p.project)).toEqual(parts.map(p=>p.project));
   expect(new Set(parts.map(p=>p.parentGroupId)).size).toBe(4);expect(keys.size).toBe(blocks.length);expect(parts.every(p=>p.project.blocks.length<50000)).toBe(true);
   const ring=blocks.filter(b=>b.componentId==='ring-control-spire');
   expect(ring.filter(b=>b.pos.y===O.ring[1]+115).every(b=>b.pos.x<=O.ring[0]-30)).toBe(true);
