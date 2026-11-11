@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { createCampusV2 as createCampus, campusToJson, campusToCsv, assembleCampus } from './index.ts';
 import { inventory } from '../../features/build/model.ts';
 import { shapeForBlock } from '../../features/viewer/geometry.ts';
 const campus=createCampus();
+let parsed: {schema: string; districts: {project: {blocks: unknown}}[]};
+beforeAll(()=>{ parsed=JSON.parse(campusToJson(campus)); });
 describe('whole-campus canonical collection',()=>{
  it('covers every uploaded reference and preserves every district cell without overlap',()=>{
   expect(new Set(campus.districts.flatMap(d=>d.references))).toEqual(new Set(Array.from({length:11},(_,i)=>'reference-'+String(i+1).padStart(2,'0'))));
@@ -16,8 +18,14 @@ describe('whole-campus canonical collection',()=>{
   expect(campus.blocks.filter(b=>!shapeForBlock(b).supported).map(b=>b.id)).toEqual([]);
   expect(campus.blocks.every(b=>b.source.origin==='ai_estimated'&&b.source.referenceRegionId)).toBe(true);
  });
- it('exports every global coordinate and state without inventing a single aggregate Project',()=>{
-  const parsed=JSON.parse(campusToJson(campus));expect(parsed.schema).toBe('minecraft-campus-1');expect(parsed.districts).toHaveLength(campus.districts.length);for(let i=0;i<campus.districts.length;i++)expect(JSON.stringify(parsed.districts[i].project.blocks)).toBe(JSON.stringify(campus.districts[i]!.project.blocks));
+ it('exports the full campus JSON envelope without inventing an aggregate Project',()=>{
+  expect(parsed.schema).toBe('minecraft-campus-1');
+  expect(parsed.districts).toHaveLength(campus.districts.length);
+ });
+ it.each(campus.districts.map((district,index)=>({id:district.id,index})))('preserves every JSON coordinate and state in $id',({index})=>{
+  expect(JSON.stringify(parsed.districts[index]!.project.blocks)).toBe(JSON.stringify(campus.districts[index]!.project.blocks));
+ });
+ it('exports every global coordinate in the full campus CSV',()=>{
   const lines=campusToCsv(campus).split('\r\n');expect(lines).toHaveLength(campus.blocks.length+1);
   expect(lines[1]).toContain('"'+campus.blocks[0]!.uid+'"');
  });
