@@ -19,7 +19,7 @@ assert.ok(invalidTs[0].messages.some(message => message.ruleId === '@typescript-
 const invalidJs = await eslint.lintText('missingGlobal();', { filePath: 'scripts/__lint_regression__.mjs' });
 assert.ok(invalidJs[0].messages.some(message => message.ruleId === 'no-undef'));
 assert.equal(await eslint.isPathIgnored('src/features/build/model.ts'), false);
-for (const name of ['vendor/three/build/three.module.min.js', 'dist/assets/app.js', 'node_modules/example/index.js']) {
+for (const name of ['vendor/three/build/three.module.js', 'dist/assets/app.js', 'node_modules/example/index.js']) {
   assert.equal(await eslint.isPathIgnored(name), true, name);
 }
 

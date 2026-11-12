@@ -27,3 +27,9 @@ jobs:
       - run: npm run verify:vendor
       - run: npm run verify:lint-toolchain
       - run: npm run check
+        env:
+          NODE_OPTIONS: --max-old-space-size=2048
+      - name: Install browser for dependency compatibility checks
+        run: npx playwright install chromium --with-deps
+      - name: Verify editor, persistence and mobile browser flows
+        run: npm run test:e2e -- e2e/viewer.spec.ts e2e/editor.spec.ts e2e/blueprint.spec.ts e2e/persistence.spec.ts e2e/mobile-editor.spec.ts
