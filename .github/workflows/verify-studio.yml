@@ -27,3 +27,41 @@ jobs:
       - run: npm run verify:vendor
       - run: npm run verify:lint-toolchain
       - run: npm run check
+        env:
+          NODE_OPTIONS: --max-old-space-size=2048
+      - name: Install browser for dependency compatibility checks
+        run: npx playwright install chromium --with-deps
+      - name: Verify editor, persistence and mobile browser flows
+        run: npm run test:e2e -- e2e/viewer.spec.ts e2e/editor.spec.ts e2e/blueprint.spec.ts e2e/persistence.spec.ts e2e/mobile-editor.spec.ts
+      - name: Upload browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-browser-diagnostics
+          path: |
+            test-results/
+            evidence/
+  baseline-browser:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '24'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install chromium --with-deps
+      - name: Compare unchanged baseline browser behavior
+        run: npm run test:e2e -- e2e/viewer.spec.ts e2e/editor.spec.ts e2e/blueprint.spec.ts e2e/persistence.spec.ts e2e/mobile-editor.spec.ts
+      - name: Upload baseline diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baseline-browser-diagnostics
+          path: |
+            test-results/
+            evidence/

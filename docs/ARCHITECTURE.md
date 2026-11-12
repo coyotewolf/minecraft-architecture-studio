@@ -144,3 +144,8 @@ The viewer can explicitly fit a generated preview without changing canonical coo
 ## ADR-011 — Patched lint matcher and supported Node runtime
 
 ESLint 10.14.0 and TypeScript ESLint 8.72.1 use the named minimatch API. Pin minimatch 11.0.1 with an explicit npm override to address GHSA-g3hv-75wg-m249. The override crosses upstream semver ranges, so `verify:lint-toolchain` exercises real lint errors, source/ignore matching and bounded advisory-shaped glob expansion, in addition to full lint and application regression. Do not remove these checks or assume every 10.x option is interchangeable. Node now requires 22.x >=22.13 or >=24; CI uses 24. See progress/MINIMATCH_SECURITY_20261104.md for evidence and public-source review. No canonical model or runtime-provider contract changes.
+
+
+## ADR-012 — Dependency refresh (2026-11-12)
+
+React 19.3, Vite 8, Vitest 5 and TypeScript 6.0 replace previous pins. TypeScript 7 is excluded because typescript-eslint requires <6.1; Node types follow Node 24. The restricted Three.js vendor package updates to unmodified r187 registry files with provenance and pinned hashes. Vite performs release minification. Canonical data, exports and engine contracts are unchanged.
